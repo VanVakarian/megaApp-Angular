@@ -1,0 +1,12 @@
+<div class="flex gap-1 p-1">
+  <div
+    *ngFor="let button of buttons"
+    class="menu-button"
+    [ngClass]="{ hidden: !button.active || (!isAuthenticated && button.requiresAuth) }"
+    [routerLink]="button.link"
+    routerLinkActive="menu-button-active"
+  >
+    {{ button.label }}
+  </div>
+  <div class="menu-button" href="#" (click)="logout($event)">Logout</div>
+</div>

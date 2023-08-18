@@ -1,0 +1,54 @@
+<div class="flex flex-col h-full">
+  <div class="w-80 m-auto">
+    <form class="card" [formGroup]="loginForm" (ngSubmit)="submit()">
+
+      <div class="w-full text-green-800 font-bold" *ngIf="route.snapshot.queryParams['registered-successfully']">
+        Регистрация прошла успешно! Теперь вы можете войти со своими логином и паролем: 
+      </div>
+
+      <div>
+        <div class="input-field-label">Email:</div>
+      </div>
+      <div>
+        <input class="input-field" id="email" type="email" formControlName="email" />
+      </div>
+      <div
+        class="input-field-errors"
+        *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid"
+      >
+        <small *ngIf="loginForm.get('email')?.errors?.['required']">
+          Поле не должно быть пустым
+        </small>
+        <small *ngIf="loginForm.get('email')?.errors?.['email']">
+          Поле должно содержать корректный email
+        </small>
+      </div>
+
+      <div>
+        <div class="input-field-label">Password:</div>
+      </div>
+      <div>
+        <input class="input-field" id="password" type="password" formControlName="password" />
+      </div>
+      <div
+        class="input-field-errors"
+        *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid"
+      >
+        <small *ngIf="loginForm.get('password')?.errors?.['required']">
+          Введите пароль
+        </small>
+        <small *ngIf="loginForm.get('password')?.errors?.['minlength']">
+          Пароль должен быть не менее {{ loginForm.get("password")?.errors?.['minlength']?.requiredLength }} символов. 
+        </small>
+      </div>
+
+      <button
+        type="submit"
+        class="input-field-button"
+        [disabled]="loginForm.invalid || submitted"
+      >
+        Log in
+      </button>
+    </form>
+  </div>
+</div>

@@ -1,1 +1,59 @@
-/* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  ///////////////////////////////////////////////////////////// NAVBAR BUTTONS:
+  .menu-button {
+    @apply flex-grow
+    cursor-pointer
+    rounded-lg
+    bg-blue-500
+    px-4
+    py-2
+    text-center
+    font-semibold
+    text-white
+    shadow-md
+    hover:bg-blue-600;
+  }
+
+  .menu-button-active {
+    @apply bg-blue-700;
+  }
+
+
+  /////////////////////////////////////////////// LOGIN AND REGISTRATION FORMS:
+  .input-field-label {
+    @apply text-xl mt-2;
+  }
+
+  .input-field {
+    @apply rounded-lg
+    border-2
+    border-blue-100
+    bg-blue-50
+    text-xl
+    w-full;
+  }
+  
+  .input-field-errors {
+    @apply text-red-800;
+  }
+
+  .input-field-button {
+    @apply bg-blue-500
+    text-white
+    hover:bg-blue-600
+    text-xl
+    w-full
+    rounded-md
+    h-10
+    mt-4;
+  }
+}
+
+body {
+  padding: 0px;
+  margin: 0px;
+}

@@ -1,0 +1,50 @@
+<div class="flex flex-col h-full">
+  <div class="w-80 m-auto">
+    <form class="card" [formGroup]="registerForm" (ngSubmit)="submit()">
+
+      <div>
+        <div class="input-field-label">Email:</div>
+      </div>
+      <div>
+        <input class="input-field" id="email" type="email" formControlName="email" />
+      </div>
+      <div
+        class="input-field-errors"
+        *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid"
+      >
+        <small *ngIf="registerForm.get('email')?.errors?.['required']">
+          Поле не должно быть пустым
+        </small>
+        <small *ngIf="registerForm.get('email')?.errors?.['email']">
+          Поле должно содержать корректный email
+        </small>
+      </div>
+
+      <div>
+        <div class="input-field-label">Password:</div>
+      </div>
+      <div>
+        <input class="input-field" id="password" type="password" formControlName="password" />
+      </div>
+      <div
+        class="input-field-errors"
+        *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.invalid"
+      >
+        <small *ngIf="registerForm.get('password')?.errors?.['required']">
+          Введите пароль
+        </small>
+        <small *ngIf="registerForm.get('password')?.errors?.['minlength']">
+          Пароль должен быть не менее {{ registerForm.get("password")?.errors?.['minlength']?.requiredLength }} символов. 
+        </small>
+      </div>
+
+      <button
+        type="submit"
+        class="input-field-button"
+        [disabled]="registerForm.invalid || submitted"
+      >
+        Register
+      </button>
+    </form>
+  </div>
+</div>
