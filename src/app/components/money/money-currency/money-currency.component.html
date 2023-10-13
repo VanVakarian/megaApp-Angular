@@ -1,0 +1,53 @@
+<div class="flex flex-col rounded-lg border border-gray-100 p-2 shadow-md">
+  <div class="mb-2 font-bold">Мои валюты:</div>
+
+  <div class="rounded-lg border p-2">
+    <div
+      *ngFor="let currency of currencies"
+      class="grid"
+    >
+      <div
+        class="flex"
+        (click)="toggleTabEdit(currency)"
+      >
+        <div class="mr-2 w-min whitespace-nowrap border-b-2 border-dashed font-bold">{{ currency.symbol }}</div>
+        <div class="w-min whitespace-nowrap border-b-2 border-dashed">{{ currency.name }} ↴</div>
+        <div class="slug grow"></div>
+      </div>
+
+      <div
+        class="foldable grid transition-all duration-200 ease-in-out"
+        [ngClass]="currenciesDivOpenState[currency.ticker] ? 'open' : 'closed'"
+      >
+        <div class="overflow-hidden">
+          <app-form-currency
+            [currencyFormData]="currency"
+            [formRole]="'edit'"
+            (currencyChanged)="currencyRequest()"
+          ></app-form-currency>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-2">
+    <div
+      class="w-min whitespace-nowrap border-b-2 border-dashed"
+      (click)="toggleTabNew()"
+    >
+      Добавить ещё одну? ↴
+    </div>
+    <div
+      #newCurrencyDiv
+      class="grid transition-all duration-200 ease-in-out"
+      [ngClass]="currenciesDivOpenState['newCurrencyDiv'] ? 'open' : 'closed'"
+    >
+      <div class="overflow-hidden">
+        <app-form-currency
+          [formRole]="'new'"
+          (currencyChanged)="currencyRequest()"
+        ></app-form-currency>
+      </div>
+    </div>
+  </div>
+</div>

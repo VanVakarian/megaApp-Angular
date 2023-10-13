@@ -7,7 +7,6 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 @Component({
   selector: 'app-login-page',
   templateUrl: './login-page.component.html',
-  styleUrls: ['./login-page.component.scss']
 })
 export class LoginPageComponent implements OnInit {
 
@@ -24,7 +23,6 @@ export class LoginPageComponent implements OnInit {
       email: new FormControl(null, [Validators.required]),
       password: new FormControl(null, [Validators.required, Validators.minLength(6)])
     });
-
   }
 
   ngOnInit() {
@@ -36,7 +34,7 @@ export class LoginPageComponent implements OnInit {
 
   submit() {
     if (this.loginForm.invalid) {
-      console.log('Form is invalid')
+      // console.log('Form is invalid')
       return
     }
 
@@ -50,7 +48,7 @@ export class LoginPageComponent implements OnInit {
     this.auth.login(user).subscribe({
       next: () => {
         this.loginForm.reset();
-        this.router.navigate(['/kcals']);
+        this.router.navigate(['']);
         this.submitted = false;
       },
       error: (error) => {

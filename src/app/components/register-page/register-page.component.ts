@@ -7,7 +7,6 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 @Component({
   selector: 'app-register-page',
   templateUrl: './register-page.component.html',
-  styleUrls: ['./register-page.component.scss']
 })
 export class RegisterPageComponent implements OnInit {
 
@@ -31,9 +30,8 @@ export class RegisterPageComponent implements OnInit {
   }
 
   submit() {
-    console.log('lolkek')
     if (this.registerForm.invalid) {
-      console.log('Form is invalid')
+      // console.log('Form is invalid')
       return
     }
 
@@ -47,11 +45,11 @@ export class RegisterPageComponent implements OnInit {
     this.auth.register(user).subscribe({
       next: () => {
         this.registerForm.reset()
-        this.router.navigate(['/login'], { queryParams: { 'registered-successfully': true }});
+        // this.router.navigate(['/login'], { queryParams: { 'registered-successfully': true }});  // TODO: переделать
         this.submitted = false
       },
       error: (error) => {
-        console.log(error)
+        console.error(error)
         this.submitted = false
       }
     })

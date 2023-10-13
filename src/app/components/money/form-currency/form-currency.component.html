@@ -1,0 +1,114 @@
+<div class="mx-auto max-w-md rounded-lg p-2 shadow-md">
+  <form (submit)="onSubmit()">
+    <div class="mb-2">
+      <label
+        for="name"
+        class="block text-gray-700"
+        >Название валюты:</label
+      >
+      <input
+        type="text"
+        id="name"
+        name="name"
+        [(ngModel)]="currencyFormData.name"
+        required
+        class="w-full rounded-lg border px-4 py-2 focus:border-blue-500 focus:outline-none"
+      />
+    </div>
+
+    <div class="mb-2 flex gap-4">
+      <div class="grow">
+        <label
+          for="ticker"
+          class="block text-gray-700"
+          >Тикер:</label
+        >
+        <input
+          type="text"
+          id="ticker"
+          name="ticker"
+          [(ngModel)]="currencyFormData.ticker"
+          required
+          class="w-full rounded-lg border px-4 py-2 focus:border-blue-500 focus:outline-none"
+        />
+      </div>
+
+      <div class="grow">
+        <label
+          for="symbol"
+          class="block text-gray-700"
+          >Символ:</label
+        >
+        <input
+          type="text"
+          id="symbol"
+          name="symbol"
+          [(ngModel)]="currencyFormData.symbol"
+          required
+          class="w-full rounded-lg border px-4 py-2 focus:border-blue-500 focus:outline-none"
+        />
+      </div>
+    </div>
+
+    <div class="mb-2 flex gap-4">
+      <div class="grow">
+        <label
+          for="symbol_pos"
+          class="block text-gray-700"
+          >Позиция символа:</label
+        >
+        <select
+          id="symbol_pos"
+          name="symbol_pos"
+          [(ngModel)]="currencyFormData.symbol_pos"
+          required
+          class="w-full rounded-lg border px-4 py-2 focus:border-blue-500 focus:outline-none"
+        >
+          <option value="prefix">Prefix</option>
+          <option value="postfix">Postfix</option>
+        </select>
+      </div>
+
+      <div class="grow">
+        <label
+          for="whitespace"
+          class="block text-gray-700"
+          >Пробел:</label
+        >
+        <input
+          type="checkbox"
+          id="whitespace"
+          name="whitespace"
+          [(ngModel)]="currencyFormData.whitespace"
+          class="mt-1 h-7 w-7 leading-tight"
+        />
+      </div>
+    </div>
+
+    <div class="flex justify-end">
+      <button
+        *ngIf="formRole === 'edit'"
+        type="button"
+        class="mr-2 rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+        (click)="openConfirmationModal('Вы уверены, что хотите удалить эту валюту?')"
+      >
+        Удалить
+      </button>
+
+      <button
+        type="submit"
+        class="rounded-lg px-4 py-2 text-white"
+        [ngClass]="isFormValid() ? 'bg-blue-500 hover:bg-blue-700 ' : 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'"
+        [disabled]="!isFormValid()"
+      >
+        {{ formRole === 'edit' ? 'Сохранить' : 'Добавить' }}
+      </button>
+    </div>
+  </form>
+
+  <app-modal-y-n
+    [isOpen]="isConfirmationModalOpen"
+    [actionQuestion]="'Вы уверены, что хотите удалить эту валюту?'"
+    (confirmed)="handleConfirmation($event)"
+  ></app-modal-y-n>
+</div>

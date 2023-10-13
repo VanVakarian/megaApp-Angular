@@ -1,8 +1,10 @@
-<div class="flex h-screen w-screen flex-col">
-  <div class="flex-grow p-1">
-    <router-outlet></router-outlet>
+<div class="relative h-screen w-screen text-lg">
+  <div class="flex h-full w-full">
+    <div class="flex-grow p-4">
+      <router-outlet></router-outlet>
+    </div>
+    <div class="w-[30px]"></div>
   </div>
-
   <div>
     <app-navbar></app-navbar>
   </div>

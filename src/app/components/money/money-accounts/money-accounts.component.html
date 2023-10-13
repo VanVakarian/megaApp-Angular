@@ -1,0 +1,51 @@
+<div class="rounded-lg border border-gray-100 bg-green-50 p-2 shadow-md">
+  <div
+    class="flex"
+    (click)="toggleTab('currency')"
+  >
+    <div class="mx-auto border-b-2 border-dashed font-bold">ВАЛЮТЫ ↴</div>
+  </div>
+
+  <div
+    class="grid transition-all duration-200 ease-in-out"
+    [ngClass]="componentsOpenState['currency'] ? 'open' : 'closed'"
+  >
+    <div class="overflow-hidden">
+      <app-money-currency></app-money-currency>
+    </div>
+  </div>
+</div>
+
+<div class="mt-4 rounded-lg border border-gray-100 bg-yellow-50 p-2 shadow-md">
+  <div
+    class="flex"
+    (click)="toggleTab('banks')"
+  >
+    <div class="mx-auto border-b-2 border-dashed font-bold">БАНКИ ↴</div>
+  </div>
+
+  <div
+    class="grid transition-all duration-200 ease-in-out"
+    [ngClass]="componentsOpenState['banks'] ? 'open' : 'closed'"
+  >
+    <div class="overflow-hidden">
+      <app-money-bank></app-money-bank>
+    </div>
+  </div>
+</div>
+
+<div class="mt-4 rounded-lg border border-gray-100 bg-blue-50 p-2 shadow-md">
+  <div
+    class="flex"
+    (click)="toggleTab('accounts')"
+  >
+    <div class="mx-auto border-b-2 border-dashed font-bold">СЧЕТА ↴</div>
+  </div>
+
+  <div
+    class="grid transition-all duration-200 ease-in-out"
+    [ngClass]="componentsOpenState['accounts'] ? 'open' : 'closed'"
+  >
+    <div class="overflow-hidden">Здесь будут счета...</div>
+  </div>
+</div>

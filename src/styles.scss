@@ -5,21 +5,42 @@
 @layer components {
   ///////////////////////////////////////////////////////////// NAVBAR BUTTONS:
   .menu-button {
-    @apply flex-grow
+    @apply 
     cursor-pointer
-    rounded-lg
-    bg-blue-500
-    px-4
-    py-2
+    rounded-tl-lg
+    rounded-bl-lg
+    py-3
     text-center
     font-semibold
     text-white
     shadow-md
+  }
+
+  .btn-blue {
+    @apply bg-blue-500
     hover:bg-blue-600;
   }
 
-  .menu-button-active {
+  .btn-blue-active {
     @apply bg-blue-700;
+  }
+
+  .btn-green {
+    @apply bg-green-500
+    hover:bg-green-600;
+  }
+
+  .btn-green-active {
+    @apply bg-green-700;
+  }
+
+  .btn-purple {
+    @apply bg-purple-500
+    hover:bg-purple-600;
+  }
+
+  .btn-purple-active {
+    @apply bg-purple-700;
   }
 
 

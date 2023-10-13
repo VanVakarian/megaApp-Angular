@@ -1,0 +1,52 @@
+<div class="flex flex-col rounded-lg border border-gray-100 p-2 shadow-md">
+  <div class="mb-2 font-bold">Мои банки:</div>
+
+  <div class="rounded-lg border p-2">
+    <div
+      *ngFor="let bank of banks"
+      class="grid"
+    >
+      <div
+        class="flex"
+        (click)="toggleTabEdit(bank)"
+      >
+        <div class="w-min whitespace-nowrap border-b-2 border-dashed">{{ bank.name }} ↴</div>
+        <div class="slug grow"></div>
+      </div>
+
+      <div
+        class="foldable grid transition-all duration-200 ease-in-out"
+        [ngClass]="banksDivOpenState[bank.id.toString()] ? 'open' : 'closed'"
+      >
+        <div class="overflow-hidden">
+          <app-form-bank
+            [bankFormData]="bank"
+            [formRole]="'edit'"
+            (bankChanged)="banksRequest()"
+          ></app-form-bank>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-2">
+    <div
+      class="w-min whitespace-nowrap border-b-2 border-dashed"
+      (click)="toggleTabNew()"
+    >
+      Добавить ещё один? ↴
+    </div>
+    <div
+      #newBankDiv
+      class="grid transition-all duration-200 ease-in-out"
+      [ngClass]="banksDivOpenState['newBankDiv'] ? 'open' : 'closed'"
+    >
+      <div class="overflow-hidden">
+        <app-form-bank
+          [formRole]="'new'"
+          (bankChanged)="banksRequest()"
+        ></app-form-bank>
+      </div>
+    </div>
+  </div>
+</div>
