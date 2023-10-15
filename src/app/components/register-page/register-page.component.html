@@ -41,7 +41,8 @@
       >
         <small *ngIf="registerForm.get('password')?.errors?.['required']"> Введите пароль </small>
         <small *ngIf="registerForm.get('password')?.errors?.['minlength']">
-          Пароль должен быть не менее {{ registerForm.get("password")?.errors?.['minlength']?.requiredLength }} символов.
+          Пароль должен быть не менее
+          {{ registerForm.get("password")?.errors?.['minlength']?.requiredLength }} символов.
         </small>
       </div>
 

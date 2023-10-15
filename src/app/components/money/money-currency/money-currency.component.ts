@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { AuthService } from 'src/app/services/auth/auth.service';
+import { DataSharingService } from 'src/app/services/data-sharing.service';
+import { NotificationsService } from 'src/app/services/notifications.service';
 import { CurrencyServerResponse } from 'src/app/shared/interfaces';
 
 @Component({
@@ -9,7 +11,12 @@ import { CurrencyServerResponse } from 'src/app/shared/interfaces';
   styleUrls: ['./money-currency.component.scss'],
 })
 export class MoneyCurrencyComponent implements OnInit {
-  constructor(private http: HttpClient, public auth: AuthService) {}
+  constructor(
+    private http: HttpClient,
+    private auth: AuthService,
+    private dataSharingService: DataSharingService,
+    private notificationsService: NotificationsService
+  ) {}
   token = this.auth.getToken();
 
   currencies: CurrencyServerResponse[] = [];
@@ -21,8 +28,8 @@ export class MoneyCurrencyComponent implements OnInit {
     this.currenciesDivOpenState['newCurrencyDiv'] = !this.currenciesDivOpenState['newCurrencyDiv'];
   }
 
-  toggleTabEdit(currency: { ticker: string }) {
-    const key = currency.ticker;
+  toggleTabEdit(currency: { id: number }) {
+    const key = currency.id.toString();
     this.closeEveryDiv(key);
     this.currenciesDivOpenState[key] = !this.currenciesDivOpenState[key];
   }
@@ -49,18 +56,25 @@ export class MoneyCurrencyComponent implements OnInit {
         .subscribe({
           next: (response) => {
             // console.log('Ответ от сервера:', response);
+            // this.notificationsService.addNotification('Ответ от сервера получен', 'success');
             this.currencies = response.currency_list;
           },
           error: (error) => {
             console.error('Ошибка при запросе:', error);
+            this.notificationsService.addNotification('Ошибка при запросе счетов', 'error');
           },
         });
     } else {
       console.error('Токен не найден. Пользователь не авторизован.');
+      this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
     }
   }
 
   ngOnInit(): void {
     this.currencyRequest();
+
+    this.dataSharingService.currenciesChanged.subscribe(() => {
+      this.currencyRequest();
+    });
   }
 }

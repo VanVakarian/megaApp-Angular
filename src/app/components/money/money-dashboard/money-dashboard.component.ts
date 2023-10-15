@@ -5,7 +5,7 @@ import { Component, OnInit } from '@angular/core';
   templateUrl: './money-dashboard.component.html',
 })
 export class MoneyDashboardComponent implements OnInit {
-  constructor() { }
+  constructor() {}
 
-  ngOnInit() { }
+  ngOnInit() {}
 }

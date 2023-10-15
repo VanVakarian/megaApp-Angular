@@ -2,17 +2,29 @@ import { HttpClient } from '@angular/common/http';
 import { AfterViewInit, Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { BankFormData } from 'src/app/shared/interfaces';
 import { AuthService } from 'src/app/services/auth/auth.service';
+import { DataSharingService } from 'src/app/services/data-sharing.service';
+import { NotificationsService } from 'src/app/services/notifications.service';
 
 @Component({
   selector: 'app-form-bank',
   templateUrl: './form-bank.component.html',
 })
 export class FormBankComponent implements OnInit, AfterViewInit {
-  constructor(private http: HttpClient, public auth: AuthService) {}
+  constructor(
+    private http: HttpClient,
+    private auth: AuthService,
+    private dataSharingService: DataSharingService,
+    private notificationsService: NotificationsService
+  ) {}
   token = this.auth.getToken();
 
+  emitBanksChanged() {
+    // console.log('emitBanksChanged');
+    this.dataSharingService.banksChanged.emit();
+  }
+
   @Input() bankFormData: BankFormData = {
-    name: '',
+    title: '',
   };
   @Input() formRole: string = '';
   @Output() bankChanged = new EventEmitter<void>();
@@ -35,12 +47,12 @@ export class FormBankComponent implements OnInit, AfterViewInit {
   }
 
   isFormValid(): boolean {
-    return this.bankFormData.name !== '';
+    return this.bankFormData.title !== '';
   }
 
   clearForm() {
     this.bankFormData = {
-      name: '',
+      title: '',
     };
   }
 
@@ -61,15 +73,18 @@ export class FormBankComponent implements OnInit, AfterViewInit {
         .subscribe({
           next: (response) => {
             // console.log('Ответ от сервера:', response);
+            this.notificationsService.addNotification('Банк успешно cоздан', 'success');
             this.clearForm();
-            this.bankChanged.emit();
+            this.emitBanksChanged();
           },
           error: (error) => {
             console.error('Ошибка при запросе:', error);
+            this.notificationsService.addNotification('Ошибка при создании банка', 'error');
           },
         });
     } else {
       console.error('Токен не найден. Пользователь не авторизован.');
+      this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
     }
   }
 
@@ -82,14 +97,17 @@ export class FormBankComponent implements OnInit, AfterViewInit {
         .subscribe({
           next: (response) => {
             // console.log('Ответ от сервера:', response);
-            this.bankChanged.emit();
+            this.notificationsService.addNotification('Банк успешно изменён', 'success');
+            this.emitBanksChanged();
           },
           error: (error) => {
-            console.error('Ошибка при запросе:', error);
+            console.error('Ошибка при обновлении валюты:', error);
+            this.notificationsService.addNotification('Ошибка при обновлении банка', 'error');
           },
         });
     } else {
       console.error('Токен не найден. Пользователь не авторизован.');
+      this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
     }
   }
 
@@ -101,15 +119,18 @@ export class FormBankComponent implements OnInit, AfterViewInit {
         })
         .subscribe({
           next: (response) => {
-            // console.log('Валюта успешно удалена:', response);
-            this.bankChanged.emit();
+            // console.log('Ответ от сервера:', response);
+            this.notificationsService.addNotification('Банк успешно удалён', 'success');
+            this.emitBanksChanged();
           },
           error: (error) => {
             console.error('Ошибка при удалении валюты:', error);
+            this.notificationsService.addNotification('Ошибка при удалении банка', 'error');
           },
         });
     } else {
       console.error('Токен не найден. Пользователь не авторизован.');
+      this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
     }
   }
 

@@ -46,6 +46,8 @@
     class="grid transition-all duration-200 ease-in-out"
     [ngClass]="componentsOpenState['accounts'] ? 'open' : 'closed'"
   >
-    <div class="overflow-hidden">Здесь будут счета...</div>
+    <div class="overflow-hidden">
+      <app-money-account></app-money-account>
+    </div>
   </div>
 </div>

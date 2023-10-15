@@ -1,16 +1,12 @@
 <div class="mx-auto max-w-md rounded-lg p-2 shadow-md">
   <form (submit)="onSubmit()">
     <div class="mb-2">
-      <label
-        for="name"
-        class="block text-gray-700"
-        >Название банка:</label
-      >
+      <label for="title">Название банка:</label>
       <input
         type="text"
-        id="name"
-        name="name"
-        [(ngModel)]="bankFormData.name"
+        id="title"
+        name="title"
+        [(ngModel)]="bankFormData.title"
         required
         class="w-full rounded-lg border px-4 py-2 focus:border-blue-500 focus:outline-none"
       />
@@ -20,7 +16,7 @@
       <button
         *ngIf="formRole === 'edit'"
         type="button"
-        class="mr-2 rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+        class="mr-2 rounded-lg bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-700"
         (click)="openConfirmationModal('Вы уверены, что хотите удалить этот банк?')"
       >
         Удалить
@@ -28,8 +24,10 @@
 
       <button
         type="submit"
-        class="rounded-lg px-4 py-2 text-white"
-        [ngClass]="isFormValid() ? 'bg-blue-500 hover:bg-blue-700 ' : 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'"
+        class="rounded-lg px-4 py-2 font-bold text-white"
+        [ngClass]="
+          isFormValid() ? 'bg-blue-500 hover:bg-blue-700 ' : 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'
+        "
         [disabled]="!isFormValid()"
       >
         {{ formRole === 'edit' ? 'Сохранить' : 'Добавить' }}
@@ -39,7 +37,7 @@
 
   <app-modal-y-n
     [isOpen]="isConfirmationModalOpen"
-    [actionQuestion]="'Вы уверены, что хотите удалить этот банк?'"
+    [actionQuestion]="actionQuestion"
     (confirmed)="handleConfirmation($event)"
   ></app-modal-y-n>
 </div>

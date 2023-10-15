@@ -1,0 +1,18 @@
+<div
+  class="fixed bottom-0 left-0 flex flex-col gap-2 p-2"
+  style="z-index: 666"
+>
+  <div
+    class="max-w-fit"
+    *ngFor="let notification of notificationsService.notifications"
+    [@slideInOutAnimation]
+  >
+    <div
+      class="rounded-lg border border-gray-700 p-2 px-2 py-1 shadow-lg"
+      [ngClass]="[notification.bgColour, notification.textColour]"
+      (click)="removeNotification(notification)"
+    >
+      {{ notification.message }}
+    </div>
+  </div>
+</div>

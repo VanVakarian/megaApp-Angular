@@ -1,5 +1,5 @@
-<div class="flex flex-col rounded-lg border border-gray-100 p-2 shadow-md">
-  <div class="mb-2 font-bold">Мои банки:</div>
+<div class="flex flex-col">
+  <div class="font-bold">Мои банки:</div>
 
   <div class="rounded-lg border p-2">
     <div
@@ -10,7 +10,7 @@
         class="flex"
         (click)="toggleTabEdit(bank)"
       >
-        <div class="w-min whitespace-nowrap border-b-2 border-dashed">{{ bank.name }} ↴</div>
+        <div class="w-min whitespace-nowrap border-b-2 border-dashed">{{ bank.title }} ↴</div>
         <div class="slug grow"></div>
       </div>
 
@@ -22,7 +22,6 @@
           <app-form-bank
             [bankFormData]="bank"
             [formRole]="'edit'"
-            (bankChanged)="banksRequest()"
           ></app-form-bank>
         </div>
       </div>
@@ -42,10 +41,7 @@
       [ngClass]="banksDivOpenState['newBankDiv'] ? 'open' : 'closed'"
     >
       <div class="overflow-hidden">
-        <app-form-bank
-          [formRole]="'new'"
-          (bankChanged)="banksRequest()"
-        ></app-form-bank>
+        <app-form-bank [formRole]="'new'"></app-form-bank>
       </div>
     </div>
   </div>

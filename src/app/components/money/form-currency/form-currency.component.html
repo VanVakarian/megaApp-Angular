@@ -2,15 +2,15 @@
   <form (submit)="onSubmit()">
     <div class="mb-2">
       <label
-        for="name"
-        class="block text-gray-700"
+        for="title"
+        class="block"
         >Название валюты:</label
       >
       <input
         type="text"
-        id="name"
-        name="name"
-        [(ngModel)]="currencyFormData.name"
+        id="title"
+        name="title"
+        [(ngModel)]="currencyFormData.title"
         required
         class="w-full rounded-lg border px-4 py-2 focus:border-blue-500 focus:outline-none"
       />
@@ -20,7 +20,7 @@
       <div class="grow">
         <label
           for="ticker"
-          class="block text-gray-700"
+          class="block"
           >Тикер:</label
         >
         <input
@@ -36,7 +36,7 @@
       <div class="grow">
         <label
           for="symbol"
-          class="block text-gray-700"
+          class="block"
           >Символ:</label
         >
         <input
@@ -54,7 +54,7 @@
       <div class="grow">
         <label
           for="symbol_pos"
-          class="block text-gray-700"
+          class="block"
           >Позиция символа:</label
         >
         <select
@@ -62,17 +62,27 @@
           name="symbol_pos"
           [(ngModel)]="currencyFormData.symbol_pos"
           required
-          class="w-full rounded-lg border px-4 py-2 focus:border-blue-500 focus:outline-none"
+          class="w-full rounded-lg border bg-white px-4 py-2 focus:border-blue-500 focus:outline-none"
         >
-          <option value="prefix">Prefix</option>
-          <option value="postfix">Postfix</option>
+          <option
+            class="bg-white"
+            value="prefix"
+          >
+            Prefix
+          </option>
+          <option
+            class="bg-white"
+            value="postfix"
+          >
+            Postfix
+          </option>
         </select>
       </div>
 
       <div class="grow">
         <label
           for="whitespace"
-          class="block text-gray-700"
+          class="block"
           >Пробел:</label
         >
         <input
@@ -89,7 +99,7 @@
       <button
         *ngIf="formRole === 'edit'"
         type="button"
-        class="mr-2 rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+        class="mr-2 rounded-lg bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-700"
         (click)="openConfirmationModal('Вы уверены, что хотите удалить эту валюту?')"
       >
         Удалить
@@ -97,8 +107,10 @@
 
       <button
         type="submit"
-        class="rounded-lg px-4 py-2 text-white"
-        [ngClass]="isFormValid() ? 'bg-blue-500 hover:bg-blue-700 ' : 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'"
+        class="rounded-lg px-4 py-2 font-bold text-white"
+        [ngClass]="
+          isFormValid() ? 'bg-blue-500 hover:bg-blue-700 ' : 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'
+        "
         [disabled]="!isFormValid()"
       >
         {{ formRole === 'edit' ? 'Сохранить' : 'Добавить' }}
@@ -108,7 +120,7 @@
 
   <app-modal-y-n
     [isOpen]="isConfirmationModalOpen"
-    [actionQuestion]="'Вы уверены, что хотите удалить эту валюту?'"
+    [actionQuestion]="actionQuestion"
     (confirmed)="handleConfirmation($event)"
   ></app-modal-y-n>
 </div>

@@ -19,17 +19,16 @@ export interface RegisterResponse {
 
 export interface CurrencyServerResponse {
   id: number;
-  name: string;
+  title: string;
   ticker: string;
   symbol: string;
   symbol_pos: string;
   whitespace: boolean;
-  users_id: number;
 }
 
 export interface CurrencyFormData {
-  id?: any;
-  name: string;
+  id?: number;
+  title: string;
   ticker: string;
   symbol: string;
   symbol_pos: string;
@@ -38,11 +37,36 @@ export interface CurrencyFormData {
 
 export interface BanksServerResponse {
   id: number;
-  name: string;
-  users_id: number;
+  title: string;
 }
 
 export interface BankFormData {
-  id?: any;
-  name: string;
+  id?: number;
+  title: string;
+}
+
+export interface AccountsServerResponse {
+  id: number;
+  title: string;
+  currency_id: number;
+  bank_id: number;
+  invest: boolean;
+  kind: string;
+}
+
+export interface AccountsFormData {
+  id?: number;
+  title: string;
+  currency_id: number;
+  bank_id: number;
+  invest: boolean;
+  kind: string;
+}
+
+export interface Notification {
+  id: number;
+  message: string;
+  bgColour: string;
+  textColour: string;
+  time: number;
 }

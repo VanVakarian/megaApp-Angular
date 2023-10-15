@@ -5,7 +5,7 @@ import { Component, OnInit } from '@angular/core';
   templateUrl: './money-management.component.html',
 })
 export class MoneyManagementComponent implements OnInit {
-  constructor() { }
+  constructor() {}
 
-  ngOnInit() { }
+  ngOnInit() {}
 }

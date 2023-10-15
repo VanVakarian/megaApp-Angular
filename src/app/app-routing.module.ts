@@ -6,7 +6,7 @@ import { SettingsPageComponent } from './components/settings-page/settings-page.
 import { RegisterPageComponent } from './components/register-page/register-page.component';
 import { KcalsPageComponent } from './components/kcals-page/kcals-page.component';
 import { MoneyDashboardComponent } from './components/money/money-dashboard/money-dashboard.component';
-import { MoneyAccountsComponent } from './components/money/money-accounts/money-accounts.component';
+import { MoneyManageComponent } from './components/money/money-manage/money-manage.component';
 import { MoneyTransactionsComponent } from './components/money/money-transactions/money-transactions.component';
 import { LoginPageComponent } from './components/login-page/login-page.component';
 import { AuthGuard } from './services/auth/auth.guard';
@@ -15,7 +15,7 @@ const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: 'kcals', component: KcalsPageComponent, canActivate: [AuthGuard] },
   { path: 'dashboard', component: MoneyDashboardComponent, canActivate: [AuthGuard] },
-  { path: 'accounts', component: MoneyAccountsComponent, canActivate: [AuthGuard] },
+  { path: 'manage', component: MoneyManageComponent, canActivate: [AuthGuard] },
   { path: 'transactions', component: MoneyTransactionsComponent, canActivate: [AuthGuard] },
   { path: 'settings', component: SettingsPageComponent, canActivate: [AuthGuard] },
   { path: 'login', component: LoginPageComponent },

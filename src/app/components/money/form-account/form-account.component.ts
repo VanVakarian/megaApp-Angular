@@ -1,15 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { AfterViewInit, Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { CurrencyFormData } from 'src/app/shared/interfaces';
+import { AccountsFormData, BankFormData, CurrencyFormData } from 'src/app/shared/interfaces';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { DataSharingService } from 'src/app/services/data-sharing.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
 
 @Component({
-  selector: 'app-form-currency',
-  templateUrl: './form-currency.component.html',
+  selector: 'app-form-account',
+  templateUrl: './form-account.component.html',
 })
-export class FormCurrencyComponent implements OnInit, AfterViewInit {
+export class FormAccountComponent implements OnInit, AfterViewInit {
   constructor(
     private http: HttpClient,
     private auth: AuthService,
@@ -18,18 +18,26 @@ export class FormCurrencyComponent implements OnInit, AfterViewInit {
   ) {}
   token = this.auth.getToken();
 
-  emitCurrenciesChanged() {
-    // console.log('emitCurrenciesChanged');
-    this.dataSharingService.currenciesChanged.emit();
+  emitAccountsChanged() {
+    // console.log('emitAccountsChanged');
+    this.dataSharingService.accountsChanged.emit();
   }
 
-  @Input() currencyFormData: CurrencyFormData = {
+  @Input() accountFormData: AccountsFormData = {
     title: '',
-    ticker: '',
-    symbol: '',
-    symbol_pos: 'prefix',
-    whitespace: false,
+    currency_id: 0,
+    bank_id: 0,
+    invest: false,
+    kind: '',
   };
+  @Input() currencyList: CurrencyFormData[] = [];
+  @Input() bankList: BankFormData[] = [];
+  kinds = [
+    { key: 'cash', title: 'Наличные' },
+    { key: 'card', title: 'Карточный' },
+    { key: 'account', title: 'Текущий' },
+    { key: 'deposit', title: 'Вклад' },
+  ];
   @Input() formRole: string = '';
   @Output() confirmationModalOpen = new EventEmitter<boolean>();
 
@@ -43,7 +51,7 @@ export class FormCurrencyComponent implements OnInit, AfterViewInit {
 
   handleConfirmation(result: boolean) {
     if (result) {
-      this.deleteCurrency();
+      this.deleteAccount();
     } else {
     }
     this.isConfirmationModalOpen = false;
@@ -51,47 +59,47 @@ export class FormCurrencyComponent implements OnInit, AfterViewInit {
 
   isFormValid(): boolean {
     return (
-      this.currencyFormData.title !== '' &&
-      this.currencyFormData.ticker !== '' &&
-      this.currencyFormData.symbol !== '' &&
-      this.currencyFormData.symbol_pos !== ''
+      this.accountFormData.title !== '' &&
+      this.accountFormData.currency_id !== 0 &&
+      this.accountFormData.bank_id !== 0 &&
+      this.accountFormData.kind !== ''
     );
   }
 
   clearForm() {
-    this.currencyFormData = {
+    this.accountFormData = {
       title: '',
-      ticker: '',
-      symbol: '',
-      symbol_pos: 'prefix',
-      whitespace: false,
+      currency_id: 0,
+      bank_id: 0,
+      invest: false,
+      kind: '',
     };
   }
 
   onSubmit() {
     if (this.formRole === 'new') {
-      this.createCurrency();
+      this.createAccount();
     } else if (this.formRole === 'edit') {
-      this.updateCurrency();
+      this.updateAccount();
     }
   }
 
-  createCurrency() {
+  createAccount() {
     if (this.token) {
       this.http
-        .post('/api/money/currency', this.currencyFormData, {
+        .post('/api/money/account', this.accountFormData, {
           headers: { Authorization: `Bearer ${this.token}` },
         })
         .subscribe({
           next: (response) => {
             // console.log('Ответ от сервера:', response);
-            this.notificationsService.addNotification('Валюта успешно cоздана', 'success');
+            this.notificationsService.addNotification('Счёт успешно cоздан', 'success');
             this.clearForm();
-            this.emitCurrenciesChanged();
+            this.emitAccountsChanged();
           },
           error: (error) => {
             console.error('Ошибка при запросе:', error);
-            this.notificationsService.addNotification('Ошибка при создании валюты', 'error');
+            this.notificationsService.addNotification('Ошибка при создании счёта', 'error');
           },
         });
     } else {
@@ -100,21 +108,21 @@ export class FormCurrencyComponent implements OnInit, AfterViewInit {
     }
   }
 
-  updateCurrency() {
+  updateAccount() {
     if (this.token) {
       this.http
-        .put(`/api/money/currency/${this.currencyFormData.id}`, this.currencyFormData, {
+        .put(`/api/money/account/${this.accountFormData.id}`, this.accountFormData, {
           headers: { Authorization: `Bearer ${this.token}` },
         })
         .subscribe({
           next: (response) => {
             // console.log('Ответ от сервера:', response);
-            this.notificationsService.addNotification('Валюта успешно изменена', 'success');
-            this.emitCurrenciesChanged();
+            this.notificationsService.addNotification('Счёт успешно изменён', 'success');
+            this.emitAccountsChanged();
           },
           error: (error) => {
-            console.error('Ошибка при запросе:', error);
-            this.notificationsService.addNotification('Ошибка при обновлении валюты', 'error');
+            console.error('Ошибка при обновлении счёта:', error);
+            this.notificationsService.addNotification('Ошибка при обновлении счёта', 'error');
           },
         });
     } else {
@@ -123,21 +131,21 @@ export class FormCurrencyComponent implements OnInit, AfterViewInit {
     }
   }
 
-  deleteCurrency() {
+  deleteAccount() {
     if (this.token) {
       this.http
-        .delete(`/api/money/currency/${this.currencyFormData.id}`, {
+        .delete(`/api/money/account/${this.accountFormData.id}`, {
           headers: { Authorization: `Bearer ${this.token}` },
         })
         .subscribe({
           next: (response) => {
-            // console.log('Валюта успешно удалена:', response);
-            this.notificationsService.addNotification('Валюта успешно удалена', 'success');
-            this.emitCurrenciesChanged();
+            // console.log('Ответ от сервера:', response);
+            this.notificationsService.addNotification('Счёт успешно удалён', 'success');
+            this.emitAccountsChanged();
           },
           error: (error) => {
-            console.error('Ошибка при удалении валюты:', error);
-            this.notificationsService.addNotification('Ошибка при удалении валюты', 'error');
+            console.error('Ошибка при удалении счёта:', error);
+            this.notificationsService.addNotification('Ошибка при удалении счёта', 'error');
           },
         });
     } else {
@@ -146,6 +154,24 @@ export class FormCurrencyComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (this.formRole === 'edit') {
+      const currency = this.currencyList.find((c) => c.id === this.accountFormData.currency_id);
+      const bank = this.bankList.find((b) => b.id === this.accountFormData.bank_id);
+
+      if (currency && currency.id !== undefined) {
+        this.accountFormData.currency_id = currency.id;
+      } else {
+        this.accountFormData.currency_id = 0;
+      }
+
+      if (bank && bank.id !== undefined) {
+        this.accountFormData.bank_id = bank.id;
+      } else {
+        this.accountFormData.bank_id = 0;
+      }
+    }
+  }
+
   ngAfterViewInit(): void {}
 }

@@ -1,6 +1,6 @@
 <div
   id="navbarBg"
-  class="fixed inset-y-0 right-0 z-10 bg-gradient-to-r from-white/50 to-white transition-all duration-200 ease-in-out"
+  class="fixed inset-y-0 right-0 z-10 bg-gradient-to-r from-white/50 to-white transition-all duration-100 ease-in-out"
   [ngClass]="[isMenuOpen ? 'w-full' : 'w-[20px]']"
   (click)="closeMenu()"
 ></div>
@@ -13,8 +13,8 @@
     <ng-container *ngFor="let button of buttons">
       <div
         *ngIf="(isAuthenticated && button.requiresAuth) || (!isAuthenticated && !button.requiresAuth)"
-        class="menu-button self-end overflow-hidden whitespace-nowrap text-left transition-all duration-200 ease-in-out"
-        [ngClass]="[button.classColor, button.classActive, isMenuOpen ? 'w-[110px] px-2' : 'w-[20px] px-2']"
+        class="menu-button self-end overflow-hidden whitespace-nowrap text-left transition-all duration-100 ease-in-out"
+        [ngClass]="[button.classColor, button.classActive, isMenuOpen ? 'w-[120px] px-2' : 'w-[20px] px-2']"
         (click)="closeMenu()"
         [routerLink]="button.link"
         routerLinkActive="blue-menu-button-active"

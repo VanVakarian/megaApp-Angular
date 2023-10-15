@@ -1,0 +1,136 @@
+<div class="mx-auto max-w-md rounded-lg p-2 shadow-md">
+  <form (submit)="onSubmit()">
+    <div class="mb-2">
+      <label
+        for="title"
+        class="block"
+        >Название счёта:</label
+      >
+      <input
+        type="text"
+        id="title"
+        name="title"
+        [(ngModel)]="accountFormData.title"
+        required
+        class="w-full rounded-lg border px-4 py-2 focus:border-blue-500 focus:outline-none"
+      />
+    </div>
+
+    <div class="mb-2 flex gap-4">
+      <div class="flex-1">
+        <label
+          for="bank_id"
+          class="block"
+          >Банк:</label
+        >
+        <select
+          id="bank_id"
+          name="bank_id"
+          [(ngModel)]="accountFormData.bank_id"
+          required
+          class="w-full rounded-lg border bg-white px-4 py-2 focus:border-blue-500 focus:outline-none"
+        >
+          <option
+            *ngFor="let bank of bankList"
+            class="bg-white"
+            [value]="bank.id"
+          >
+            {{ bank.title }}
+          </option>
+        </select>
+      </div>
+
+      <div class="flex-1">
+        <label
+          for="currency_id"
+          class="block"
+          >Валюта:</label
+        >
+        <select
+          id="currency_id"
+          name="currency_id"
+          [(ngModel)]="accountFormData.currency_id"
+          required
+          class="w-full rounded-lg border bg-white px-4 py-2 focus:border-blue-500 focus:outline-none"
+        >
+          <option
+            *ngFor="let currency of currencyList"
+            class="bg-white"
+            [value]="currency.id"
+          >
+            {{ currency.title }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mb-2 flex gap-4">
+      <div class="flex-1">
+        <label
+          for="invest"
+          class="block"
+          >Инвестиционный?</label
+        >
+        <input
+          type="checkbox"
+          id="invest"
+          name="invest"
+          [(ngModel)]="accountFormData.invest"
+          required
+          class="mt-1 h-7 w-7 leading-tight"
+        />
+      </div>
+
+      <div class="flex-1">
+        <label
+          for="kind"
+          class="block"
+          >Тип счёта:</label
+        >
+        <select
+          id="kind"
+          name="kind"
+          [(ngModel)]="accountFormData.kind"
+          required
+          class="w-full rounded-lg border bg-white px-4 py-2 focus:border-blue-500 focus:outline-none"
+        >
+          <option
+            *ngFor="let kind of kinds"
+            class="bg-white"
+            [value]="kind.key"
+          >
+            {{ kind.title }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="flex justify-end">
+      <button
+        *ngIf="formRole === 'edit'"
+        type="button"
+        class="mr-2 rounded-lg bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-700"
+        (click)="openConfirmationModal('Вы уверены, что хотите удалить этот счёт?')"
+      >
+        Удалить
+      </button>
+
+      <button
+        type="submit"
+        class="rounded-lg px-4 py-2 font-bold text-white"
+        [ngClass]="
+          isFormValid() ? 'bg-blue-500 hover:bg-blue-700 ' : 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'
+        "
+        [disabled]="!isFormValid()"
+      >
+        {{ formRole === 'edit' ? 'Сохранить' : 'Добавить' }}
+      </button>
+    </div>
+  </form>
+
+  <app-modal-y-n
+    [isOpen]="isConfirmationModalOpen"
+    [actionQuestion]="actionQuestion"
+    (confirmed)="handleConfirmation($event)"
+  ></app-modal-y-n>
+</div>

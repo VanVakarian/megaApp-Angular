@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { AuthService } from 'src/app/services/auth/auth.service';
+import { DataSharingService } from 'src/app/services/data-sharing.service';
+import { NotificationsService } from 'src/app/services/notifications.service';
 import { BanksServerResponse } from 'src/app/shared/interfaces';
 
 @Component({
@@ -9,7 +11,12 @@ import { BanksServerResponse } from 'src/app/shared/interfaces';
   styleUrls: ['./money-bank.component.scss'],
 })
 export class MoneyBankComponent implements OnInit {
-  constructor(private http: HttpClient, public auth: AuthService) {}
+  constructor(
+    private http: HttpClient,
+    private auth: AuthService,
+    private dataSharingService: DataSharingService,
+    private notificationsService: NotificationsService
+  ) {}
   token = this.auth.getToken();
 
   banks: BanksServerResponse[] = [];
@@ -49,18 +56,25 @@ export class MoneyBankComponent implements OnInit {
         .subscribe({
           next: (response) => {
             // console.log('Ответ от сервера:', response);
+            // this.notificationsService.addNotification('Ответ от сервера получен', 'success');
             this.banks = response.bank_list;
           },
           error: (error) => {
             console.error('Ошибка при запросе:', error);
+            this.notificationsService.addNotification('Ошибка при запросе счетов', 'error');
           },
         });
     } else {
       console.error('Токен не найден. Пользователь не авторизован.');
+      this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
     }
   }
 
   ngOnInit(): void {
     this.banksRequest();
+
+    this.dataSharingService.banksChanged.subscribe(() => {
+      this.banksRequest();
+    });
   }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'
+import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { UserLogin } from '../../shared/interfaces';
 import { ActivatedRoute, Params, Router } from '@angular/router';
@@ -9,24 +9,18 @@ import { AuthService } from 'src/app/services/auth/auth.service';
   templateUrl: './login-page.component.html',
 })
 export class LoginPageComponent implements OnInit {
+  loginForm: FormGroup;
+  submitted = false;
 
-  loginForm: FormGroup
-  submitted = false
-
-  constructor(
-    public auth: AuthService,
-    private router: Router,
-    public route: ActivatedRoute,
-  ) {
+  constructor(public auth: AuthService, private router: Router, public route: ActivatedRoute) {
     this.loginForm = new FormGroup({
       // email: new FormControl(null, [Validators.required, Validators.email]),
       email: new FormControl(null, [Validators.required]),
-      password: new FormControl(null, [Validators.required, Validators.minLength(6)])
+      password: new FormControl(null, [Validators.required, Validators.minLength(6)]),
     });
   }
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   clear() {
     this.loginForm.reset();
@@ -35,15 +29,15 @@ export class LoginPageComponent implements OnInit {
   submit() {
     if (this.loginForm.invalid) {
       // console.log('Form is invalid')
-      return
+      return;
     }
 
-    this.submitted = true
+    this.submitted = true;
 
     const user: UserLogin = {
       email: this.loginForm.value.email,
-      password: this.loginForm.value.password
-    }
+      password: this.loginForm.value.password,
+    };
 
     this.auth.login(user).subscribe({
       next: () => {
@@ -54,7 +48,7 @@ export class LoginPageComponent implements OnInit {
       error: (error) => {
         console.log(error);
         this.submitted = false;
-      }
-    })
+      },
+    });
   }
 }
