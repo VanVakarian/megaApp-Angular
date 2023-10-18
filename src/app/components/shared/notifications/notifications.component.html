@@ -8,8 +8,8 @@
     [@slideInOutAnimation]
   >
     <div
-      class="rounded-lg border border-gray-700 p-2 px-2 py-1 shadow-lg"
-      [ngClass]="[notification.bgColour, notification.textColour]"
+      class="rounded-lg border p-2 px-2 py-1 shadow-lg"
+      [ngClass]="[notification.bgColour, notification.textColour, notification.borderColour]"
       (click)="removeNotification(notification)"
     >
       {{ notification.message }}

@@ -17,7 +17,7 @@ export interface RegisterResponse {
   data: null;
 }
 
-export interface CurrencyServerResponse {
+export interface Currency {
   id: number;
   title: string;
   ticker: string;
@@ -63,10 +63,27 @@ export interface AccountsFormData {
   kind: string;
 }
 
+export interface CategoryFormData {
+  id?: number | null;
+  title: string;
+  kind: string;
+  parent_id: number | null;
+}
+
+export interface Category {
+  id: number;
+  title: string;
+  kind: string;
+  parent_id: number | null;
+  children?: Category[];
+  // addChildDiv?: boolean;
+}
+
 export interface Notification {
   id: number;
   message: string;
   bgColour: string;
   textColour: string;
+  borderColour: string;
   time: number;
 }

@@ -17,11 +17,11 @@ export class MainAppComponent {
   //   this.notificationsService.addNotification('Надо же! Все океюшки!', 'success', 0);
   //   this.notificationsService.addNotification('Просто сообщение с обычной, ничем не примечательной информацией, вот!', 'info', 0);
   // }
-
   // <button
   //   (click)="showNotification()"
   //   class="fixed bottom-4 right-4 rounded bg-blue-500 px-4 py-2 text-white"
   // >
   //   Показать уведомление
   // </button>
+
 }

@@ -8,7 +8,12 @@ import { Component, OnInit } from '@angular/core';
 export class MoneyManageComponent implements OnInit {
   ngOnInit(): void {}
 
-  componentsOpenState: { [key: string]: boolean } = { currency: false, accounts: false, banks: false };
+  componentsOpenState: { [key: string]: boolean } = {
+    currency: false,
+    accounts: false,
+    banks: false,
+    categories: false,
+  };
 
   toggleTab(tabName: string) {
     for (const tab in this.componentsOpenState) {

@@ -3,7 +3,7 @@ import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angula
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { DataSharingService } from 'src/app/services/data-sharing.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
-import { CurrencyServerResponse } from 'src/app/shared/interfaces';
+import { Currency } from 'src/app/shared/interfaces';
 
 @Component({
   selector: 'app-money-currency',
@@ -19,7 +19,7 @@ export class MoneyCurrencyComponent implements OnInit {
   ) {}
   token = this.auth.getToken();
 
-  currencies: CurrencyServerResponse[] = [];
+  currencies: Currency[] = [];
   currenciesDivOpenState: { [key: string]: boolean } = { newCurrencyDiv: false };
   @ViewChild('newCurrencyDiv') newCurrencyDiv!: ElementRef;
 
@@ -50,7 +50,7 @@ export class MoneyCurrencyComponent implements OnInit {
     this.closeEveryDiv('other');
     if (this.token) {
       this.http
-        .get<{ currency_list: CurrencyServerResponse[] }>('/api/money/currency', {
+        .get<{ currency_list: Currency[] }>('/api/money/currency', {
           headers: { Authorization: `Bearer ${this.token}` },
         })
         .subscribe({

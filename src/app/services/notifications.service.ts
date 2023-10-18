@@ -20,16 +20,20 @@ export class NotificationsService {
     success: 'text-white',
     info: 'text-black',
   };
+  borderColourTable = {
+    error: '',
+    warning: '',
+    success: '',
+    info: 'border-gray-700',
+  };
 
   addNotification(message: string, notiffKind: string, time: number = 0) {
-    const bgColourKey = this.bgColourTable[notiffKind as keyof typeof this.bgColourTable];
-    const bgColour = bgColourKey ? bgColourKey : 'white';
-
-    const textColourKey = this.textColourTable[notiffKind as keyof typeof this.textColourTable];
-    const textColour = textColourKey ? textColourKey : 'black';
+    const bgColour = this.bgColourTable[notiffKind as keyof typeof this.bgColourTable];
+    const textColour = this.textColourTable[notiffKind as keyof typeof this.textColourTable];
+    const borderColour = this.borderColourTable[notiffKind as keyof typeof this.borderColourTable];
 
     const id = this.currentId++;
-    this.notifications.push({ id, message, bgColour, textColour, time });
+    this.notifications.push({ id, message, bgColour, textColour, borderColour, time });
 
     if (time === 0) {
       setTimeout(() => this.removeNotification(id), (1 + message.length / 20) * 1000);

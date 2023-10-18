@@ -48,6 +48,7 @@ export class MoneyBankComponent implements OnInit {
 
   banksRequest() {
     this.closeEveryDiv('other');
+
     if (this.token) {
       this.http
         .get<{ bank_list: BanksServerResponse[] }>('/api/money/bank', {

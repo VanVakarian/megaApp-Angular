@@ -4,7 +4,7 @@ import { merge } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { DataSharingService } from 'src/app/services/data-sharing.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
-import { AccountsServerResponse, BanksServerResponse, CurrencyServerResponse } from 'src/app/shared/interfaces';
+import { AccountsServerResponse, BanksServerResponse, Currency } from 'src/app/shared/interfaces';
 
 @Component({
   selector: 'app-money-account',
@@ -20,7 +20,7 @@ export class MoneyAccountComponent implements OnInit {
   ) {}
   token = this.auth.getToken();
 
-  currencyList: CurrencyServerResponse[] = [];
+  currencyList: Currency[] = [];
   bankList: BanksServerResponse[] = [];
   accounts: AccountsServerResponse[] = [];
   accountsDivOpenState: { [key: string]: boolean } = { newAccountDiv: false };
@@ -55,7 +55,7 @@ export class MoneyAccountComponent implements OnInit {
       this.http
         .get<{
           bank_list: BanksServerResponse[];
-          currency_list: CurrencyServerResponse[];
+          currency_list: Currency[];
           account_list: AccountsServerResponse[];
         }>('/api/money/account', {
           headers: { Authorization: `Bearer ${this.token}` },
@@ -96,7 +96,8 @@ export class MoneyAccountComponent implements OnInit {
     merge(
       this.dataSharingService.currenciesChanged,
       this.dataSharingService.accountsChanged,
-      this.dataSharingService.banksChanged
+      this.dataSharingService.banksChanged,
+      this.dataSharingService.categoriesChanged
     ).subscribe(() => {
       this.accountsRequest();
     });
