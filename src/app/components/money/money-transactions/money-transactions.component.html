@@ -1,1 +1,33 @@
-<div>TRANSACTIONS</div>
+<div class="grid grid-cols-1 overflow-x-hidden">
+  <ng-container *ngFor="let item of items; let i = index">
+    <ng-container *ngIf="i === currentIndex">
+      <div
+        class="card m-1"
+        [@slideInAndOut]="{ value: direction, params: { side: side } }"
+      >
+        <mat-card>
+          <mat-card-content>
+            {{ item }}
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </ng-container>
+  </ng-container>
+</div>
+
+<button
+  mat-raised-button
+  color="bg-red-500"
+  class="mr-1"
+  (click)="previous()"
+>
+  Prev
+</button>
+
+<button
+  mat-raised-button
+  color="bg-red-500"
+  (click)="next()"
+>
+  Next
+</button>

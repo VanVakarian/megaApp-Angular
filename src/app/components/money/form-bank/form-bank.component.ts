@@ -1,62 +1,75 @@
+import { AfterViewInit, Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, OnChanges } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { AfterViewInit, Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { BankFormData } from 'src/app/shared/interfaces';
+import { Subscription } from 'rxjs';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+
+import { Bank } from 'src/app/shared/interfaces';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { DataSharingService } from 'src/app/services/data-sharing.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
+import { ConfirmationDialogService } from 'src/app/services/mat-dialog-modal.service';
+import { UtilsService } from 'src/app/services/utils.service';
 
 @Component({
   selector: 'app-form-bank',
   templateUrl: './form-bank.component.html',
 })
-export class FormBankComponent implements OnInit, AfterViewInit {
+export class FormBankComponent implements OnInit, OnChanges, OnDestroy {
+  @Input() bankData!: Bank;
+  @Input() formRole: string = '';
+  
+  @ViewChild('inputTitle') inputTitleElem!: ElementRef;
+
+  token = this.auth.getToken();
+  
+  bankForm: FormGroup = new FormGroup({
+    id: new FormControl(0),
+    title: new FormControl('', Validators.required),
+  });
+
+  private bankClickedSubscription: Subscription;
+
   constructor(
     private http: HttpClient,
     private auth: AuthService,
     private dataSharingService: DataSharingService,
-    private notificationsService: NotificationsService
-  ) {}
-  token = this.auth.getToken();
-
-  emitBanksChanged() {
-    // console.log('emitBanksChanged');
-    this.dataSharingService.banksChanged.emit();
+    private notificationsService: NotificationsService,
+    private confirmModal: ConfirmationDialogService,
+    private utils: UtilsService
+  ) {
+    this.bankClickedSubscription = this.dataSharingService.bankClicked$.subscribe(async (bankId) => {
+      if (this.bankForm.value.id === bankId) {
+        await this.setFocusOnInput();
+      }
+    });
   }
 
-  @Input() bankFormData: BankFormData = {
-    title: '',
-  };
-  @Input() formRole: string = '';
-  @Output() bankChanged = new EventEmitter<void>();
-  @Output() confirmationModalOpen = new EventEmitter<boolean>();
-
-  isConfirmationModalOpen: boolean = false;
-  actionQuestion: string = '';
-
-  openConfirmationModal(actionQuestion: string) {
-    this.actionQuestion = actionQuestion;
-    this.isConfirmationModalOpen = true;
+  async setFocusOnInput() {
+    await this.utils.sleep(100); // await is the duration of the panel expansion animation, otherwise focus messes with it.
+    this.inputTitleElem.nativeElement.focus();
   }
 
-  handleConfirmation(result: boolean) {
-    if (result) {
-      this.deleteBank();
-    } else {
-    }
-    this.isConfirmationModalOpen = false;
+  emitbanksChanged$(): void {
+    this.dataSharingService.banksChanged$.emit();
+  }
+
+  openConfirmationModal(actionQuestion: string): void {
+    this.confirmModal.openModal(actionQuestion).subscribe((result) => {
+      if (result) {
+        this.deleteBank();
+      }
+    });
   }
 
   isFormValid(): boolean {
-    return this.bankFormData.title !== '';
+    return this.bankForm.valid;
   }
 
-  clearForm() {
-    this.bankFormData = {
-      title: '',
-    };
+  clearForm(): void {
+    this.bankForm.reset();
   }
 
-  onSubmit() {
+  onSubmit(): void {
     if (this.formRole === 'new') {
       this.createBank();
     } else if (this.formRole === 'edit') {
@@ -64,10 +77,10 @@ export class FormBankComponent implements OnInit, AfterViewInit {
     }
   }
 
-  createBank() {
+  createBank(): void {
     if (this.token) {
       this.http
-        .post('/api/money/bank', this.bankFormData, {
+        .post('/api/money/bank', this.bankForm.value, {
           headers: { Authorization: `Bearer ${this.token}` },
         })
         .subscribe({
@@ -75,65 +88,74 @@ export class FormBankComponent implements OnInit, AfterViewInit {
             // console.log('Ответ от сервера:', response);
             this.notificationsService.addNotification('Банк успешно cоздан', 'success');
             this.clearForm();
-            this.emitBanksChanged();
+            this.emitbanksChanged$();
           },
           error: (error) => {
-            console.error('Ошибка при запросе:', error);
+            console.log('Ошибка при запросе:', error);
             this.notificationsService.addNotification('Ошибка при создании банка', 'error');
           },
         });
     } else {
-      console.error('Токен не найден. Пользователь не авторизован.');
+      console.log('Токен не найден. Пользователь не авторизован.');
       this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
     }
   }
 
-  updateBank() {
+  updateBank(): void {
     if (this.token) {
       this.http
-        .put(`/api/money/bank/${this.bankFormData.id}`, this.bankFormData, {
+        .put(`/api/money/bank/${this.bankForm.value.id}`, this.bankForm.value, {
           headers: { Authorization: `Bearer ${this.token}` },
         })
         .subscribe({
           next: (response) => {
             // console.log('Ответ от сервера:', response);
             this.notificationsService.addNotification('Банк успешно изменён', 'success');
-            this.emitBanksChanged();
+            this.emitbanksChanged$();
           },
           error: (error) => {
-            console.error('Ошибка при обновлении валюты:', error);
+            console.log('Ошибка при обновлении валюты:', error);
             this.notificationsService.addNotification('Ошибка при обновлении банка', 'error');
           },
         });
     } else {
-      console.error('Токен не найден. Пользователь не авторизован.');
+      console.log('Токен не найден. Пользователь не авторизован.');
       this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
     }
   }
 
-  deleteBank() {
+  deleteBank(): void {
     if (this.token) {
       this.http
-        .delete(`/api/money/bank/${this.bankFormData.id}`, {
+        .delete(`/api/money/bank/${this.bankForm.value.id}`, {
           headers: { Authorization: `Bearer ${this.token}` },
         })
         .subscribe({
           next: (response) => {
             // console.log('Ответ от сервера:', response);
             this.notificationsService.addNotification('Банк успешно удалён', 'success');
-            this.emitBanksChanged();
+            this.emitbanksChanged$();
           },
           error: (error) => {
-            console.error('Ошибка при удалении валюты:', error);
+            console.log('Ошибка при удалении валюты:', error);
             this.notificationsService.addNotification('Ошибка при удалении банка', 'error');
           },
         });
     } else {
-      console.error('Токен не найден. Пользователь не авторизован.');
+      console.log('Токен не найден. Пользователь не авторизован.');
       this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
     }
   }
 
   ngOnInit(): void {}
-  ngAfterViewInit(): void {}
+
+  ngOnChanges(): void {
+    if (this.bankData) {
+      this.bankForm.patchValue(this.bankData);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.bankClickedSubscription.unsubscribe();
+  }
 }

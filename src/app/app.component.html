@@ -1,14 +1,43 @@
-<div class="relative h-screen w-screen text-lg">
-  <div class="flex h-full w-full">
-    <div class="flex-grow p-2">
+<mat-sidenav-container
+  class="example-container h-screen w-screen"
+  (backdropClick)="closeMenu()"
+>
+  <mat-sidenav
+    mode="over"
+    position="end"
+    [opened]="menuOpened"
+  >
+    <app-navbar (menuClosed)="closeMenu()"></app-navbar>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <div class="p-4">
       <router-outlet></router-outlet>
     </div>
-    <div class="w-[30px]"></div>
-  </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
 
-  <div>
-    <app-navbar></app-navbar>
-  </div>
-
-  <app-notifications></app-notifications>
+<!-- Hamburher button -->
+<div class="fixed bottom-2 right-4 z-10">
+  <label class="hamburger">
+    <input
+      #hamburger
+      type="checkbox"
+      [checked]="menuOpened"
+      (change)="hamburgerPressed(hamburger.checked)"
+    />
+    <svg viewBox="0 0 32 32">
+      <path
+        class="line line-top-bottom"
+        d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"
+      ></path>
+      <path
+        class="line"
+        d="M7 16 27 16"
+      ></path>
+    </svg>
+  </label>
 </div>
+<!-- /Hamburher button -->
+
+<app-notifications></app-notifications>

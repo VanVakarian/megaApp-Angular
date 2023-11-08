@@ -1,49 +1,29 @@
-<div class="flex flex-col">
-  <div class="font-bold">Мои валюты:</div>
+<mat-accordion class="sub-expansion-panel-38px-50px">
+  <ng-container *ngFor="let currency of currencies">
+    <mat-expansion-panel (opened)="currencyExpanded(currency.id)">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="overflow-hidden whitespace-nowrap text-base font-normal">{{ currency.title }}</div>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
 
-  <div class="rounded-lg border p-2">
-    <div
-      *ngFor="let currency of currencies"
-      class="grid"
-    >
-      <div
-        class="flex"
-        (click)="toggleTabEdit(currency)"
-      >
-        <div class="mr-2 w-min whitespace-nowrap border-b-2 border-dashed font-bold">{{ currency.symbol }}</div>
-        <div class="w-min whitespace-nowrap border-b-2 border-dashed">{{ currency.title }} ↴</div>
-        <div class="slug grow"></div>
-      </div>
-
-      <div
-        class="foldable grid transition-all duration-200 ease-in-out"
-        [ngClass]="currenciesDivOpenState[currency.id.toString()] ? 'open' : 'closed'"
-      >
-        <div class="overflow-hidden">
-          <app-form-currency
-            [currencyFormData]="currency"
-            [formRole]="'edit'"
-          ></app-form-currency>
-        </div>
-      </div>
-    </div>
-  </div>
+      <app-form-currency
+        [currencyData]="currency"
+        [formRole]="'edit'"
+      ></app-form-currency>
+    </mat-expansion-panel>
+  </ng-container>
 
   <div class="mt-2">
-    <div
-      class="w-min whitespace-nowrap border-b-2 border-dashed"
-      (click)="toggleTabNew()"
-    >
-      Добавить ещё одну? ↴
-    </div>
-    <div
-      #newCurrencyDiv
-      class="grid transition-all duration-200 ease-in-out"
-      [ngClass]="currenciesDivOpenState['newCurrencyDiv'] ? 'open' : 'closed'"
-    >
-      <div class="overflow-hidden">
-        <app-form-currency [formRole]="'new'"></app-form-currency>
-      </div>
-    </div>
+    <mat-expansion-panel (opened)="currencyExpanded(0)">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>add_circle_outline</mat-icon>
+          <div class="ml-1 overflow-hidden whitespace-nowrap text-base font-normal">Добавить новую валюту?</div>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <app-form-currency [formRole]="'new'"></app-form-currency>
+    </mat-expansion-panel>
   </div>
-</div>
+</mat-accordion>

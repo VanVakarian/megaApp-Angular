@@ -43,7 +43,7 @@ export class RegisterPageComponent implements OnInit {
         this.submitted = false;
       },
       error: (error) => {
-        console.error(error);
+        console.log(error);
         this.submitted = false;
       },
     });

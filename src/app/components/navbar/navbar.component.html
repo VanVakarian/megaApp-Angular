@@ -1,39 +1,30 @@
 <div
-  id="navbarBg"
-  class="fixed inset-y-0 right-0 z-10 bg-gradient-to-r from-white/50 to-white transition-all duration-100 ease-in-out"
-  [ngClass]="[isMenuOpen ? 'w-full' : 'w-[20px]']"
+  class="flex h-full flex-col justify-end"
   (click)="closeMenu()"
-></div>
-
-<div
-  id="navbar"
-  class="fixed bottom-0 right-0 z-20 mb-12 w-[20px]"
 >
-  <div class="flex h-full flex-col justify-end gap-2 pb-1 pl-1 pt-1">
+  <div class="flex flex-col justify-end gap-3 rounded-xl p-3">
     <ng-container *ngFor="let button of buttons">
-      <div
-        *ngIf="(isAuthenticated && button.requiresAuth) || (!isAuthenticated && !button.requiresAuth)"
-        class="menu-button self-end overflow-hidden whitespace-nowrap text-left transition-all duration-100 ease-in-out"
-        [ngClass]="[button.classColor, button.classActive, isMenuOpen ? 'w-[120px] px-2' : 'w-[20px] px-2']"
-        (click)="closeMenu()"
-        [routerLink]="button.link"
-        routerLinkActive="blue-menu-button-active"
-      >
-        {{ button.label }}
-      </div>
-    </ng-container>
+      <ng-container *ngIf="(isAuthenticated && button.requiresAuth) || (!isAuthenticated && !button.requiresAuth)">
+        <button
+          class="menu-button"
+          mat-raised-button
+          [routerLink]="button.link"
+        >
+          <div class="flex w-full gap-1">
+            <div class="mt-[5px]">
+              <mat-icon>{{ button.icon1Name }}</mat-icon>
 
-    <div class="relative">
-      <button
-        class="fixed bottom-3 right-3"
-        (click)="toggleMenu()"
-      >
-        <img
-          class="h-8 w-8"
-          [src]="buttonImage"
-          alt="Menu Button"
-        />
-      </button>
-    </div>
+              <mat-icon>{{ button.icon2Name }}</mat-icon>
+            </div>
+
+            <div class="mt-[4px] grow text-lg">
+              {{ button.label }}
+            </div>
+          </div>
+        </button>
+      </ng-container>
+    </ng-container>
   </div>
+
+  <div class="mb-16"></div>
 </div>

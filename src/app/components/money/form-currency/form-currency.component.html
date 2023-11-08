@@ -1,126 +1,80 @@
-<div class="mx-auto max-w-md rounded-lg p-2 shadow-md">
-  <form (submit)="onSubmit()">
-    <div class="mb-2">
-      <label
-        for="title"
-        class="block"
-        >Название валюты:</label
-      >
-      <input
-        type="text"
-        id="title"
-        name="title"
-        [(ngModel)]="currencyFormData.title"
-        required
-        class="w-full rounded-lg border px-4 py-2 focus:border-blue-500 focus:outline-none"
-      />
-    </div>
+<form
+  [formGroup]="currencyForm"
+  (submit)="onSubmit()"
+>
+  <mat-form-field class="w-full">
+    <mat-label>Название валюты:</mat-label>
 
-    <div class="mb-2 flex gap-4">
-      <div class="grow">
-        <label
-          for="ticker"
-          class="block"
-          >Тикер:</label
-        >
+    <input
+      #inputTitle
+      matInput
+      formControlName="title"
+    />
+  </mat-form-field>
+
+  <div class="mb-2 flex w-fit gap-4">
+    <div>
+      <mat-form-field>
+        <mat-label>Тикер:</mat-label>
+
         <input
-          type="text"
-          id="ticker"
-          name="ticker"
-          [(ngModel)]="currencyFormData.ticker"
-          required
-          class="w-full rounded-lg border px-4 py-2 focus:border-blue-500 focus:outline-none"
+          matInput
+          formControlName="ticker"
         />
-      </div>
+      </mat-form-field>
+    </div>
 
-      <div class="grow">
-        <label
-          for="symbol"
-          class="block"
-          >Символ:</label
-        >
+    <div>
+      <mat-form-field>
+        <mat-label>Символ:</mat-label>
+
         <input
-          type="text"
-          id="symbol"
-          name="symbol"
-          [(ngModel)]="currencyFormData.symbol"
-          required
-          class="w-full rounded-lg border px-4 py-2 focus:border-blue-500 focus:outline-none"
+          matInput
+          formControlName="symbol"
         />
-      </div>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="mb-2 flex w-fit gap-4">
+    <div>
+      <mat-button-toggle-group formControlName="symbol_pos">
+        <mat-button-toggle value="prefix">Префикс</mat-button-toggle>
+        <mat-button-toggle value="postfix">Суффикс</mat-button-toggle>
+      </mat-button-toggle-group>
     </div>
 
-    <div class="mb-2 flex gap-4">
-      <div class="grow">
-        <label
-          for="symbol_pos"
-          class="block"
-          >Позиция символа:</label
-        >
-        <select
-          id="symbol_pos"
-          name="symbol_pos"
-          [(ngModel)]="currencyFormData.symbol_pos"
-          required
-          class="w-full rounded-lg border bg-white px-4 py-2 focus:border-blue-500 focus:outline-none"
-        >
-          <option
-            class="bg-white"
-            value="prefix"
-          >
-            Prefix
-          </option>
-          <option
-            class="bg-white"
-            value="postfix"
-          >
-            Postfix
-          </option>
-        </select>
-      </div>
+    <div class="flex flex-col justify-center">
+      <div class="flex">
+        <mat-label class="mt-2">Пробел</mat-label>
 
-      <div class="grow">
-        <label
-          for="whitespace"
-          class="block"
-          >Пробел:</label
-        >
-        <input
-          type="checkbox"
-          id="whitespace"
-          name="whitespace"
-          [(ngModel)]="currencyFormData.whitespace"
-          class="mt-1 h-7 w-7 leading-tight"
-        />
+        <mat-checkbox
+          color="primary"
+          class="scale-125"
+          formControlName="whitespace"
+        ></mat-checkbox>
       </div>
     </div>
+  </div>
 
-    <div class="flex justify-end">
-      <button
-        *ngIf="formRole === 'edit'"
-        type="button"
-        class="mr-2 rounded-lg bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-700"
-        (click)="openConfirmationModal('Вы уверены, что хотите удалить эту валюту?')"
-      >
-        Удалить
-      </button>
+  <div class="flex justify-end gap-2 mt-6">
+    <button
+      *ngIf="formRole === 'edit'"
+      type="button"
+      mat-raised-button
+      color="warn"
+      (click)="openConfirmationModal('Вы уверены, что хотите удалить этот банк?')"
+    >
+      Удалить
+    </button>
 
-      <button
-        type="submit"
-        class="rounded-lg px-4 py-2 font-bold text-white"
-        [ngClass]="
-          isFormValid() ? 'bg-blue-500 hover:bg-blue-700 ' : 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'
-        "
-        [disabled]="!isFormValid()"
-      >
-        {{ formRole === 'edit' ? 'Сохранить' : 'Добавить' }}
-      </button>
-    </div>
-  </form>
-
-  <app-modal-y-n
-    [isOpen]="isConfirmationModalOpen"
-    [actionQuestion]="actionQuestion"
-    (confirmed)="handleConfirmation($event)"
-  ></app-modal-y-n>
-</div>
+    <button
+      type="submit"
+      mat-raised-button
+      color="primary"
+      [disabled]="!isFormValid()"
+    >
+      {{ formRole === 'edit' ? 'Сохранить' : 'Добавить' }}
+    </button>
+  </div>
+</form>

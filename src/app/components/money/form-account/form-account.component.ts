@@ -1,79 +1,83 @@
+import { AfterViewInit, Component, Input, OnInit, ViewChild, ElementRef, OnDestroy, OnChanges } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { AfterViewInit, Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { AccountsFormData, BankFormData, CurrencyFormData } from 'src/app/shared/interfaces';
+import { Subscription } from 'rxjs';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+
+import { Account, Bank, Currency } from 'src/app/shared/interfaces';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { DataSharingService } from 'src/app/services/data-sharing.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
+import { UtilsService } from 'src/app/services/utils.service';
+import { ConfirmationDialogService } from 'src/app/services/mat-dialog-modal.service';
 
 @Component({
   selector: 'app-form-account',
   templateUrl: './form-account.component.html',
 })
-export class FormAccountComponent implements OnInit, AfterViewInit {
-  constructor(
-    private http: HttpClient,
-    private auth: AuthService,
-    private dataSharingService: DataSharingService,
-    private notificationsService: NotificationsService
-  ) {}
+export class FormAccountComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
+  @Input() accountData!: Account;
+  @Input() formRole: string = '';
+  @Input() bankList: Bank[] = [];
+  @Input() currencyList: Currency[] = [];
+  @ViewChild('inputTitle') inputTitleElem!: ElementRef;
+
   token = this.auth.getToken();
-
-  emitAccountsChanged() {
-    // console.log('emitAccountsChanged');
-    this.dataSharingService.accountsChanged.emit();
-  }
-
-  @Input() accountFormData: AccountsFormData = {
-    title: '',
-    currency_id: 0,
-    bank_id: 0,
-    invest: false,
-    kind: '',
-  };
-  @Input() currencyList: CurrencyFormData[] = [];
-  @Input() bankList: BankFormData[] = [];
+  accountForm = new FormGroup({
+    id: new FormControl(0),
+    title: new FormControl('', [Validators.required]),
+    bank_id: new FormControl(0, [Validators.min(1)]),
+    currency_id: new FormControl(0, [Validators.min(1)]),
+    invest: new FormControl(false),
+    kind: new FormControl('', [Validators.required]),
+  });
   kinds = [
     { key: 'cash', title: 'Наличные' },
     { key: 'card', title: 'Карточный' },
     { key: 'account', title: 'Текущий' },
     { key: 'deposit', title: 'Вклад' },
   ];
-  @Input() formRole: string = '';
-  @Output() confirmationModalOpen = new EventEmitter<boolean>();
 
-  isConfirmationModalOpen: boolean = false;
-  actionQuestion: string = '';
+  private accountClickedSubscription: Subscription;
 
-  openConfirmationModal(actionQuestion: string) {
-    this.actionQuestion = actionQuestion;
-    this.isConfirmationModalOpen = true;
+  constructor(
+    private http: HttpClient,
+    private auth: AuthService,
+    private dataSharingService: DataSharingService,
+    private notificationsService: NotificationsService,
+    private utils: UtilsService,
+    private confirmModal: ConfirmationDialogService,
+    private fb: FormBuilder
+  ) {
+    this.accountClickedSubscription = this.dataSharingService.accountClicked$.subscribe(async (accountId) => {
+      if (this.accountForm.value.id === accountId) {
+        await this.setFocusOnInput();
+      }
+    });
   }
 
-  handleConfirmation(result: boolean) {
-    if (result) {
-      this.deleteAccount();
-    } else {
-    }
-    this.isConfirmationModalOpen = false;
+  async setFocusOnInput() {
+    await this.utils.sleep(100); // await is the duration of the panel expansion animation, otherwise focus messes with it.
+    this.inputTitleElem.nativeElement.focus();
+  }
+
+  emitAccountsChanged$() {
+    this.dataSharingService.accountsChanged$.emit();
+  }
+
+  openConfirmationModal(actionQuestion: string): void {
+    this.confirmModal.openModal(actionQuestion).subscribe((result) => {
+      if (result) {
+        this.deleteAccount();
+      }
+    });
   }
 
   isFormValid(): boolean {
-    return (
-      this.accountFormData.title !== '' &&
-      this.accountFormData.currency_id !== 0 &&
-      this.accountFormData.bank_id !== 0 &&
-      this.accountFormData.kind !== ''
-    );
+    return this.accountForm.valid;
   }
 
   clearForm() {
-    this.accountFormData = {
-      title: '',
-      currency_id: 0,
-      bank_id: 0,
-      invest: false,
-      kind: '',
-    };
+    this.accountForm.reset();
   }
 
   onSubmit() {
@@ -87,7 +91,7 @@ export class FormAccountComponent implements OnInit, AfterViewInit {
   createAccount() {
     if (this.token) {
       this.http
-        .post('/api/money/account', this.accountFormData, {
+        .post('/api/money/account', this.accountForm.value, {
           headers: { Authorization: `Bearer ${this.token}` },
         })
         .subscribe({
@@ -95,15 +99,15 @@ export class FormAccountComponent implements OnInit, AfterViewInit {
             // console.log('Ответ от сервера:', response);
             this.notificationsService.addNotification('Счёт успешно cоздан', 'success');
             this.clearForm();
-            this.emitAccountsChanged();
+            this.emitAccountsChanged$();
           },
           error: (error) => {
-            console.error('Ошибка при запросе:', error);
+            console.log('Ошибка при запросе:', error);
             this.notificationsService.addNotification('Ошибка при создании счёта', 'error');
           },
         });
     } else {
-      console.error('Токен не найден. Пользователь не авторизован.');
+      console.log('Токен не найден. Пользователь не авторизован.');
       this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
     }
   }
@@ -111,22 +115,22 @@ export class FormAccountComponent implements OnInit, AfterViewInit {
   updateAccount() {
     if (this.token) {
       this.http
-        .put(`/api/money/account/${this.accountFormData.id}`, this.accountFormData, {
+        .put(`/api/money/account/${this.accountForm.value.id}`, this.accountForm.value, {
           headers: { Authorization: `Bearer ${this.token}` },
         })
         .subscribe({
           next: (response) => {
             // console.log('Ответ от сервера:', response);
             this.notificationsService.addNotification('Счёт успешно изменён', 'success');
-            this.emitAccountsChanged();
+            this.emitAccountsChanged$();
           },
           error: (error) => {
-            console.error('Ошибка при обновлении счёта:', error);
+            console.log('Ошибка при обновлении счёта:', error);
             this.notificationsService.addNotification('Ошибка при обновлении счёта', 'error');
           },
         });
     } else {
-      console.error('Токен не найден. Пользователь не авторизован.');
+      console.log('Токен не найден. Пользователь не авторизован.');
       this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
     }
   }
@@ -134,44 +138,54 @@ export class FormAccountComponent implements OnInit, AfterViewInit {
   deleteAccount() {
     if (this.token) {
       this.http
-        .delete(`/api/money/account/${this.accountFormData.id}`, {
+        .delete(`/api/money/account/${this.accountForm.value.id}`, {
           headers: { Authorization: `Bearer ${this.token}` },
         })
         .subscribe({
           next: (response) => {
             // console.log('Ответ от сервера:', response);
             this.notificationsService.addNotification('Счёт успешно удалён', 'success');
-            this.emitAccountsChanged();
+            this.emitAccountsChanged$();
           },
           error: (error) => {
-            console.error('Ошибка при удалении счёта:', error);
+            console.log('Ошибка при удалении счёта:', error);
             this.notificationsService.addNotification('Ошибка при удалении счёта', 'error');
           },
         });
     } else {
-      console.error('Токен не найден. Пользователь не авторизован.');
+      console.log('Токен не найден. Пользователь не авторизован.');
       this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
     }
   }
 
   ngOnInit(): void {
     if (this.formRole === 'edit') {
-      const currency = this.currencyList.find((c) => c.id === this.accountFormData.currency_id);
-      const bank = this.bankList.find((b) => b.id === this.accountFormData.bank_id);
+      const currency = this.currencyList.find((c) => c.id === this.accountForm.value.currency_id);
+      const bank = this.bankList.find((b) => b.id === this.accountForm.value.bank_id);
 
       if (currency && currency.id !== undefined) {
-        this.accountFormData.currency_id = currency.id;
+        this.accountForm.value.currency_id = currency.id;
       } else {
-        this.accountFormData.currency_id = 0;
+        this.accountForm.value.currency_id = 0;
       }
 
       if (bank && bank.id !== undefined) {
-        this.accountFormData.bank_id = bank.id;
+        this.accountForm.value.bank_id = bank.id;
       } else {
-        this.accountFormData.bank_id = 0;
+        this.accountForm.value.bank_id = 0;
       }
     }
   }
 
   ngAfterViewInit(): void {}
+
+  ngOnChanges(): void {
+    if (this.accountData) {
+      this.accountForm.patchValue(this.accountData);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.accountClickedSubscription.unsubscribe();
+  }
 }

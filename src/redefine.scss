@@ -1,0 +1,29 @@
+.mat-mdc-dialog-content {
+  padding: 10px !important;
+}
+
+.main-expansion-panel {
+  // --mat-expansion-header-collapsed-state-height: 44px;
+}
+
+.sub-expansion-panel-38px-50px {
+  --mat-expansion-header-collapsed-state-height: 38px;
+  --mat-expansion-header-expanded-state-height: 50px;
+}
+
+.mat-mdc-form-field-infix {
+  width: auto !important;
+}
+
+.mat-drawer {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.mdc-button__label {
+  width: 100% !important;
+}
+
+.menu-button {
+  height: 48px !important;
+}

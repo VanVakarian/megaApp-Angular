@@ -1,56 +1,35 @@
-<div class="flex flex-col">
-  <div class="font-bold">Мои счета:</div>
+<mat-accordion class="sub-expansion-panel-38px-50px">
+  <ng-container *ngFor="let account of accounts">
+    <mat-expansion-panel (opened)="accountExpanded(account.id)">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="overflow-hidden whitespace-nowrap text-base font-normal">{{ account.title }}</div>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
 
-  <div class="rounded-lg border p-2">
-    <div
-      *ngFor="let account of accounts"
-      class="grid"
-    >
-      <div
-        class="flex"
-        (click)="toggleTabEdit(account)"
-      >
-        <div class="w-min whitespace-nowrap border-b-2 border-dashed">{{ account.title }} ↴</div>
-        <div class="slug grow"></div>
-      </div>
-
-      <div
-        class="foldable grid transition-all duration-200 ease-in-out"
-        [ngClass]="accountsDivOpenState[account.id.toString()] ? 'open' : 'closed'"
-      >
-        <div class="overflow-hidden">
-          <app-form-account
-            [formRole]="'edit'"
-            [bankList]="bankList"
-            [currencyList]="currencyList"
-            [accountFormData]="account"
-            (accountChanged)="accountsRequest()"
-          ></app-form-account>
-        </div>
-      </div>
-    </div>
-  </div>
+      <app-form-account
+        [formRole]="'edit'"
+        [accountData]="account"
+        [bankList]="bankList"
+        [currencyList]="currencyList"
+      ></app-form-account>
+    </mat-expansion-panel>
+  </ng-container>
 
   <div class="mt-2">
-    <div
-      class="w-min whitespace-nowrap border-b-2 border-dashed"
-      (click)="toggleTabNew()"
-    >
-      Добавить ещё один? ↴
-    </div>
-    <div
-      #newAccountDiv
-      class="grid transition-all duration-200 ease-in-out"
-      [ngClass]="accountsDivOpenState['newAccountDiv'] ? 'open' : 'closed'"
-    >
-      <div class="overflow-hidden">
-        <app-form-account
-          [formRole]="'new'"
-          [bankList]="bankList"
-          [currencyList]="currencyList"
-          (accountChanged)="accountsRequest()"
-        ></app-form-account>
-      </div>
-    </div>
+    <mat-expansion-panel (opened)="accountExpanded(0)">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>add_circle_outline</mat-icon>
+          <div class="ml-1 overflow-hidden whitespace-nowrap text-base font-normal">Добавить новый счёт?</div>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <app-form-account
+        [formRole]="'new'"
+        [bankList]="bankList"
+        [currencyList]="currencyList"
+      ></app-form-account>
+    </mat-expansion-panel>
   </div>
-</div>
+</mat-accordion>

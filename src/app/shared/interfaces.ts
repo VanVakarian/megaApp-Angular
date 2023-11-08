@@ -26,39 +26,16 @@ export interface Currency {
   whitespace: boolean;
 }
 
-export interface CurrencyFormData {
-  id?: number;
-  title: string;
-  ticker: string;
-  symbol: string;
-  symbol_pos: string;
-  whitespace: boolean;
-}
-
-export interface BanksServerResponse {
+export interface Bank {
   id: number;
   title: string;
 }
 
-export interface BankFormData {
-  id?: number;
-  title: string;
-}
-
-export interface AccountsServerResponse {
+export interface Account {
   id: number;
   title: string;
-  currency_id: number;
   bank_id: number;
-  invest: boolean;
-  kind: string;
-}
-
-export interface AccountsFormData {
-  id?: number;
-  title: string;
   currency_id: number;
-  bank_id: number;
   invest: boolean;
   kind: string;
 }
@@ -74,9 +51,6 @@ export interface Category {
   id: number;
   title: string;
   kind: string;
-  parent_id: number | null;
-  children?: Category[];
-  // addChildDiv?: boolean;
 }
 
 export interface Notification {
@@ -86,4 +60,13 @@ export interface Notification {
   textColour: string;
   borderColour: string;
   time: number;
+}
+
+export interface Transaction {
+  id: number;
+  date: string;
+  amount: number;
+  account_id: number;
+  category_id: number;
+  kind: string;
 }

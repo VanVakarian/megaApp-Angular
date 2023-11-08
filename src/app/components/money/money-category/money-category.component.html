@@ -1,115 +1,47 @@
-<div class="flex flex-col">
-  <div class="my-2 flex gap-2">
-    <div
-      *ngFor="let kind of categoryKind"
-      class="grow"
-    >
-      <div
-        class="rounded-lg p-2 text-center"
-        [ngClass]="[
-          kind.key === activeKindKey
-            ? 'border-0 bg-green-100 text-black shadow-md'
-            : 'border bg-transparent text-gray-300'
-        ]"
-        (click)="kindClicked(kind.key)"
-      >
-        {{ kind.name }}
-      </div>
-    </div>
-  </div>
+<mat-button-toggle-group
+  [(ngModel)]="activeCategoryKindKey"
+  class="mb-4 w-full"
+>
+  <mat-button-toggle
+    *ngFor="let kind of categoryKind"
+    class="w-full"
+    [value]="kind.key"
+  >
+    {{ kind.title }}
+  </mat-button-toggle>
+</mat-button-toggle-group>
 
-  <div class="font-bold">Мои категории:</div>
-
-  <div class="flex flex-col gap-2 rounded-lg border p-2">
+<mat-accordion class="sub-expansion-panel-38px-50px">
+  <div class="mb-4">
     <ng-container *ngFor="let category of categories">
-      <div
-        *ngIf="category.kind === activeKindKey"
-        class="grid"
-      >
-        <div
-          class="flex"
-          (click)="toggleTabEdit(category)"
-        >
-          <div class="w-min whitespace-nowrap border-b-2 border-dashed">{{ category.title }} ↴</div>
-          <div class="slug grow"></div>
-        </div>
+      <ng-container *ngIf="category.kind === activeCategoryKindKey">
+        <mat-expansion-panel (opened)="categoryExpanded(category.id)">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <div class="overflow-hidden whitespace-nowrap text-base font-normal">{{ category.title }}</div>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
 
-        <div
-          class="foldable grid transition-all duration-200 ease-in-out"
-          [ngClass]="categoriesDivOpenState[category.id.toString()] ? 'open' : 'closed'"
-        >
-          <div class="overflow-hidden">
-            <app-form-category
-              [categoryFormData]="category"
-              [formRole]="'edit'"
-              [formLevel]="'top'"
-              [formKind]="activeKindKey"
-              (toggleAddSubCategoryClicked)="onToggleAddSubCategoryClicked(category)"
-            ></app-form-category>
-          </div>
-        </div>
-
-        <div
-          class="foldable grid transition-all duration-200 ease-in-out"
-          [ngClass]="addSubcategoryDivOpenState[category.id.toString()] ? 'open' : 'closed'"
-        >
-          <div class="overflow-hidden">
-            <app-form-category
-              [formParent]="category.id"
-              [formRole]="'new'"
-              [formLevel]="'sub'"
-              [formKind]="activeKindKey"
-            ></app-form-category>
-          </div>
-        </div>
-
-        <div
-          *ngFor="let subcategory of category.children"
-          class="grid"
-        >
-          <div
-            class="flex"
-            (click)="toggleTabEdit(subcategory)"
-          >
-            <div class="ml-4 w-min whitespace-nowrap border-b-2 border-dashed">{{ subcategory.title }} ↴</div>
-            <div class="slug grow"></div>
-          </div>
-
-          <div
-            class="foldable grid transition-all duration-200 ease-in-out"
-            [ngClass]="categoriesDivOpenState[subcategory.id.toString()] ? 'open' : 'closed'"
-          >
-            <div class="overflow-hidden">
-              <app-form-category
-                [categoryFormData]="subcategory"
-                [formRole]="'edit'"
-                [formKind]="activeKindKey"
-              ></app-form-category>
-            </div>
-          </div>
-        </div>
-      </div>
+          <app-form-category
+            [formRole]="'edit'"
+            [categoryData]="category"
+          ></app-form-category>
+        </mat-expansion-panel>
+      </ng-container>
     </ng-container>
   </div>
 
-  <div class="mt-2">
-    <div
-      class="w-min whitespace-nowrap border-b-2 border-dashed"
-      (click)="toggleTabNew()"
-    >
-      Добавить ещё одну? ↴
-    </div>
-    <div
-      #newCategoryDiv
-      class="grid transition-all duration-200 ease-in-out"
-      [ngClass]="categoriesDivOpenState['newCategoryDiv'] ? 'open' : 'closed'"
-    >
-      <div class="overflow-hidden">
-        <app-form-category
-          [formRole]="'new'"
-          [formKind]="activeKindKey"
-        ></app-form-category>
-      </div>
-    </div>
-  </div>
-</div>
+  <mat-expansion-panel (opened)="categoryExpanded(0)">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <mat-icon>add_circle_outline</mat-icon>
+        <div class="ml-1 overflow-hidden whitespace-nowrap text-base font-normal">Добавить новую категорию?</div>
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+
+    <app-form-category
+      [formRole]="'new'"
+      [categoryKind]="activeCategoryKindKey"
+    ></app-form-category>
+  </mat-expansion-panel>
+</mat-accordion>

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { NotificationsService } from './services/notifications.service';
 
 @Component({
@@ -8,6 +8,16 @@ import { NotificationsService } from './services/notifications.service';
 })
 export class MainAppComponent {
   title = 'megaapp';
+
+  menuOpened = false;
+
+  hamburgerPressed(hamburgerCheckboxStatus: boolean) {
+    this.menuOpened = hamburgerCheckboxStatus;
+  }
+
+  closeMenu() {
+    this.menuOpened = false;
+  }
 
   // // FOR TESTING PERPOSES
   // constructor(private notificationsService: NotificationsService) {}
@@ -23,5 +33,4 @@ export class MainAppComponent {
   // >
   //   Показать уведомление
   // </button>
-
 }

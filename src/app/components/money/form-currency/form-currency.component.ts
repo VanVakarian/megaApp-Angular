@@ -1,71 +1,75 @@
+import { AfterViewInit, Component, Input, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { AfterViewInit, Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { CurrencyFormData } from 'src/app/shared/interfaces';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Subscription } from 'rxjs';
+
+import { Currency } from 'src/app/shared/interfaces';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { DataSharingService } from 'src/app/services/data-sharing.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
+import { ConfirmationDialogService } from 'src/app/services/mat-dialog-modal.service';
+import { UtilsService } from 'src/app/services/utils.service';
 
 @Component({
   selector: 'app-form-currency',
   templateUrl: './form-currency.component.html',
 })
-export class FormCurrencyComponent implements OnInit, AfterViewInit {
+export class FormCurrencyComponent implements OnInit, AfterViewInit, OnDestroy {
+  @Input() currencyData!: Currency;
+  @Input() formRole: string = '';
+  @ViewChild('inputTitle') inputTitleElem!: ElementRef;
+
+  token = this.auth.getToken();
+
+  currencyForm = new FormGroup({
+    id: new FormControl(0),
+    title: new FormControl('', [Validators.required]),
+    ticker: new FormControl('', [Validators.required]),
+    symbol: new FormControl('', [Validators.required]),
+    symbol_pos: new FormControl('prefix'),
+    whitespace: new FormControl(false),
+  });
+  private currencyClickedSubscription: Subscription;
+
   constructor(
     private http: HttpClient,
     private auth: AuthService,
     private dataSharingService: DataSharingService,
-    private notificationsService: NotificationsService
-  ) {}
-  token = this.auth.getToken();
-
-  emitCurrenciesChanged() {
-    // console.log('emitCurrenciesChanged');
-    this.dataSharingService.currenciesChanged.emit();
+    private notificationsService: NotificationsService,
+    private fb: FormBuilder,
+    private confirmModal: ConfirmationDialogService,
+    private utils: UtilsService
+  ) {
+    this.currencyClickedSubscription = this.dataSharingService.currencyClicked$.subscribe(async (currencyId) => {
+      if (this.currencyForm.value.id === currencyId) {
+        await this.setFocusOnInput();
+      }
+    });
   }
 
-  @Input() currencyFormData: CurrencyFormData = {
-    title: '',
-    ticker: '',
-    symbol: '',
-    symbol_pos: 'prefix',
-    whitespace: false,
-  };
-  @Input() formRole: string = '';
-  @Output() confirmationModalOpen = new EventEmitter<boolean>();
-
-  isConfirmationModalOpen: boolean = false;
-  actionQuestion: string = '';
-
-  openConfirmationModal(actionQuestion: string) {
-    this.actionQuestion = actionQuestion;
-    this.isConfirmationModalOpen = true;
+  async setFocusOnInput() {
+    await this.utils.sleep(100); // await is the duration of the panel expansion animation, otherwise focus messes with it.
+    this.inputTitleElem.nativeElement.focus();
   }
 
-  handleConfirmation(result: boolean) {
-    if (result) {
-      this.deleteCurrency();
-    } else {
-    }
-    this.isConfirmationModalOpen = false;
+  emitcurrenciesChanged$() {
+    this.dataSharingService.currenciesChanged$.emit();
+  }
+
+  openConfirmationModal(actionQuestion: string): void {
+    this.confirmModal.openModal(actionQuestion).subscribe((result) => {
+      if (result) {
+        this.deleteCurrency();
+      }
+    });
   }
 
   isFormValid(): boolean {
-    return (
-      this.currencyFormData.title !== '' &&
-      this.currencyFormData.ticker !== '' &&
-      this.currencyFormData.symbol !== '' &&
-      this.currencyFormData.symbol_pos !== ''
-    );
+    return this.currencyForm.valid;
   }
 
-  clearForm() {
-    this.currencyFormData = {
-      title: '',
-      ticker: '',
-      symbol: '',
-      symbol_pos: 'prefix',
-      whitespace: false,
-    };
+  clearForm(): void {
+    this.currencyForm.reset();
   }
 
   onSubmit() {
@@ -79,7 +83,7 @@ export class FormCurrencyComponent implements OnInit, AfterViewInit {
   createCurrency() {
     if (this.token) {
       this.http
-        .post('/api/money/currency', this.currencyFormData, {
+        .post('/api/money/currency', this.currencyForm.value, {
           headers: { Authorization: `Bearer ${this.token}` },
         })
         .subscribe({
@@ -87,15 +91,15 @@ export class FormCurrencyComponent implements OnInit, AfterViewInit {
             // console.log('Ответ от сервера:', response);
             this.notificationsService.addNotification('Валюта успешно cоздана', 'success');
             this.clearForm();
-            this.emitCurrenciesChanged();
+            this.emitcurrenciesChanged$();
           },
           error: (error) => {
-            console.error('Ошибка при запросе:', error);
+            console.log('Ошибка при запросе:', error);
             this.notificationsService.addNotification('Ошибка при создании валюты', 'error');
           },
         });
     } else {
-      console.error('Токен не найден. Пользователь не авторизован.');
+      console.log('Токен не найден. Пользователь не авторизован.');
       this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
     }
   }
@@ -103,22 +107,22 @@ export class FormCurrencyComponent implements OnInit, AfterViewInit {
   updateCurrency() {
     if (this.token) {
       this.http
-        .put(`/api/money/currency/${this.currencyFormData.id}`, this.currencyFormData, {
+        .put(`/api/money/currency/${this.currencyData.id}`, this.currencyData, {
           headers: { Authorization: `Bearer ${this.token}` },
         })
         .subscribe({
           next: (response) => {
             // console.log('Ответ от сервера:', response);
             this.notificationsService.addNotification('Валюта успешно изменена', 'success');
-            this.emitCurrenciesChanged();
+            this.emitcurrenciesChanged$();
           },
           error: (error) => {
-            console.error('Ошибка при запросе:', error);
+            console.log('Ошибка при запросе:', error);
             this.notificationsService.addNotification('Ошибка при обновлении валюты', 'error');
           },
         });
     } else {
-      console.error('Токен не найден. Пользователь не авторизован.');
+      console.log('Токен не найден. Пользователь не авторизован.');
       this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
     }
   }
@@ -126,26 +130,37 @@ export class FormCurrencyComponent implements OnInit, AfterViewInit {
   deleteCurrency() {
     if (this.token) {
       this.http
-        .delete(`/api/money/currency/${this.currencyFormData.id}`, {
+        .delete(`/api/money/currency/${this.currencyData.id}`, {
           headers: { Authorization: `Bearer ${this.token}` },
         })
         .subscribe({
           next: (response) => {
             // console.log('Валюта успешно удалена:', response);
             this.notificationsService.addNotification('Валюта успешно удалена', 'success');
-            this.emitCurrenciesChanged();
+            this.emitcurrenciesChanged$();
           },
           error: (error) => {
-            console.error('Ошибка при удалении валюты:', error);
+            console.log('Ошибка при удалении валюты:', error);
             this.notificationsService.addNotification('Ошибка при удалении валюты', 'error');
           },
         });
     } else {
-      console.error('Токен не найден. Пользователь не авторизован.');
+      console.log('Токен не найден. Пользователь не авторизован.');
       this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
     }
   }
 
   ngOnInit(): void {}
+
   ngAfterViewInit(): void {}
+
+  ngOnChanges(): void {
+    if (this.currencyData) {
+      this.currencyForm.patchValue(this.currencyData)
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.currencyClickedSubscription.unsubscribe();
+  }
 }
