@@ -11,13 +11,13 @@ export class NavbarComponent {
 
   isAuthenticated = this.auth.isAuthenticated();
   public buttons = [
-    { label: 'Ккал', link: '/kcals', requiresAuth: true, icon1Name: 'restaurant', icon2Name: '' },
-    { label: 'Обзор', link: '/dashboard', requiresAuth: true, icon1Name: 'paid', icon2Name: 'remove_red_eye' },
-    { label: 'Сделки', link: '/transactions', requiresAuth: true, icon1Name: 'paid', icon2Name: 'receipt_long' },
-    { label: 'Управление', link: '/manage', requiresAuth: true, icon1Name: 'paid', icon2Name: 'account_balance' },
-    { label: 'Настройки', link: '/settings', requiresAuth: true, icon1Name: 'settings', icon2Name: '' },
-    { label: 'Войти', link: '/login', requiresAuth: false, icon1Name: 'login', icon2Name: '' },
-    { label: 'Зарегистрироваться', link: '/register', requiresAuth: false, icon1Name: 'person_add', icon2Name: '' },
+    { label: 'Ккал', link: '/kcals', requiresAuth: true, iconName: 'restaurant', bgClass: 'food-bg' },
+    { label: 'Обзор', link: '/dashboard', requiresAuth: true, iconName: 'remove_red_eye', bgClass: 'money-bg' },
+    { label: 'Сделки', link: '/transactions', requiresAuth: true, iconName: 'receipt_long', bgClass: 'money-bg' },
+    { label: 'Управление', link: '/manage', requiresAuth: true, iconName: 'account_balance', bgClass: 'money-bg' },
+    { label: 'Настройки', link: '/settings', requiresAuth: true, iconName: 'settings', bgClass: 'settings-bg' },
+    { label: 'Войти', link: '/login', requiresAuth: false, iconName: 'login' , bgClass: 'login-bg'},
+    { label: 'Зарегистрироваться', link: '/register', requiresAuth: false, iconName: 'person_add', bgClass: 'register-bg' },
   ];
 
   constructor(public auth: AuthService) {

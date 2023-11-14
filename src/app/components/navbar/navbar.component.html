@@ -6,18 +6,17 @@
     <ng-container *ngFor="let button of buttons">
       <ng-container *ngIf="(isAuthenticated && button.requiresAuth) || (!isAuthenticated && !button.requiresAuth)">
         <button
-          class="menu-button"
+          class="menu-button overflow-hidden"
           mat-raised-button
           [routerLink]="button.link"
         >
+          <div class="menu-btn-bg absolute bottom-[-16px] right-[-2px] w-full h-full" [ngClass]="[button.bgClass]"></div>
           <div class="flex w-full gap-1">
-            <div class="mt-[5px]">
-              <mat-icon>{{ button.icon1Name }}</mat-icon>
-
-              <mat-icon>{{ button.icon2Name }}</mat-icon>
+            <div class="mt-[2px] mr-2">
+              <mat-icon>{{ button.iconName }}</mat-icon>
             </div>
 
-            <div class="mt-[4px] grow text-lg">
+            <div class="mt-[1px] grow text-lg font-bold">
               {{ button.label }}
             </div>
           </div>
