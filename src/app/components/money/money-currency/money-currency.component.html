@@ -1,5 +1,5 @@
 <mat-accordion class="sub-expansion-panel-38px-50px">
-  <ng-container *ngFor="let currency of currencies">
+  <ng-container *ngFor="let currency of moneyService.currencies">
     <mat-expansion-panel (opened)="currencyExpanded(currency.id)">
       <mat-expansion-panel-header>
         <mat-panel-title>

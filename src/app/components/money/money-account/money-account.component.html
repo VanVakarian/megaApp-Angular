@@ -1,5 +1,5 @@
 <mat-accordion class="sub-expansion-panel-38px-50px">
-  <ng-container *ngFor="let account of accounts">
+  <ng-container *ngFor="let account of moneyService.accounts">
     <mat-expansion-panel (opened)="accountExpanded(account.id)">
       <mat-expansion-panel-header>
         <mat-panel-title>
@@ -10,8 +10,8 @@
       <app-form-account
         [formRole]="'edit'"
         [accountData]="account"
-        [bankList]="bankList"
-        [currencyList]="currencyList"
+        [banks]="moneyService.banks"
+        [currencies]="moneyService.currencies"
       ></app-form-account>
     </mat-expansion-panel>
   </ng-container>
@@ -27,8 +27,8 @@
 
       <app-form-account
         [formRole]="'new'"
-        [bankList]="bankList"
-        [currencyList]="currencyList"
+        [banks]="moneyService.banks"
+        [currencies]="moneyService.currencies"
       ></app-form-account>
     </mat-expansion-panel>
   </div>
