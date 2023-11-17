@@ -5,15 +5,10 @@ import { EventEmitter } from '@angular/core';
   providedIn: 'root',
 })
 export class DataSharingService {
-  currenciesChanged$: EventEmitter<void> = new EventEmitter<void>();
-  currencyClicked$: EventEmitter<number> = new EventEmitter<number>();
-  
-  banksChanged$: EventEmitter<void> = new EventEmitter<void>();
-  bankClicked$: EventEmitter<number> = new EventEmitter<number>();
+  dataChanged$: EventEmitter<void> = new EventEmitter<void>();
 
-  accountsChanged$: EventEmitter<void> = new EventEmitter<void>();
+  currencyClicked$: EventEmitter<number> = new EventEmitter<number>();
+  bankClicked$: EventEmitter<number> = new EventEmitter<number>();
   accountClicked$: EventEmitter<number> = new EventEmitter<number>();
-  
-  categoriesChanged$: EventEmitter<void> = new EventEmitter<void>();
   categoryClicked$: EventEmitter<number> = new EventEmitter<number>();
 }

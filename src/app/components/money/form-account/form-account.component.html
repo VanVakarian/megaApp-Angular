@@ -16,7 +16,7 @@
     <mat-label>Банк</mat-label>
     <mat-select formControlName="bank_id">
       <mat-option
-        *ngFor="let bank of bankList"
+        *ngFor="let bank of banks"
         [value]="bank.id"
       >
         {{ bank.title }}
@@ -28,7 +28,7 @@
     <mat-label>Валюта</mat-label>
     <mat-select formControlName="currency_id">
       <mat-option
-        *ngFor="let currency of currencyList"
+        *ngFor="let currency of currencies"
         [value]="currency.id"
       >
         {{ currency.title }}
@@ -45,7 +45,7 @@
   </mat-checkbox>
 
   <mat-form-field class="w-full">
-    <mat-label>Валюта</mat-label>
+    <mat-label>Вид счёта</mat-label>
     <mat-select formControlName="kind">
       <mat-option
         *ngFor="let kind of kinds"
