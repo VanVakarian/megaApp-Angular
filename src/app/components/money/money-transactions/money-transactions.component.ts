@@ -1,32 +1,23 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
-import { trigger, state, style, transition, animate } from '@angular/animations';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { Transaction } from 'src/app/shared/interfaces';
+import { slideInOutAnimation } from 'src/app/components/money/money-transactions/animations';
 
 @Component({
   selector: 'app-money-transactions',
   templateUrl: './money-transactions.component.html',
   styleUrls: ['./money-transactions.component.scss'],
-  animations: [
-    trigger('slideInAndOut', [
-      state('left', style({ transform: 'translateX(0)', opacity: 1}), { params: { side: '' } }),
-      state('right', style({ transform: 'translateX(0)', opacity: 1}), { params: { side: '' } }),
-      state('void', style({ transform: 'translateX( {{ side }} )', opacity: 0}), { params: { side: ''} }),
-      transition('void => left', [style({ transform: 'translateX(100%)', opacity: 0 }), animate('250ms ease-in-out')]),
-      transition('left => void', [animate('250ms ease-in-out')]),
-      transition('void => right', [style({ transform: 'translateX(-100%)', opacity: 0 }), animate('250ms ease-in-out')]),
-      transition('right => void', [animate('250ms ease-in-out')]) 
-    ]),
-  ],
+  animations: [slideInOutAnimation],
 })
 export class MoneyTransactionsComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private auth: AuthService,
-    // private dataSharingService: DataSharingService,
-    private notificationsService: NotificationsService
+    private notificationsService: NotificationsService,
+    private cdRef: ChangeDetectorRef
   ) {}
   token = this.auth.getToken();
   allTransactions: Transaction[] = [];
@@ -34,21 +25,19 @@ export class MoneyTransactionsComponent implements OnInit {
   items = ['Item 1', 'Item 2', 'Item 3', 'Item 4', 'Item 5'];
   currentIndex = 0;
   direction = 'left';
-  side = '-100%'
-  color = 'red';
 
   previous() {
+    this.direction = 'right';
+    this.cdRef.detectChanges();
     if (this.currentIndex > 0) {
-      this.direction = 'right';
-      this.side = '100%'
       this.currentIndex--;
     }
   }
 
   next() {
+    this.direction = 'left';
+    this.cdRef.detectChanges();
     if (this.currentIndex < this.items.length - 1) {
-      this.direction = 'left';
-      this.side = '-100%'
       this.currentIndex++;
     }
   }
@@ -80,7 +69,5 @@ export class MoneyTransactionsComponent implements OnInit {
 
   ngOnInit(): void {
     this.categoriesRequest();
-
   }
-
 }

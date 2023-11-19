@@ -3,7 +3,7 @@
     <ng-container *ngIf="i === currentIndex">
       <div
         class="card m-1"
-        [@slideInAndOut]="{ value: direction, params: { side: side } }"
+        [@slideInOut]="direction"
       >
         <mat-card>
           <mat-card-content>
