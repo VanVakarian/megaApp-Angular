@@ -1,5 +1,5 @@
-import { AuthResponse, RegisterResponse, UserLogin, UserRegister } from 'src/app/shared/interfaces';
-import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { AuthResponse, UserLogin, UserRegister } from 'src/app/shared/interfaces';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { EventEmitter, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 

@@ -9,10 +9,10 @@ import { UtilsService } from 'src/app/services/utils.service';
 import { MoneyService } from 'src/app/services/money.service';
 
 @Component({
-  selector: 'app-form-currency',
-  templateUrl: './form-currency.component.html',
+  selector: 'app-currency-form',
+  templateUrl: './currency-form.component.html',
 })
-export class FormCurrencyComponent implements OnInit, OnDestroy {
+export class CurrencyFormComponent implements OnInit, OnDestroy {
   @Input() currencyData!: Currency;
   @Input() formRole: string = '';
 

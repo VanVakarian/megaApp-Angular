@@ -64,11 +64,11 @@ export class MoneyService {
 
           switch (method) {
             case 'GET':
-              console.log(notificationMessage, response);
+              // console.log(notificationMessage, response);
               // this.notificationsService.addNotification(notificationMessage, 'success');
               break;
             default:
-              console.log(notificationMessage, response);
+              // console.log(notificationMessage, response);
               this.notificationsService.addNotification(notificationMessage, 'success');
           }
 
@@ -84,11 +84,6 @@ export class MoneyService {
   }
 
   // CURRENCIES ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  currenciesChanged(): void {
-    this.dataSharingService.dataChanged$.emit();
-    this.getCurrencies();
-  }
 
   getCurrencies(): void {
     this.performRequest(
@@ -141,12 +136,12 @@ export class MoneyService {
     );
   }
 
-  // BANKS /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  banksChanged(): void {
+  currenciesChanged(): void {
     this.dataSharingService.dataChanged$.emit();
-    this.getBanks();
+    this.getCurrencies();
   }
+
+  // BANKS /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   getBanks(): void {
     this.performRequest(
@@ -199,12 +194,12 @@ export class MoneyService {
     );
   }
 
-  // ACCOUNTS //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  accountsChanged() {
+  banksChanged(): void {
     this.dataSharingService.dataChanged$.emit();
-    this.getAccounts();
+    this.getBanks();
   }
+
+  // ACCOUNTS //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   getAccounts(): void {
     this.performRequest(
@@ -253,16 +248,16 @@ export class MoneyService {
       'accounts_list',
       'Счёт успешно удалён',
       'Ошибка при удалении счёта',
-      this.banksChanged.bind(this)
+      this.accountsChanged.bind(this)
     );
   }
 
-  // CATEGORIES ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  categoriesChanged() {
+  accountsChanged() {
     this.dataSharingService.dataChanged$.emit();
-    this.getCategories();
+    this.getAccounts();
   }
+
+  // CATEGORIES ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   getCategories(): void {
     this.performRequest(
@@ -313,5 +308,10 @@ export class MoneyService {
       'Ошибка при удалении категории',
       this.categoriesChanged.bind(this)
     );
+  }
+
+  categoriesChanged() {
+    this.dataSharingService.dataChanged$.emit();
+    this.getCategories();
   }
 }

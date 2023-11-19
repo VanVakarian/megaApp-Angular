@@ -12,11 +12,6 @@ export interface AuthResponse {
   token: string;
 }
 
-export interface RegisterResponse {
-  status: 201;
-  data: null;
-}
-
 export interface Currency {
   id: number;
   title: string;
@@ -38,13 +33,6 @@ export interface Account {
   currency_id: number;
   invest: boolean;
   kind: string;
-}
-
-export interface CategoryFormData {
-  id?: number | null;
-  title: string;
-  kind: string;
-  parent_id: number | null;
 }
 
 export interface Category {

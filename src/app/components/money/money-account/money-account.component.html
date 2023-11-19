@@ -7,12 +7,12 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
 
-      <app-form-account
+      <app-account-form
         [formRole]="'edit'"
         [accountData]="account"
         [banks]="moneyService.banks"
         [currencies]="moneyService.currencies"
-      ></app-form-account>
+      />
     </mat-expansion-panel>
   </ng-container>
 
@@ -25,11 +25,11 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
 
-      <app-form-account
+      <app-account-form
         [formRole]="'new'"
         [banks]="moneyService.banks"
         [currencies]="moneyService.currencies"
-      ></app-form-account>
+      />
     </mat-expansion-panel>
   </div>
 </mat-accordion>

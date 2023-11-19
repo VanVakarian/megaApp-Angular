@@ -7,10 +7,10 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
 
-      <app-form-currency
+      <app-currency-form
         [currencyData]="currency"
         [formRole]="'edit'"
-      ></app-form-currency>
+      />
     </mat-expansion-panel>
   </ng-container>
 
@@ -23,7 +23,7 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
 
-      <app-form-currency [formRole]="'new'"></app-form-currency>
+      <app-currency-form [formRole]="'new'" />
     </mat-expansion-panel>
   </div>
 </mat-accordion>

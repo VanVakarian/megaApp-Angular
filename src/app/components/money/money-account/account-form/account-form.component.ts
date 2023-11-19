@@ -9,10 +9,10 @@ import { ConfirmationDialogService } from 'src/app/services/mat-dialog-modal.ser
 import { MoneyService } from 'src/app/services/money.service';
 
 @Component({
-  selector: 'app-form-account',
-  templateUrl: './form-account.component.html',
+  selector: 'app-account-form',
+  templateUrl: './account-form.component.html',
 })
-export class FormAccountComponent implements OnInit, OnChanges, OnDestroy {
+export class AccountFormComponent implements OnInit, OnChanges, OnDestroy {
   @Input() accountData!: Account;
   @Input() formRole: string = '';
   @Input() banks: Bank[] = [];

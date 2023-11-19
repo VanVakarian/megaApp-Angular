@@ -1,31 +1,29 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, OnChanges } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
+import { Bank } from 'src/app/shared/interfaces';
 import { DataSharingService } from 'src/app/services/data-sharing.service';
 import { ConfirmationDialogService } from 'src/app/services/mat-dialog-modal.service';
 import { UtilsService } from 'src/app/services/utils.service';
-import { Category } from 'src/app/shared/interfaces';
 import { MoneyService } from 'src/app/services/money.service';
 
 @Component({
-  selector: 'app-form-category',
-  templateUrl: './form-category.component.html',
+  selector: 'app-bank-form',
+  templateUrl: './bank-form.component.html',
 })
-export class FormCategoryComponent implements OnInit, OnChanges, OnDestroy {
+export class BankFormComponent implements OnInit, OnChanges, OnDestroy {
+  @Input() bankData!: Bank;
   @Input() formRole: string = '';
-  @Input() categoryKind: string = '';
-  @Input() categoryData!: Category;
 
   @ViewChild('inputTitle') inputTitleElem!: ElementRef;
 
-  categoryForm: FormGroup = new FormGroup({
+  public bankForm: FormGroup = new FormGroup({
     id: new FormControl(0),
     title: new FormControl('', Validators.required),
-    kind: new FormControl(''),
   });
-  
-  private categoryClickedSubscription: Subscription;
+
+  private bankClickedSubscription: Subscription;
 
   constructor(
     private dataSharingService: DataSharingService,
@@ -33,8 +31,8 @@ export class FormCategoryComponent implements OnInit, OnChanges, OnDestroy {
     private utils: UtilsService,
     public moneyService: MoneyService
   ) {
-    this.categoryClickedSubscription = this.dataSharingService.categoryClicked$.subscribe(async (categoryId) => {
-      if (this.categoryForm.value.id === categoryId) {
+    this.bankClickedSubscription = this.dataSharingService.bankClicked$.subscribe(async (bankId) => {
+      if (this.bankForm.value.id === bankId) {
         await this.setFocusOnInput();
       }
     });
@@ -46,43 +44,39 @@ export class FormCategoryComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   clearForm(): void {
-    this.categoryForm.reset();
+    this.bankForm.reset();
   }
 
   onSubmit(): void {
     if (this.formRole === 'new') {
-      this.moneyService.createCategory(this.categoryForm.value as Category);
+      this.moneyService.createBank(this.bankForm.value as Bank);
       this.clearForm();
     } else if (this.formRole === 'edit') {
-      this.moneyService.updateCategory(this.categoryForm.value as Category);
+      this.moneyService.updateBank(this.bankForm.value as Bank);
     }
   }
 
   openConfirmationModal(actionQuestion: string): void {
     this.confirmModal.openModal(actionQuestion).subscribe((result) => {
       if (result) {
-        this.moneyService.deleteCategory(this.categoryForm.value.id as number);
+        this.moneyService.deleteBank(this.bankForm.value.id as number);
       }
     });
   }
 
   isFormValid(): boolean {
-    return this.categoryForm.valid;
+    return this.bankForm.valid;
   }
 
   ngOnInit(): void {}
 
   ngOnChanges(): void {
-    if (this.categoryData) {
-      this.categoryForm.patchValue(this.categoryData);
-    }
-
-    if (this.categoryKind) {
-      this.categoryForm.patchValue({ kind: this.categoryKind });
+    if (this.bankData) {
+      this.bankForm.patchValue(this.bankData);
     }
   }
 
   ngOnDestroy(): void {
-    this.categoryClickedSubscription.unsubscribe();
+    this.bankClickedSubscription.unsubscribe();
   }
 }

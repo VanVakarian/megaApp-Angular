@@ -7,10 +7,10 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
 
-      <app-form-bank
+      <app-bank-form
         [bankData]="bank"
         [formRole]="'edit'"
-      ></app-form-bank>
+      />
     </mat-expansion-panel>
   </ng-container>
 
@@ -23,7 +23,7 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
 
-      <app-form-bank [formRole]="'new'"></app-form-bank>
+      <app-bank-form [formRole]="'new'" />
     </mat-expansion-panel>
   </div>
 </mat-accordion>

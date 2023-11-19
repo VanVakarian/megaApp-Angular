@@ -8,13 +8,13 @@ import { KcalsPageComponent } from 'src/app/components/kcals-page/kcals-page.com
 import { MoneyDashboardComponent } from 'src/app/components/money/money-dashboard/money-dashboard.component';
 import { MoneyManageComponent } from 'src/app/components/money/money-manage/money-manage.component';
 import { MoneyCurrencyComponent } from 'src/app/components/money/money-currency/money-currency.component';
-import { FormCurrencyComponent } from 'src/app/components/money/form-currency/form-currency.component';
+import { CurrencyFormComponent } from 'src/app/components/money/money-currency/currency-form/currency-form.component';
 import { MoneyBankComponent } from 'src/app/components/money/money-bank/money-bank.component';
-import { FormBankComponent } from 'src/app/components/money/form-bank/form-bank.component';
+import { BankFormComponent } from 'src/app/components/money/money-bank/bank-form/bank-form.component';
 import { MoneyAccountComponent } from 'src/app/components/money/money-account/money-account.component';
-import { FormAccountComponent } from 'src/app/components/money/form-account/form-account.component';
+import { AccountFormComponent } from 'src/app/components/money/money-account/account-form/account-form.component';
 import { MoneyCategoryComponent } from './components/money/money-category/money-category.component';
-import { FormCategoryComponent } from 'src/app/components/money/form-category/form-category.component';
+import { CategoryFormComponent } from 'src/app/components/money/money-category/category-form/category-form.component';
 
 import { MoneyTransactionsComponent } from 'src/app/components/money/money-transactions/money-transactions.component';
 
@@ -44,13 +44,13 @@ import { MaterialModule } from 'src/app/shared/material.module';
     MoneyDashboardComponent,
     MoneyManageComponent,
     MoneyCurrencyComponent,
-    FormCurrencyComponent,
+    CurrencyFormComponent,
     MoneyBankComponent,
-    FormBankComponent,
+    BankFormComponent,
     MoneyAccountComponent,
-    FormAccountComponent,
+    AccountFormComponent,
     MoneyCategoryComponent,
-    FormCategoryComponent,
+    CategoryFormComponent,
 
     MoneyTransactionsComponent,
 

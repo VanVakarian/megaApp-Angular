@@ -22,10 +22,10 @@
             </mat-panel-title>
           </mat-expansion-panel-header>
 
-          <app-form-category
+          <app-category-form
             [formRole]="'edit'"
             [categoryData]="category"
-          ></app-form-category>
+          />
         </mat-expansion-panel>
       </ng-container>
     </ng-container>
@@ -39,9 +39,9 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
 
-    <app-form-category
+    <app-category-form
       [formRole]="'new'"
       [categoryKind]="activeCategoryKindKey"
-    ></app-form-category>
+    />
   </mat-expansion-panel>
 </mat-accordion>

@@ -16,8 +16,14 @@ export class NavbarComponent {
     { label: 'Сделки', link: '/transactions', requiresAuth: true, iconName: 'receipt_long', bgClass: 'money-bg' },
     { label: 'Управление', link: '/manage', requiresAuth: true, iconName: 'account_balance', bgClass: 'money-bg' },
     { label: 'Настройки', link: '/settings', requiresAuth: true, iconName: 'settings', bgClass: 'settings-bg' },
-    { label: 'Войти', link: '/login', requiresAuth: false, iconName: 'login' , bgClass: 'login-bg'},
-    { label: 'Зарегистрироваться', link: '/register', requiresAuth: false, iconName: 'person_add', bgClass: 'register-bg' },
+    { label: 'Войти', link: '/login', requiresAuth: false, iconName: 'login', bgClass: 'login-bg' },
+    {
+      label: 'Зарегистрироваться',
+      link: '/register',
+      requiresAuth: false,
+      iconName: 'person_add',
+      bgClass: 'register-bg',
+    },
   ];
 
   constructor(public auth: AuthService) {

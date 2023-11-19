@@ -1,19 +1,6 @@
 @use 'colors';
 @use 'redefine';
 
-////////////////////////////////////////////////////////// TYPOGRAPHY SETTINGS:
-
-// @use '@angular/material' as mat;
-
-// $my-custom-level: mat.define-typography-level(
-//   $font-family: Roboto,
-//   $font-weight: 400,
-//   $font-size: 5rem,
-//   $line-height: 1,
-//   $letter-spacing: normal,
-// );
-
-
 //////////////////////////////////////////////////////////// TAILWIND SETTINGS:
 
 @tailwind base;
@@ -21,36 +8,6 @@
 @tailwind utilities;
 
 @layer components {
-
-  ///////////////////////////////////////////////////////////// NAVBAR BUTTONS:
-  // .menu-button {
-  //   @apply cursor-pointer rounded-tl-lg rounded-bl-lg py-3 text-center font-semibold text-white shadow-md
-  // }
-
-  // .btn-blue {
-  //   @apply bg-blue-500 hover:bg-blue-600;
-  // }
-
-  // .btn-blue-active {
-  //   @apply bg-blue-700;
-  // }
-
-  // .btn-green {
-  //   @apply bg-green-500 hover:bg-green-600;
-  // }
-
-  // .btn-green-active {
-  //   @apply bg-green-700;
-  // }
-
-  // .btn-purple {
-  //   @apply bg-purple-500 hover:bg-purple-600;
-  // }
-
-  // .btn-purple-active {
-  //   @apply bg-purple-700;
-  // }
-
 
   /////////////////////////////////////////////// LOGIN AND REGISTRATION FORMS:
   .input-field-label {
@@ -78,32 +35,4 @@ body {
 body {
   padding: 0;
   margin: 0;
-}
-
-.menu-btn-bg {
-  height: 80px;
-  width: 80px;
-  background-size: 80px;
-  transform: rotate(15deg);
-  opacity: 0.15;
-}
-
-.food-bg {
-  background-image: url('assets/restaurant.svg');
-}
-
-.money-bg {
-  background-image: url('assets/paid.svg');
-}
-
-.settings-bg {
-  background-image: url('assets/settings.svg');
-}
-
-.login-bg {
-  background-image: url('assets/login.svg');
-}
-
-.register-bg {
-  background-image: url('assets/person_add.svg');
 }
