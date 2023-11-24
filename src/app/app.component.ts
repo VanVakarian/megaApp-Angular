@@ -1,15 +1,18 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { NotificationsService } from './services/notifications.service';
+import { MoneyService } from './services/money.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class MainAppComponent {
+export class MainAppComponent implements OnInit {
   title = 'megaapp';
 
   menuOpened = false;
+
+  constructor(public moneyService: MoneyService) {}
 
   hamburgerPressed(hamburgerCheckboxStatus: boolean) {
     this.menuOpened = hamburgerCheckboxStatus;
@@ -17,6 +20,14 @@ export class MainAppComponent {
 
   closeMenu() {
     this.menuOpened = false;
+  }
+
+  ngOnInit(): void {
+    this.moneyService.getCurrencies();
+    this.moneyService.getBanks();
+    this.moneyService.getAccounts();
+    this.moneyService.getCategories();
+    this.moneyService.getTransactions(null);
   }
 
   // // FOR TESTING PERPOSES

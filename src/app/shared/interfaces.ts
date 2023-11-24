@@ -58,3 +58,7 @@ export interface Transaction {
   category_id: number;
   kind: string;
 }
+
+export interface TransactionsByDay {
+  [date: string]: Transaction[]
+}

@@ -31,6 +31,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialModule } from 'src/app/shared/material.module';
+import { MatNativeDateModule } from '@angular/material/core';
 
 @NgModule({
   declarations: [
@@ -68,6 +69,7 @@ import { MaterialModule } from 'src/app/shared/material.module';
     FormsModule,
     BrowserAnimationsModule,
     MaterialModule,
+    MatNativeDateModule,
   ],
   providers: [],
   bootstrap: [MainAppComponent],

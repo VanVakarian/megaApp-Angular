@@ -2,9 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { Account, Bank, Category, Currency } from 'src/app/shared/interfaces';
+import { Account, Bank, Category, Currency, Transaction, TransactionsByDay } from 'src/app/shared/interfaces';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { DataSharingService } from './data-sharing.service';
+import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
 
 enum HttpMethod {
   GET = 'GET',
@@ -13,7 +14,8 @@ enum HttpMethod {
   DELETE = 'DELETE',
 }
 
-type PayloadType = Currency | Bank | Account | Category | null;
+type PayloadType = Currency | Bank | Account | Category | Transaction | null;
+type ResultVariableType = Currency[] | Bank[] | Account[] | Category[] | Transaction[] | null;
 
 @Injectable({
   providedIn: 'root',
@@ -25,6 +27,9 @@ export class MoneyService {
   banks: Bank[] = [];
   accounts: Account[] = [];
   categories: Category[] = [];
+  transactions: Transaction[] = [];
+  transactionsByDay: TransactionsByDay = {};
+  transactionDays: string[] = [];
 
   constructor(
     private auth: AuthService,
@@ -37,11 +42,11 @@ export class MoneyService {
     method: HttpMethod,
     url: string,
     payload: PayloadType,
-    resultVariable: any, // TODO: 'any' is not the most elegant solution, refactor to a better one
-    responseProperty: any, // TODO: 'any' is not the most elegant solution, refactor to a better one
-    notificationMessage: string,
+    resultVariable: ResultVariableType,
+    responsePropertyName: string | null,
+    successMessage: string,
     errorMessage: string,
-    emitChanged?: () => void
+    callback?: () => void
   ): void {
     if (!this.token) {
       this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
@@ -57,23 +62,23 @@ export class MoneyService {
         next: (response: any) => {
           // TODO: 'any' is not the most elegant solution, refactor to a better one
 
-          if (response && resultVariable && responseProperty && response[responseProperty]) {
+          if (response && resultVariable && responsePropertyName && response[responsePropertyName]) {
             resultVariable.length = 0;
-            resultVariable.push(...response[responseProperty]);
+            resultVariable.push(...response[responsePropertyName]);
           }
 
           switch (method) {
             case 'GET':
-              // console.log(notificationMessage, response);
-              // this.notificationsService.addNotification(notificationMessage, 'success');
+              // console.log(successMessage, response);
+              // this.notificationsService.addNotification(successMessage, 'success');
               break;
             default:
-              // console.log(notificationMessage, response);
-              this.notificationsService.addNotification(notificationMessage, 'success');
+              // console.log(successMessage, response);
+              this.notificationsService.addNotification(successMessage, 'success');
           }
 
-          if (emitChanged) {
-            emitChanged();
+          if (callback) {
+            callback();
           }
         },
         error: (error) => {
@@ -102,8 +107,8 @@ export class MoneyService {
       HttpMethod.POST,
       '/api/money/currency',
       currency,
-      this.currencies,
-      'currencies_list',
+      null,
+      null,
       'Валюта успешно cоздана',
       'Ошибка при создании валюты',
       this.currenciesChanged.bind(this)
@@ -115,8 +120,8 @@ export class MoneyService {
       HttpMethod.PUT,
       `/api/money/currency/${currency.id}`,
       currency,
-      this.currencies,
-      'currencies_list',
+      null,
+      null,
       'Валюта успешно изменена',
       'Ошибка при изменении валюты',
       this.currenciesChanged.bind(this)
@@ -128,8 +133,8 @@ export class MoneyService {
       HttpMethod.DELETE,
       `/api/money/currency/${currencyId}`,
       null,
-      this.currencies,
-      'currencies_list',
+      null,
+      null,
       'Валюта успешно удалена',
       'Ошибка при удалении валюты',
       this.currenciesChanged.bind(this)
@@ -160,8 +165,8 @@ export class MoneyService {
       HttpMethod.POST,
       '/api/money/bank',
       bank,
-      this.banks,
-      'banks_list',
+      null,
+      null,
       'Банк успешно cоздан',
       'Ошибка при создании банка',
       this.banksChanged.bind(this)
@@ -173,8 +178,8 @@ export class MoneyService {
       HttpMethod.PUT,
       `/api/money/bank/${bank.id}`,
       bank,
-      this.banks,
-      'banks_list',
+      null,
+      null,
       'Банк успешно изменён',
       'Ошибка при изменении банка',
       this.banksChanged.bind(this)
@@ -186,8 +191,8 @@ export class MoneyService {
       HttpMethod.DELETE,
       `/api/money/bank/${bankId}`,
       null,
-      this.banks,
-      'banks_list',
+      null,
+      null,
       'Банк успешно удалён',
       'Ошибка при удалении валюты',
       this.banksChanged.bind(this)
@@ -218,8 +223,8 @@ export class MoneyService {
       HttpMethod.POST,
       '/api/money/account',
       account,
-      this.accounts,
-      'accounts_list',
+      null,
+      null,
       'Счёт успешно cоздан',
       'Ошибка при создании счёта',
       this.accountsChanged.bind(this)
@@ -231,8 +236,8 @@ export class MoneyService {
       HttpMethod.PUT,
       `/api/money/account/${account.id}`,
       account,
-      this.accounts,
-      'accounts_list',
+      null,
+      null,
       'Счёт успешно изменён',
       'Ошибка при изменении счёта',
       this.accountsChanged.bind(this)
@@ -244,15 +249,15 @@ export class MoneyService {
       HttpMethod.DELETE,
       `/api/money/account/${accountId}`,
       null,
-      this.accounts,
-      'accounts_list',
+      null,
+      null,
       'Счёт успешно удалён',
       'Ошибка при удалении счёта',
       this.accountsChanged.bind(this)
     );
   }
 
-  accountsChanged() {
+  accountsChanged(): void {
     this.dataSharingService.dataChanged$.emit();
     this.getAccounts();
   }
@@ -276,8 +281,8 @@ export class MoneyService {
       HttpMethod.POST,
       '/api/money/category',
       category,
-      this.categories,
-      'categories_list',
+      null,
+      null,
       'Категория успешно cоздана',
       'Ошибка при создании категории',
       this.categoriesChanged.bind(this)
@@ -289,8 +294,8 @@ export class MoneyService {
       HttpMethod.PUT,
       `/api/money/category/${category.id}`,
       category,
-      this.categories,
-      'categories_list',
+      null,
+      null,
       'Категория успешно изменена',
       'Ошибка при изменении категории',
       this.categoriesChanged.bind(this)
@@ -302,16 +307,86 @@ export class MoneyService {
       HttpMethod.DELETE,
       `/api/money/category/${categoryId}`,
       null,
-      this.categories,
-      'categories_list',
+      null,
+      null,
       'Категория успешно удаленa',
       'Ошибка при удалении категории',
       this.categoriesChanged.bind(this)
     );
   }
 
-  categoriesChanged() {
+  categoriesChanged(): void {
     this.dataSharingService.dataChanged$.emit();
     this.getCategories();
+  }
+
+  // TRANSACTIONS //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  getTransactions(day: string | null): void {
+    const currentDay = dateToIsoNoTimeNoTZ(new Date());
+    this.performRequest(
+      HttpMethod.GET,
+      `/api/money/transaction/${day ?? currentDay}`,
+      null,
+      this.transactions,
+      'transactions_list',
+      'Транзакции получены',
+      'Ошибка при запросе транзакций',
+      this.convertTransactionsListToObj.bind(this)
+    );
+  }
+
+  createTransaction(transaction: Transaction): void {
+    this.performRequest(
+      HttpMethod.POST,
+      '/api/money/transaction',
+      transaction,
+      null,
+      null,
+      'Транзакция успешно cоздана',
+      'Ошибка при создании транзакции',
+      this.transactionsChanged.bind(this)
+    );
+  }
+
+  updateTransaction(transaction: Transaction): void {
+    this.performRequest(
+      HttpMethod.PUT,
+      `/api/money/transaction/${transaction.id}`,
+      transaction,
+      null,
+      null,
+      'Транзакция успешно изменена',
+      'Ошибка при изменении транзакции',
+      this.transactionsChanged.bind(this)
+    );
+  }
+
+  deleteTransaction(transactionId: number): void {
+    this.performRequest(
+      HttpMethod.DELETE,
+      `/api/money/category/${transactionId}`,
+      null,
+      null,
+      null,
+      'Транзакция успешно удаленa',
+      'Ошибка при удалении транзакции',
+      this.transactionsChanged.bind(this)
+    );
+  }
+
+  transactionsChanged(): void {
+    this.dataSharingService.dataChanged$.emit();
+    this.getTransactions(null);
+  }
+
+  convertTransactionsListToObj(): void {
+    const startDate = new Date(this.transactions[0].date + 'T00:00');
+    const endDate = new Date();
+    this.transactionsByDay = {};
+    for (let day = startDate; day <= endDate; day.setDate(day.getDate() + 1)) {
+      const isoDate = dateToIsoNoTimeNoTZ(day);
+      this.transactionsByDay[isoDate] = this.transactions.filter((transaction) => transaction.date === isoDate) || [];
+    }
   }
 }

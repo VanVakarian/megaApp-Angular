@@ -1,33 +1,60 @@
 <div class="grid grid-cols-1 overflow-x-hidden">
-  <ng-container *ngFor="let item of items; let i = index">
-    <ng-container *ngIf="i === currentIndex">
+  <ng-container *ngFor="let item of moneyService.transactionsByDay | keyvalue">
+    <ng-container *ngIf="item.key === selectedDateISO">
       <div
         class="card m-1"
         [@slideInOut]="direction"
       >
         <mat-card>
-          <mat-card-content>
-            {{ item }}
-          </mat-card-content>
+          <mat-card-content> {{ item.key }}: {{ item.value }} </mat-card-content>
         </mat-card>
       </div>
     </ng-container>
   </ng-container>
 </div>
 
-<button
-  mat-raised-button
-  color="bg-red-500"
-  class="mr-1"
-  (click)="previous()"
->
-  Prev
-</button>
+<div class="fixed bottom-0 left-0 flex w-full justify-center gap-8 pb-6">
+  <button
+    mat-mini-fab
+    class="transaction-cycle-btn-fab"
+    color="primary"
+    (click)="previous()"
+    [disabled]="isFirstDay()"
+  >
+    <mat-icon class="icon-display">chevron_left</mat-icon>
+  </button>
 
-<button
-  mat-raised-button
-  color="bg-red-500"
-  (click)="next()"
->
-  Next
-</button>
+  <button
+    mat-mini-fab
+    class="transaction-cycle-btn-fab"
+    color="primary"
+    (click)="picker.open()"
+  >
+    <mat-icon>calendar_today</mat-icon>
+  </button>
+
+  <button
+    mat-mini-fab
+    class="transaction-cycle-btn-fab"
+    color="primary"
+    (click)="next()"
+    [disabled]="isLastDay()"
+  >
+    <mat-icon class="icon-display">chevron_right</mat-icon>
+  </button>
+</div>
+
+<mat-form-field class="hide-form">
+  <input
+    matInput
+    [matDatepicker]="picker"
+    [formControl]="dateForm"
+    (dateChange)="onDatePicked($event)"
+    [max]="today"
+  />
+  <mat-datepicker-toggle [for]="picker" />
+  <mat-datepicker
+    touchUi
+    #picker
+  />
+</mat-form-field>

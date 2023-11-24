@@ -1,10 +1,15 @@
-import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { NotificationsService } from 'src/app/services/notifications.service';
 import { Transaction } from 'src/app/shared/interfaces';
 import { slideInOutAnimation } from 'src/app/components/money/money-transactions/animations';
+import { DataSharingService } from 'src/app/services/data-sharing.service';
+import { MoneyService } from 'src/app/services/money.service';
+import { MatCalendar, MatCalendarCellCssClasses, MatDatepickerInputEvent } from '@angular/material/datepicker';
+
+import { ViewChild } from '@angular/core';
+import { MatMenuTrigger } from '@angular/material/menu';
+import { FormControl } from '@angular/forms';
+import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
 
 @Component({
   selector: 'app-money-transactions',
@@ -13,61 +18,76 @@ import { slideInOutAnimation } from 'src/app/components/money/money-transactions
   animations: [slideInOutAnimation],
 })
 export class MoneyTransactionsComponent implements OnInit {
-  constructor(
-    private http: HttpClient,
-    private auth: AuthService,
-    private notificationsService: NotificationsService,
-    private cdRef: ChangeDetectorRef
-  ) {}
-  token = this.auth.getToken();
-  allTransactions: Transaction[] = [];
+  @ViewChild(MatMenuTrigger) trigger!: MatMenuTrigger;
 
-  items = ['Item 1', 'Item 2', 'Item 3', 'Item 4', 'Item 5'];
-  currentIndex = 0;
-  direction = 'left';
+  direction: string = 'left';
+  today: Date = new Date();
+  dateForm: FormControl = new FormControl(new Date());
+  // selectedDateISO: string = new Date().toISOString().split('T')[0];
+  selectedDateISO: string = dateToIsoNoTimeNoTZ(this.today);
+  selectedDate: Date = new Date();
 
-  previous() {
-    this.direction = 'right';
-    this.cdRef.detectChanges();
-    if (this.currentIndex > 0) {
-      this.currentIndex--;
+  constructor(private cdRef: ChangeDetectorRef, public moneyService: MoneyService) {}
+
+  onDatePicked(event: MatDatepickerInputEvent<Date>) {
+    if (!event.value) {
+      return;
     }
+
+    const newDate: Date = event.value;
+
+    if (newDate > this.selectedDate) {
+      this.direction = 'left';
+    } else if (newDate < this.selectedDate) {
+      this.direction = 'right';
+    }
+
+    this.cdRef.detectChanges();
+    this.selectedDate = newDate;
+    this.selectedDateISO = dateToIsoNoTimeNoTZ(newDate);
   }
 
-  next() {
+  next(): void {
     this.direction = 'left';
     this.cdRef.detectChanges();
-    if (this.currentIndex < this.items.length - 1) {
-      this.currentIndex++;
+    this.switchCurrentDay(1);
+  }
+
+  previous(): void {
+    this.direction = 'right';
+    this.cdRef.detectChanges();
+    this.switchCurrentDay(-1);
+  }
+
+  switchCurrentDay(lolkek: number) {
+    const currIdx = Object.keys(this.moneyService.transactionsByDay).indexOf(this.selectedDateISO);
+    let keys = Object.keys(this.moneyService.transactionsByDay);
+
+    if (keys[currIdx + lolkek] in this.moneyService.transactionsByDay) {
+      this.selectedDateISO = keys[currIdx + lolkek];
+      this.selectedDate = new Date(this.selectedDateISO);
+      this.dateForm.setValue(this.selectedDate);
     }
   }
 
-  activeDay: string = new Date().toISOString().split('T')[0];
+  isFirstDay(): boolean {
+    const keys = Object.keys(this.moneyService.transactionsByDay);
+    return this.selectedDateISO === keys[0];
+  }
 
-  categoriesRequest() {
-    if (this.token) {
-      this.http
-        .get<{ transaction_list: Transaction[] }>('/api/money/transaction', {
-          headers: { Authorization: `Bearer ${this.token}` },
-        })
-        .subscribe({
-          next: (response) => {
-            // console.log('Ответ от сервера:', response);
-            // this.notificationsService.addNotification('Ответ от сервера получен', 'success');
-            this.allTransactions = response.transaction_list;
-          },
-          error: (error) => {
-            console.log('Ошибка при запросе:', error);
-            this.notificationsService.addNotification('Ошибка при запросе категорий', 'error');
-          },
-        });
-    } else {
-      console.log('Токен не найден. Пользователь не авторизован.');
-      this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
-    }
+  isLastDay(): boolean {
+    const keys = Object.keys(this.moneyService.transactionsByDay);
+    return this.selectedDateISO === keys[keys.length - 1];
   }
 
   ngOnInit(): void {
-    this.categoriesRequest();
+    // this.selectedDateISO = dateToIsoNoTimeNoTZ(this.today);
+    // console.log(this.selectedDateISO);
+    // setTimeout(() => {
+    //   console.log(this.moneyService.transactions);
+    //   console.log(this.moneyService.transactionDays);
+    //   console.log(this.moneyService.transactionsByDay);
+    //   console.log(Object.keys(this.moneyService.transactionsByDay).indexOf(this.selectedDateISO));
+    // }, 500);
   }
 }

@@ -30,8 +30,6 @@ export class MoneyBankComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.moneyService.getBanks();
-
     this.dataSharingService.dataChanged$.subscribe(() => {
       this.closeAllPanels();
     });
