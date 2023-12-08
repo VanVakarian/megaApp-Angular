@@ -20,7 +20,13 @@
   box-shadow: none !important;
 }
 
+// .mat-button-toggle-group {
+//   height: 38px !important;
+// }
 
+// .mat-button-toggle-button {
+//   height: 38px !important;
+// }
 
 .menu-button {
   height: 48px !important;
@@ -33,4 +39,10 @@
   padding: 10px 16px;
   overflow: hidden;
   margin: 0px;
+}
+
+// This rule is a fix for an accordion not in collapsed state while :entering with an animation...
+.ng-animating mat-card div.mat-expansion-panel-content {
+  height: 0px;
+  visibility: hidden;
 }

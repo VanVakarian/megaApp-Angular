@@ -1,12 +1,107 @@
 <div class="grid grid-cols-1 overflow-x-hidden">
-  <ng-container *ngFor="let item of moneyService.transactionsByDay | keyvalue">
-    <ng-container *ngIf="item.key === selectedDateISO">
+  <ng-container *ngFor="let day of moneyService.transactionsByDay$$() | keyvalue">
+    <ng-container *ngIf="day.key === selectedDateISO">
       <div
         class="card m-1"
         [@slideInOut]="direction"
       >
-        <mat-card>
-          <mat-card-content> {{ item.key }}: {{ item.value }} </mat-card-content>
+        <mat-card class="mb-2">
+          <div class="my-2 text-center text-lg font-medium">{{ formatDate(day.key) }}</div>
+        </mat-card>
+
+        <mat-card class="mb-2">
+          <div class="ml-4 mt-2 flex">
+            <mat-icon class="mt-0.5">trending_down</mat-icon>
+            <div class="ml-2 text-lg font-medium">Расходы:</div>
+          </div>
+
+          <div class="px-2 pb-2">
+            <mat-accordion class="sub-expansion-panel-38px-50px">
+              <ng-container *ngFor="let transaction of day.value['expense']">
+                <!-- <mat-expansion-panel (opened)="transactionExpanded(transaction.id)"> -->
+                <mat-expansion-panel>
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>
+                      <div class="flex w-full overflow-hidden whitespace-nowrap text-base font-normal">
+                        <div class="grow">{{ getCategoryTitle(transaction) }}</div>
+                        <div>{{ formatTransactionAmount(transaction) }}</div>
+                      </div>
+                    </mat-panel-title>
+                  </mat-expansion-panel-header>
+
+                  <app-transaction-expense-income-form
+                    [transactionData]="transaction"
+                    [formRole]="'edit'"
+                  />
+                </mat-expansion-panel>
+              </ng-container>
+
+              <div class="mt-2">
+                <!-- <mat-expansion-panel (opened)="bankExpanded(0)"> -->
+                <mat-expansion-panel>
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>
+                      <mat-icon>add</mat-icon>
+                      <div class="ml-1 overflow-hidden whitespace-nowrap text-base font-normal">Добавить расход</div>
+                    </mat-panel-title>
+                  </mat-expansion-panel-header>
+
+                  <app-transaction-expense-income-form [formRole]="'new'" />
+                </mat-expansion-panel>
+              </div>
+            </mat-accordion>
+          </div>
+        </mat-card>
+
+        <mat-card class="mb-2">
+          <div class="ml-4 mt-2 flex">
+            <mat-icon class="mt-0.5">trending_up</mat-icon>
+            <div class="ml-2 text-lg font-medium">Доходы:</div>
+          </div>
+
+          <div class="px-2 pb-2">
+            <mat-accordion class="sub-expansion-panel-38px-50px">
+              <ng-container *ngFor="let transaction of day.value['income']">
+                <!-- <mat-expansion-panel (opened)="transactionExpanded(transaction.id)"> -->
+                <mat-expansion-panel>
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>
+                      <div class="flex w-full overflow-hidden whitespace-nowrap text-base font-normal">
+                        <div class="grow">{{ getCategoryTitle(transaction) }}</div>
+                        <div>{{ formatTransactionAmount(transaction) }}</div>
+                      </div>
+                    </mat-panel-title>
+                  </mat-expansion-panel-header>
+
+                  <app-transaction-expense-income-form
+                    [transactionData]="transaction"
+                    [formRole]="'edit'"
+                  />
+                </mat-expansion-panel>
+              </ng-container>
+
+              <div class="mt-2">
+                <!-- <mat-expansion-panel (opened)="bankExpanded(0)"> -->
+                <mat-expansion-panel>
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>
+                      <mat-icon>add</mat-icon>
+                      <div class="ml-1 overflow-hidden whitespace-nowrap text-base font-normal">Добавить доход</div>
+                    </mat-panel-title>
+                  </mat-expansion-panel-header>
+
+                  <app-transaction-expense-income-form [formRole]="'new'" />
+                </mat-expansion-panel>
+              </div>
+            </mat-accordion>
+          </div>
+        </mat-card>
+
+        <mat-card class="mb-2">
+          <div class="ml-4 mt-2 flex">
+            <mat-icon class="mt-0.5">repeat</mat-icon>
+            <div class="ml-2 text-lg font-medium">Переводы:</div>
+          </div>
         </mat-card>
       </div>
     </ng-container>

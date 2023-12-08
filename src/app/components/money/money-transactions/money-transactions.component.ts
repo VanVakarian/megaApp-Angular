@@ -1,14 +1,13 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-
-import { Transaction } from 'src/app/shared/interfaces';
-import { slideInOutAnimation } from 'src/app/components/money/money-transactions/animations';
-import { DataSharingService } from 'src/app/services/data-sharing.service';
-import { MoneyService } from 'src/app/services/money.service';
-import { MatCalendar, MatCalendarCellCssClasses, MatDatepickerInputEvent } from '@angular/material/datepicker';
-
 import { ViewChild } from '@angular/core';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { FormControl } from '@angular/forms';
+
+import { DateTimeFormatOptions, Transaction } from 'src/app/shared/interfaces';
+import { slideInOutAnimation } from 'src/app/components/money/money-transactions/animations';
+import { MoneyService } from 'src/app/services/money.service';
+import { MatDatepickerInputEvent } from '@angular/material/datepicker';
+
 import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
 
 @Component({
@@ -23,11 +22,25 @@ export class MoneyTransactionsComponent implements OnInit {
   direction: string = 'left';
   today: Date = new Date();
   dateForm: FormControl = new FormControl(new Date());
-  // selectedDateISO: string = new Date().toISOString().split('T')[0];
   selectedDateISO: string = dateToIsoNoTimeNoTZ(this.today);
   selectedDate: Date = new Date();
 
   constructor(private cdRef: ChangeDetectorRef, public moneyService: MoneyService) {}
+
+  getCategoryTitle(transaction: Transaction) {
+    const categoryId = transaction.category_id;
+    return this.moneyService.categories$$()?.[categoryId]['title'];
+  }
+
+  formatTransactionAmount(transaction: Transaction) {
+    const accountId = transaction.account_id;
+    const currencyId = this.moneyService.accounts$$()?.[accountId].currency_id;
+    const symbol = this.moneyService.currencies$$()?.[currencyId].symbol;
+    const whitespace = this.moneyService.currencies$$()?.[currencyId].whitespace ? ' ' : '';
+    const amount = transaction.amount;
+    const symbolPos = this.moneyService.currencies$$()?.[currencyId].symbol_pos;
+    return symbolPos == 'prefix' ? `${symbol}${whitespace}${amount}` : `${amount}${whitespace}${symbol}`;
+  }
 
   onDatePicked(event: MatDatepickerInputEvent<Date>) {
     if (!event.value) {
@@ -59,35 +72,33 @@ export class MoneyTransactionsComponent implements OnInit {
     this.switchCurrentDay(-1);
   }
 
-  switchCurrentDay(lolkek: number) {
-    const currIdx = Object.keys(this.moneyService.transactionsByDay).indexOf(this.selectedDateISO);
-    let keys = Object.keys(this.moneyService.transactionsByDay);
+  switchCurrentDay(shift: number) {
+    const currIdx = Object.keys(this.moneyService.transactionsByDay$$()).indexOf(this.selectedDateISO);
+    let keys = Object.keys(this.moneyService.transactionsByDay$$());
 
-    if (keys[currIdx + lolkek] in this.moneyService.transactionsByDay) {
-      this.selectedDateISO = keys[currIdx + lolkek];
+    if (keys[currIdx + shift] in this.moneyService.transactionsByDay$$()) {
+      this.selectedDateISO = keys[currIdx + shift];
       this.selectedDate = new Date(this.selectedDateISO);
       this.dateForm.setValue(this.selectedDate);
     }
   }
 
   isFirstDay(): boolean {
-    const keys = Object.keys(this.moneyService.transactionsByDay);
+    const keys = Object.keys(this.moneyService.transactionsByDay$$());
     return this.selectedDateISO === keys[0];
   }
 
   isLastDay(): boolean {
-    const keys = Object.keys(this.moneyService.transactionsByDay);
+    const keys = Object.keys(this.moneyService.transactionsByDay$$());
     return this.selectedDateISO === keys[keys.length - 1];
   }
 
-  ngOnInit(): void {
-    // this.selectedDateISO = dateToIsoNoTimeNoTZ(this.today);
-    // console.log(this.selectedDateISO);
-    // setTimeout(() => {
-    //   console.log(this.moneyService.transactions);
-    //   console.log(this.moneyService.transactionDays);
-    //   console.log(this.moneyService.transactionsByDay);
-    //   console.log(Object.keys(this.moneyService.transactionsByDay).indexOf(this.selectedDateISO));
-    // }, 500);
+  formatDate(dateIso: string): string {
+    const date = new Date(dateIso);
+    const options: DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' };
+    const result = date.toLocaleDateString('ru-RU', options);
+    return result.replace(result[0], result[0].toUpperCase());
   }
+
+  ngOnInit(): void { }
 }

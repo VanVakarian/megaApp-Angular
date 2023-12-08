@@ -15,8 +15,6 @@ import { MoneyService } from 'src/app/services/money.service';
 export class AccountFormComponent implements OnInit, OnChanges, OnDestroy {
   @Input() accountData!: Account;
   @Input() formRole: string = '';
-  @Input() banks: Bank[] = [];
-  @Input() currencies: Currency[] = [];
 
   @ViewChild('inputTitle') inputTitleElem!: ElementRef;
 

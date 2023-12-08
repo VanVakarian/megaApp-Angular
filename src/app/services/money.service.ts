@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core';
+import { computed, effect, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { Account, Bank, Category, Currency, Transaction, TransactionsByDay } from 'src/app/shared/interfaces';
+import { Account, Bank, Category, Currency, Transaction } from 'src/app/shared/interfaces';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { DataSharingService } from './data-sharing.service';
 import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
@@ -15,7 +15,13 @@ enum HttpMethod {
 }
 
 type PayloadType = Currency | Bank | Account | Category | Transaction | null;
-type ResultVariableType = Currency[] | Bank[] | Account[] | Category[] | Transaction[] | null;
+type ResultType = Currency | Bank | Account | Category | Transaction;
+
+interface TransactionsByDay {
+  [date: string]: {
+    [kind: string]: Transaction[];
+  };
+}
 
 @Injectable({
   providedIn: 'root',
@@ -23,26 +29,56 @@ type ResultVariableType = Currency[] | Bank[] | Account[] | Category[] | Transac
 export class MoneyService {
   token = this.auth.getToken();
 
-  currencies: Currency[] = [];
-  banks: Bank[] = [];
-  accounts: Account[] = [];
-  categories: Category[] = [];
-  transactions: Transaction[] = [];
-  transactionsByDay: TransactionsByDay = {};
-  transactionDays: string[] = [];
+  currencies$$: WritableSignal<{ [id: number]: Currency }> = signal({});
+  banks$$: WritableSignal<{ [id: number]: Bank }> = signal({});
+  accounts$$: WritableSignal<{ [id: number]: Account }> = signal({});
+  categories$$: WritableSignal<{ [id: number]: Category }> = signal({});
+  transactions$$: WritableSignal<{ [id: number]: Transaction }> = signal({});
+  transactionsByDay$$: Signal<TransactionsByDay> = computed(() => this.groupByDayAndKind(this.transactions$$()));
 
   constructor(
     private auth: AuthService,
     private http: HttpClient,
     private notificationsService: NotificationsService,
     private dataSharingService: DataSharingService
-  ) {}
+  ) {
+    // effect(() => { console.log('CURRENCIES have been updated:', this.currencies$$()); });
+    // effect(() => { console.log('BANKS have been updated:', this.banks$$()); });
+    // effect(() => { console.log('ACCOUNTS have been updated:', this.accounts$$()); });
+    // effect(() => { console.log('CATEGORIES have been updated:', this.categories$$()); });
+    // effect(() => { console.log('TRANSACTIONS have been updated:', this.transactions$$()); });
+    // effect(() => { console.log('TRANSACTIONS BY DAY have been updated:', this.transactionsByDay$$()); });
+  }
+
+  groupByDayAndKind(transactions: { [id: number]: Transaction }): TransactionsByDay {
+    const transactionIds = Object.keys(transactions).map(Number);
+    const startDate = new Date(transactions[transactionIds[0]]?.date + 'T00:00');
+    const endDate = new Date();
+    let transactionsByDay: TransactionsByDay = {};
+
+    for (let day = startDate; day <= endDate; day.setDate(day.getDate() + 1)) {
+      const isoDate = dateToIsoNoTimeNoTZ(day);
+      transactionsByDay[isoDate] = {};
+
+      transactionIds.forEach((id) => {
+        if (transactions[id].date === isoDate) {
+          const kind = transactions[id].kind;
+
+          if (!transactionsByDay[isoDate][kind]) {
+            transactionsByDay[isoDate][kind] = [];
+          }
+          transactionsByDay[isoDate][kind].push(transactions[id]);
+        }
+      });
+    }
+    return transactionsByDay;
+  }
 
   performRequest(
     method: HttpMethod,
     url: string,
     payload: PayloadType,
-    resultVariable: ResultVariableType,
+    resultVariableSignal: WritableSignal<{ [key: number]: ResultType }> | null,
     responsePropertyName: string | null,
     successMessage: string,
     errorMessage: string,
@@ -62,9 +98,8 @@ export class MoneyService {
         next: (response: any) => {
           // TODO: 'any' is not the most elegant solution, refactor to a better one
 
-          if (response && resultVariable && responsePropertyName && response[responsePropertyName]) {
-            resultVariable.length = 0;
-            resultVariable.push(...response[responsePropertyName]);
+          if (response && resultVariableSignal && responsePropertyName && response[responsePropertyName]) {
+            resultVariableSignal.set(this.listToObj(response[responsePropertyName]));
           }
 
           switch (method) {
@@ -88,6 +123,14 @@ export class MoneyService {
       });
   }
 
+  private listToObj<T extends ResultType>(list: T[]): { [id: number]: T } {
+    let obj: { [id: number]: T } = {};
+    list.forEach((currentValue) => {
+      obj[currentValue.id] = currentValue;
+    });
+    return obj;
+  }
+
   // CURRENCIES ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   getCurrencies(): void {
@@ -95,7 +138,7 @@ export class MoneyService {
       HttpMethod.GET,
       '/api/money/currency',
       null,
-      this.currencies,
+      this.currencies$$,
       'currencies_list',
       'Валюты получены',
       'Ошибка при запросе валют'
@@ -153,7 +196,7 @@ export class MoneyService {
       HttpMethod.GET,
       '/api/money/bank',
       null,
-      this.banks,
+      this.banks$$,
       'banks_list',
       'Банки получены',
       'Ошибка при запросе банков'
@@ -211,7 +254,7 @@ export class MoneyService {
       HttpMethod.GET,
       '/api/money/account',
       null,
-      this.accounts,
+      this.accounts$$,
       'accounts_list',
       'Счета получены',
       'Ошибка при запросе счетов'
@@ -269,7 +312,7 @@ export class MoneyService {
       HttpMethod.GET,
       '/api/money/category',
       null,
-      this.categories,
+      this.categories$$,
       'categories_list',
       'Категории получены',
       'Ошибка при запросе категорий'
@@ -322,17 +365,15 @@ export class MoneyService {
 
   // TRANSACTIONS //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  getTransactions(day: string | null): void {
-    const currentDay = dateToIsoNoTimeNoTZ(new Date());
+  getTransactions(day?: string): void {
     this.performRequest(
       HttpMethod.GET,
-      `/api/money/transaction/${day ?? currentDay}`,
+      `/api/money/transaction/${day ?? dateToIsoNoTimeNoTZ(new Date())}`,
       null,
-      this.transactions,
+      this.transactions$$,
       'transactions_list',
       'Транзакции получены',
-      'Ошибка при запросе транзакций',
-      this.convertTransactionsListToObj.bind(this)
+      'Ошибка при запросе транзакций'
     );
   }
 
@@ -377,16 +418,6 @@ export class MoneyService {
 
   transactionsChanged(): void {
     this.dataSharingService.dataChanged$.emit();
-    this.getTransactions(null);
-  }
-
-  convertTransactionsListToObj(): void {
-    const startDate = new Date(this.transactions[0].date + 'T00:00');
-    const endDate = new Date();
-    this.transactionsByDay = {};
-    for (let day = startDate; day <= endDate; day.setDate(day.getDate() + 1)) {
-      const isoDate = dateToIsoNoTimeNoTZ(day);
-      this.transactionsByDay[isoDate] = this.transactions.filter((transaction) => transaction.date === isoDate) || [];
-    }
+    this.getTransactions();
   }
 }

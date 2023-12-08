@@ -16,10 +16,10 @@
     <mat-label>Банк</mat-label>
     <mat-select formControlName="bank_id">
       <mat-option
-        *ngFor="let bank of banks"
-        [value]="bank.id"
+        *ngFor="let bank of moneyService.banks$$() | keyvalue"
+        [value]="bank.value.id"
       >
-        {{ bank.title }}
+        {{ bank.value.title }}
       </mat-option>
     </mat-select>
   </mat-form-field>
@@ -28,10 +28,10 @@
     <mat-label>Валюта</mat-label>
     <mat-select formControlName="currency_id">
       <mat-option
-        *ngFor="let currency of currencies"
-        [value]="currency.id"
+        *ngFor="let currency of moneyService.currencies$$() | keyvalue"
+        [value]="currency.value.id"
       >
-        {{ currency.title }}
+        {{ currency.value.title }}
       </mat-option>
     </mat-select>
   </mat-form-field>
