@@ -11,6 +11,10 @@
   --mat-expansion-header-expanded-state-height: 50px;
 }
 
+.expansion-panel-2-row-header {
+  height: 62px !important;
+}
+
 .mat-mdc-form-field-infix {
   width: auto !important;
 }
@@ -42,7 +46,17 @@
 }
 
 // This rule is a fix for an accordion not in collapsed state while :entering with an animation...
-.ng-animating mat-card div.mat-expansion-panel-content {
+.ng-animating div.mat-expansion-panel-content {
   height: 0px;
   visibility: hidden;
+}
+
+// Without this transfer transactions' expansion panel headers' title parts won't overflow correctly
+.mat-content {
+  display: block !important;
+}
+
+// Without this floating selector pane is the width of the mat-input, which can make the list items crumpled
+.cdk-overlay-pane {
+  min-width: fit-content !important;
 }

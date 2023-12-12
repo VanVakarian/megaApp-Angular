@@ -58,7 +58,10 @@ export interface Transaction {
   category_id: number;
   kind: string;
   is_gift: boolean;
+  notes: string | null;
   twin_transaction_id: number | null;
+  target_account_id: number | null;
+  target_account_amount: number | null;
 }
 
 export interface DateTimeFormatOptions {

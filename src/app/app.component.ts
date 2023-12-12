@@ -1,5 +1,4 @@
-import { Component, OnInit, ViewChild, effect } from '@angular/core';
-import { NotificationsService } from './services/notifications.service';
+import { Component, OnInit } from '@angular/core';
 import { MoneyService } from './services/money.service';
 import { DateAdapter } from '@angular/material/core';
 
@@ -13,8 +12,7 @@ export class MainAppComponent implements OnInit {
 
   menuOpened = false;
 
-  constructor(public moneyService: MoneyService, private dateAdapter: DateAdapter<Date>) {
-  }
+  constructor(public moneyService: MoneyService, private dateAdapter: DateAdapter<Date>) {}
 
   hamburgerPressed(hamburgerCheckboxStatus: boolean) {
     this.menuOpened = hamburgerCheckboxStatus;
@@ -31,6 +29,7 @@ export class MainAppComponent implements OnInit {
       return 1;
     };
 
+    // TODO: think of a better way to initially fetch data
     this.moneyService.getCurrencies();
     this.moneyService.getBanks();
     this.moneyService.getAccounts();

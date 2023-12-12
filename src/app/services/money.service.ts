@@ -42,12 +42,12 @@ export class MoneyService {
     private notificationsService: NotificationsService,
     private dataSharingService: DataSharingService
   ) {
-    // effect(() => { console.log('CURRENCIES have been updated:', this.currencies$$()); });
-    // effect(() => { console.log('BANKS have been updated:', this.banks$$()); });
-    // effect(() => { console.log('ACCOUNTS have been updated:', this.accounts$$()); });
-    // effect(() => { console.log('CATEGORIES have been updated:', this.categories$$()); });
-    // effect(() => { console.log('TRANSACTIONS have been updated:', this.transactions$$()); });
-    // effect(() => { console.log('TRANSACTIONS BY DAY have been updated:', this.transactionsByDay$$()); });
+    // effect(() => { console.log('CURRENCIES have been updated:', this.currencies$$()); }); // prettier-ignore
+    // effect(() => { console.log('BANKS have been updated:', this.banks$$()); }); // prettier-ignore
+    // effect(() => { console.log('ACCOUNTS have been updated:', this.accounts$$()); }); // prettier-ignore
+    // effect(() => { console.log('CATEGORIES have been updated:', this.categories$$()); }); // prettier-ignore
+    // effect(() => { console.log('TRANSACTIONS have been updated:', this.transactions$$()); }); // prettier-ignore
+    // effect(() => { console.log('TRANSACTIONS BY DAY have been updated:', this.transactionsByDay$$()); }); // prettier-ignore
   }
 
   groupByDayAndKind(transactions: { [id: number]: Transaction }): TransactionsByDay {
@@ -406,7 +406,7 @@ export class MoneyService {
   deleteTransaction(transactionId: number): void {
     this.performRequest(
       HttpMethod.DELETE,
-      `/api/money/category/${transactionId}`,
+      `/api/money/transaction/${transactionId}`,
       null,
       null,
       null,

@@ -10,8 +10,10 @@ import { Account, Transaction } from 'src/app/shared/interfaces';
   templateUrl: './transaction-expense-income-form.component.html',
 })
 export class TransactionExpenseIncomeForm implements OnInit, OnDestroy {
-  @Input() transactionData!: Transaction;
+  @Input() transaction!: Transaction;
   @Input() formRole: string = '';
+  @Input() transactionKind: string = '';
+  @Input() transactionDate: string = '';
 
   chosenAccount!: Account;
   chosenCurrencyId: number = 0;
@@ -20,10 +22,17 @@ export class TransactionExpenseIncomeForm implements OnInit, OnDestroy {
 
   public transactionForm = new FormGroup({
     id: new FormControl(0),
+    date: new FormControl(''),
+    amount: new FormControl(
+      this.transaction ? this.transaction.amount : null,
+      // a negaitve or a positive number with or without a decimal part, with one or two digits after a dot (or a comma)
+      [Validators.required, Validators.pattern(/^[-+]?\d+([.,]\d{1,2})?$/)]
+    ),
     account_id: new FormControl(0, [Validators.min(1)]),
-    amount: new FormControl(0, [Validators.min(1)]),
+    category_id: new FormControl(0, [Validators.min(1)]),
+    kind: new FormControl(''),
+    is_gift: new FormControl(false),
     notes: new FormControl(''),
-    // kind: new FormControl('', [Validators.required]),
   });
 
   constructor(private confirmModal: ConfirmationDialogService, public moneyService: MoneyService) {}
@@ -37,22 +46,24 @@ export class TransactionExpenseIncomeForm implements OnInit, OnDestroy {
   }
 
   onSubmit() {
+    this.transactionForm.value.kind = this.transactionKind;
+    this.transactionForm.value.date = this.transactionDate;
+
+    if (this.transactionForm.value.amount) {
+      this.transactionForm.value.amount = Math.abs(this.transactionForm.value.amount);
+    }
     if (this.formRole === 'new') {
-      // this.moneyService.createAccount(this.transactionForm.value as Account);
+      this.moneyService.createTransaction(this.transactionForm.value as Transaction);
       this.clearForm();
     } else if (this.formRole === 'edit') {
-      // this.moneyService.updateAccount(this.transactionForm.value as Account);
+      this.moneyService.updateTransaction(this.transactionForm.value as Transaction);
     }
-  }
-
-  clearForm() {
-    this.transactionForm.reset();
   }
 
   openConfirmationModal(actionQuestion: string): void {
     this.confirmModal.openModal(actionQuestion).subscribe((result) => {
       if (result) {
-        // this.moneyService.deleteAccount(this.transactionForm.value.id as number);
+        this.moneyService.deleteTransaction(this.transactionForm.value.id as number);
       }
     });
   }
@@ -61,12 +72,17 @@ export class TransactionExpenseIncomeForm implements OnInit, OnDestroy {
     return this.transactionForm.valid;
   }
 
+  clearForm() {
+    this.transactionForm.reset();
+  }
+
   ngOnInit(): void {}
 
   ngOnChanges(): void {
-    if (this.transactionData) {
-      this.transactionForm.patchValue(this.transactionData);
-      const accountId = this.transactionData.account_id;
+    if (this.transaction) {
+      this.transactionForm.patchValue(this.transaction as Transaction);
+
+      const accountId = this.transaction.account_id;
       const currencyId = this.moneyService.accounts$$()?.[accountId].currency_id;
       this.chosenAccountsCurrencySymbol = this.moneyService.currencies$$()?.[currencyId].symbol;
       this.chosenAccountsCurrencyPosition = this.moneyService.currencies$$()?.[currencyId].symbol_pos;

@@ -1,14 +1,11 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { ViewChild } from '@angular/core';
-import { MatMenuTrigger } from '@angular/material/menu';
 import { FormControl } from '@angular/forms';
+import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 
 import { DateTimeFormatOptions, Transaction } from 'src/app/shared/interfaces';
 import { slideInOutAnimation } from 'src/app/components/money/money-transactions/animations';
 import { MoneyService } from 'src/app/services/money.service';
-import { MatDatepickerInputEvent } from '@angular/material/datepicker';
-
-import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
+import { dateToIsoNoTimeNoTZ, divideNumberWithWhitespaces, splitNumber } from 'src/app/shared/utils';
 
 @Component({
   selector: 'app-money-transactions',
@@ -17,8 +14,6 @@ import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
   animations: [slideInOutAnimation],
 })
 export class MoneyTransactionsComponent implements OnInit {
-  @ViewChild(MatMenuTrigger) trigger!: MatMenuTrigger;
-
   direction: string = 'left';
   today: Date = new Date();
   dateForm: FormControl = new FormControl(new Date());
@@ -32,14 +27,39 @@ export class MoneyTransactionsComponent implements OnInit {
     return this.moneyService.categories$$()?.[categoryId]['title'];
   }
 
-  formatTransactionAmount(transaction: Transaction) {
-    const accountId = transaction.account_id;
-    const currencyId = this.moneyService.accounts$$()?.[accountId].currency_id;
-    const symbol = this.moneyService.currencies$$()?.[currencyId].symbol;
-    const whitespace = this.moneyService.currencies$$()?.[currencyId].whitespace ? ' ' : '';
-    const amount = transaction.amount;
-    const symbolPos = this.moneyService.currencies$$()?.[currencyId].symbol_pos;
-    return symbolPos == 'prefix' ? `${symbol}${whitespace}${amount}` : `${amount}${whitespace}${symbol}`;
+  formatTransactionAmount(transactionId: number | null) {
+    if (transactionId) {
+      const accountId = this.moneyService.transactions$$()?.[transactionId].account_id;
+      const currencyId = this.moneyService.accounts$$()?.[accountId].currency_id;
+      const symbol = this.moneyService.currencies$$()?.[currencyId].symbol;
+      const symbolPos = this.moneyService.currencies$$()?.[currencyId].symbol_pos;
+      const whitespace = this.moneyService.currencies$$()?.[currencyId].whitespace ? ' ' : '';
+      const amount = this.moneyService.transactions$$()?.[transactionId].amount;
+
+      const [sign, integer, decimal] = splitNumber(String(amount));
+      const integerDivided = divideNumberWithWhitespaces(integer);
+      const amountPrepped = `${sign}${integerDivided}${decimal}`;
+
+      return symbolPos == 'prefix'
+        ? `${symbol}${whitespace}${amountPrepped}`
+        : `${amountPrepped}${whitespace}${symbol}`;
+    }
+    return '';
+  }
+
+  formatTransactionNotes(transaction: Transaction) {
+    const notes = transaction.notes;
+    return `${notes ? ' (' : ''}${notes}${notes ? ')' : ''}`;
+  }
+
+  getOutgoingTransferAccountTitle(transactionId: number) {
+    const accountId = this.moneyService.transactions$$()?.[transactionId].account_id;
+    return this.moneyService.accounts$$()?.[accountId]['title'];
+  }
+
+  getIncomingTransferAccountTitle(incomingTransactionId: number | null) {
+    const incomingTransactionAccountId = this.moneyService.transactions$$()?.[incomingTransactionId!].account_id;
+    return this.moneyService.accounts$$()?.[incomingTransactionAccountId]['title'];
   }
 
   onDatePicked(event: MatDatepickerInputEvent<Date>) {
@@ -100,5 +120,5 @@ export class MoneyTransactionsComponent implements OnInit {
     return result.replace(result[0], result[0].toUpperCase());
   }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {}
 }

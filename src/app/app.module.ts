@@ -18,6 +18,7 @@ import { CategoryFormComponent } from 'src/app/components/money/money-category/c
 
 import { MoneyTransactionsComponent } from 'src/app/components/money/money-transactions/money-transactions.component';
 import { TransactionExpenseIncomeForm } from 'src/app/components/money/money-transactions/transaction-forms/transaction-expense-income-form.component';
+import { TransactionTransferForm } from './components/money/money-transactions/transaction-forms/transaction-transfer-form.component';
 
 import { SettingsPageComponent } from 'src/app/components/settings-page/settings-page.component';
 import { LoginPageComponent } from 'src/app/components/login-page/login-page.component';
@@ -56,6 +57,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 
     MoneyTransactionsComponent,
     TransactionExpenseIncomeForm,
+    TransactionTransferForm,
 
     SettingsPageComponent,
     LoginPageComponent,
