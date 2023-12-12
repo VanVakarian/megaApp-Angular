@@ -29,8 +29,6 @@ export class MoneyCategoryComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.moneyService.getCategories();
-
     this.dataSharingService.dataChanged$.subscribe(() => {
       this.closeAllPanels();
     });

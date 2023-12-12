@@ -1,14 +1,14 @@
 <mat-accordion class="sub-expansion-panel-38px-50px">
-  <ng-container *ngFor="let currency of moneyService.currencies">
-    <mat-expansion-panel (opened)="currencyExpanded(currency.id)">
+  <ng-container *ngFor="let currency of moneyService.currencies$$() | keyvalue">
+    <mat-expansion-panel (opened)="currencyExpanded(currency.value.id)">
       <mat-expansion-panel-header>
         <mat-panel-title>
-          <div class="overflow-hidden whitespace-nowrap text-base font-normal">{{ currency.title }}</div>
+          <div class="overflow-hidden whitespace-nowrap text-base font-normal">{{ currency.value.title }}</div>
         </mat-panel-title>
       </mat-expansion-panel-header>
 
       <app-currency-form
-        [currencyData]="currency"
+        [currencyData]="currency.value"
         [formRole]="'edit'"
       />
     </mat-expansion-panel>
@@ -18,7 +18,7 @@
     <mat-expansion-panel (opened)="currencyExpanded(0)">
       <mat-expansion-panel-header>
         <mat-panel-title>
-          <mat-icon>add_circle_outline</mat-icon>
+          <mat-icon>add</mat-icon>
           <div class="ml-1 overflow-hidden whitespace-nowrap text-base font-normal">Добавить новую валюту?</div>
         </mat-panel-title>
       </mat-expansion-panel-header>

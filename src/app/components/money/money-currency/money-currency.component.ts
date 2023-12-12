@@ -22,8 +22,6 @@ export class MoneyCurrencyComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.moneyService.getCurrencies();
-
     this.dataSharingService.dataChanged$.subscribe(() => {
       this.closeAllPanels();
     });

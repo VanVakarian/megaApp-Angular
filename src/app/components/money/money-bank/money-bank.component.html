@@ -1,14 +1,14 @@
 <mat-accordion class="sub-expansion-panel-38px-50px">
-  <ng-container *ngFor="let bank of moneyService.banks">
-    <mat-expansion-panel (opened)="bankExpanded(bank.id)">
+  <ng-container *ngFor="let bank of moneyService.banks$$() | keyvalue">
+    <mat-expansion-panel (opened)="bankExpanded(bank.value.id)">
       <mat-expansion-panel-header>
         <mat-panel-title>
-          <div class="overflow-hidden whitespace-nowrap text-base font-normal">{{ bank.title }}</div>
+          <div class="overflow-hidden whitespace-nowrap text-base font-normal">{{ bank.value.title }}</div>
         </mat-panel-title>
       </mat-expansion-panel-header>
 
       <app-bank-form
-        [bankData]="bank"
+        [bankData]="bank.value"
         [formRole]="'edit'"
       />
     </mat-expansion-panel>
@@ -18,7 +18,7 @@
     <mat-expansion-panel (opened)="bankExpanded(0)">
       <mat-expansion-panel-header>
         <mat-panel-title>
-          <mat-icon>add_circle_outline</mat-icon>
+          <mat-icon>add</mat-icon>
           <div class="ml-1 overflow-hidden whitespace-nowrap text-base font-normal">Добавить новый банк?</div>
         </mat-panel-title>
       </mat-expansion-panel-header>

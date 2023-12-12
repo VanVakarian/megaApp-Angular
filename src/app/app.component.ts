@@ -1,15 +1,18 @@
-import { Component, ViewChild } from '@angular/core';
-import { NotificationsService } from './services/notifications.service';
+import { Component, OnInit } from '@angular/core';
+import { MoneyService } from './services/money.service';
+import { DateAdapter } from '@angular/material/core';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class MainAppComponent {
+export class MainAppComponent implements OnInit {
   title = 'megaapp';
 
   menuOpened = false;
+
+  constructor(public moneyService: MoneyService, private dateAdapter: DateAdapter<Date>) {}
 
   hamburgerPressed(hamburgerCheckboxStatus: boolean) {
     this.menuOpened = hamburgerCheckboxStatus;
@@ -19,18 +22,18 @@ export class MainAppComponent {
     this.menuOpened = false;
   }
 
-  // // FOR TESTING PERPOSES
-  // constructor(private notificationsService: NotificationsService) {}
-  // showNotification() {
-  //   this.notificationsService.addNotification('Ошибка произошла', 'error', 0);
-  //   this.notificationsService.addNotification('Внимание, внимание, внимание!', 'warning', 0);
-  //   this.notificationsService.addNotification('Надо же! Все океюшки!', 'success', 0);
-  //   this.notificationsService.addNotification('Просто сообщение с обычной, ничем не примечательной информацией, вот!', 'info', 0);
-  // }
-  // <button
-  //   (click)="showNotification()"
-  //   class="fixed bottom-4 right-4 rounded bg-blue-500 px-4 py-2 text-white"
-  // >
-  //   Показать уведомление
-  // </button>
+  ngOnInit(): void {
+    // making monday to be the first day of the week in a calendar
+    this.dateAdapter.setLocale('ru-RU');
+    this.dateAdapter.getFirstDayOfWeek = () => {
+      return 1;
+    };
+
+    // TODO: think of a better way to initially fetch data
+    this.moneyService.getCurrencies();
+    this.moneyService.getBanks();
+    this.moneyService.getAccounts();
+    this.moneyService.getCategories();
+    this.moneyService.getTransactions();
+  }
 }

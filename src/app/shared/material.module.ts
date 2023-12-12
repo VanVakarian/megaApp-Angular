@@ -12,6 +12,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 
 const materialComponents = [
   MatButtonModule,
@@ -26,6 +27,7 @@ const materialComponents = [
   MatButtonToggleModule,
   MatSidenavModule,
   MatIconModule,
+  MatDatepickerModule,
 ];
 
 @NgModule({

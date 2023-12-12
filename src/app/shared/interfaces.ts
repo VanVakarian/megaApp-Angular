@@ -57,4 +57,15 @@ export interface Transaction {
   account_id: number;
   category_id: number;
   kind: string;
+  is_gift: boolean;
+  notes: string | null;
+  twin_transaction_id: number | null;
+  target_account_id: number | null;
+  target_account_amount: number | null;
+}
+
+export interface DateTimeFormatOptions {
+  weekday?: 'long' | 'short' | 'narrow';
+  month?: 'numeric' | '2-digit' | 'long' | 'short' | 'narrow';
+  day?: 'numeric' | '2-digit';
 }

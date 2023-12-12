@@ -23,8 +23,6 @@ export class MoneyAccountComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.moneyService.getAccounts();
-
     this.dataSharingService.dataChanged$.subscribe(() => {
       this.closeAllPanels();
     });

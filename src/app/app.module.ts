@@ -17,6 +17,8 @@ import { MoneyCategoryComponent } from './components/money/money-category/money-
 import { CategoryFormComponent } from 'src/app/components/money/money-category/category-form/category-form.component';
 
 import { MoneyTransactionsComponent } from 'src/app/components/money/money-transactions/money-transactions.component';
+import { TransactionExpenseIncomeForm } from 'src/app/components/money/money-transactions/transaction-forms/transaction-expense-income-form.component';
+import { TransactionTransferForm } from './components/money/money-transactions/transaction-forms/transaction-transfer-form.component';
 
 import { SettingsPageComponent } from 'src/app/components/settings-page/settings-page.component';
 import { LoginPageComponent } from 'src/app/components/login-page/login-page.component';
@@ -31,6 +33,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialModule } from 'src/app/shared/material.module';
+import { MatNativeDateModule } from '@angular/material/core';
 
 @NgModule({
   declarations: [
@@ -53,6 +56,8 @@ import { MaterialModule } from 'src/app/shared/material.module';
     CategoryFormComponent,
 
     MoneyTransactionsComponent,
+    TransactionExpenseIncomeForm,
+    TransactionTransferForm,
 
     SettingsPageComponent,
     LoginPageComponent,
@@ -68,6 +73,7 @@ import { MaterialModule } from 'src/app/shared/material.module';
     FormsModule,
     BrowserAnimationsModule,
     MaterialModule,
+    MatNativeDateModule,
   ],
   providers: [],
   bootstrap: [MainAppComponent],
