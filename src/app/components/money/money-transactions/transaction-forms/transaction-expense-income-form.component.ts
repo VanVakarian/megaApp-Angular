@@ -52,6 +52,9 @@ export class TransactionExpenseIncomeForm implements OnInit, OnDestroy {
     if (this.transactionForm.value.amount) {
       this.transactionForm.value.amount = Math.abs(this.transactionForm.value.amount);
     }
+
+    this.moneyService.currentDay = this.transactionDate;
+
     if (this.formRole === 'new') {
       this.moneyService.createTransaction(this.transactionForm.value as Transaction);
       this.clearForm();
@@ -63,6 +66,7 @@ export class TransactionExpenseIncomeForm implements OnInit, OnDestroy {
   openConfirmationModal(actionQuestion: string): void {
     this.confirmModal.openModal(actionQuestion).subscribe((result) => {
       if (result) {
+        this.moneyService.currentDay = this.transactionDate;
         this.moneyService.deleteTransaction(this.transactionForm.value.id as number);
       }
     });

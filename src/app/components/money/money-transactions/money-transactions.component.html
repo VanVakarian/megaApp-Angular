@@ -1,13 +1,13 @@
 <div class="grid grid-cols-1 overflow-x-hidden">
-  <ng-container *ngFor="let day of moneyService.transactionsByDay$$() | keyvalue">
-    <ng-container *ngIf="day.key === selectedDateISO">
+  <ng-container *ngFor="let day of daysList">
+    <ng-container *ngIf="day === selectedDateISO">
       <div
         class="card m-1"
         [@slideInOut]="direction"
       >
         <mat-card class="mb-2">
           <div class="my-2 overflow-hidden whitespace-nowrap text-center text-lg font-medium">
-            {{ formatDate(day.key) }}
+            {{ formatDate(selectedDateISO) }}
           </div>
         </mat-card>
 
@@ -18,7 +18,7 @@
         </div>
 
         <mat-accordion class="sub-expansion-panel-38px-50px">
-          <ng-container *ngFor="let transaction of day.value['expense']">
+          <ng-container *ngFor="let transaction of moneyService.transactionsByDay$$()?.[selectedDateISO]?.['expense']">
             <mat-expansion-panel>
               <mat-expansion-panel-header>
                 <mat-panel-title>
@@ -65,7 +65,7 @@
         </div>
 
         <mat-accordion class="sub-expansion-panel-38px-50px">
-          <ng-container *ngFor="let transaction of day.value['income']">
+          <ng-container *ngFor="let transaction of moneyService.transactionsByDay$$()?.[selectedDateISO]?.['income']">
             <mat-expansion-panel>
               <mat-expansion-panel-header>
                 <mat-panel-title>
@@ -113,7 +113,9 @@
         </div>
 
         <mat-accordion class="sub-expansion-panel-38px-50px">
-          <ng-container *ngFor="let transaction of day.value['transfer']; let i = index">
+          <ng-container
+            *ngFor="let transaction of moneyService.transactionsByDay$$()?.[selectedDateISO]?.['transfer']; let i = index"
+          >
             <ng-container *ngIf="i % 2 === 0">
               <mat-expansion-panel>
                 <mat-expansion-panel-header class="expansion-panel-2-row-header relative">
@@ -172,20 +174,19 @@
   </ng-container>
 </div>
 
-<div class="fixed bottom-0 left-0 flex w-full justify-center gap-8 bg-gradient-to-t from-white to-transparent pb-6">
+<div class="fixed bottom-6 left-1/2 z-[1] flex -translate-x-1/2 transform gap-5">
   <button
     mat-mini-fab
-    class="transaction-cycle-btn-fab"
+    class="btn-resize"
     color="primary"
     (click)="previous()"
-    [disabled]="isFirstDay()"
   >
-    <mat-icon class="icon-display">chevron_left</mat-icon>
+    <mat-icon class="icon-resize">chevron_left</mat-icon>
   </button>
 
   <button
     mat-mini-fab
-    class="transaction-cycle-btn-fab"
+    class="btn-resize"
     color="primary"
     (click)="picker.open()"
   >
@@ -194,16 +195,14 @@
 
   <button
     mat-mini-fab
-    class="transaction-cycle-btn-fab"
+    class="btn-resize"
     color="primary"
     (click)="next()"
     [disabled]="isLastDay()"
   >
-    <mat-icon class="icon-display">chevron_right</mat-icon>
+    <mat-icon class="icon-resize">chevron_right</mat-icon>
   </button>
 </div>
-
-<div class="h-[15vh]"></div>
 
 <mat-form-field class="hide-form">
   <input
@@ -219,3 +218,5 @@
     #picker
   />
 </mat-form-field>
+
+<div class="h-[15vh]"></div>

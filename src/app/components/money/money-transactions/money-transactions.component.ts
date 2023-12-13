@@ -2,10 +2,10 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 
-import { DateTimeFormatOptions, Transaction } from 'src/app/shared/interfaces';
+import { Transaction } from 'src/app/shared/interfaces';
 import { slideInOutAnimation } from 'src/app/components/money/money-transactions/animations';
 import { MoneyService } from 'src/app/services/money.service';
-import { dateToIsoNoTimeNoTZ, divideNumberWithWhitespaces, splitNumber } from 'src/app/shared/utils';
+import { dateToIsoNoTimeNoTZ, generateDatesList, divideNumberWithWhitespaces, splitNumber } from 'src/app/shared/utils';
 
 @Component({
   selector: 'app-money-transactions',
@@ -15,10 +15,12 @@ import { dateToIsoNoTimeNoTZ, divideNumberWithWhitespaces, splitNumber } from 's
 })
 export class MoneyTransactionsComponent implements OnInit {
   direction: string = 'left';
-  today: Date = new Date();
   dateForm: FormControl = new FormControl(new Date());
-  selectedDateISO: string = dateToIsoNoTimeNoTZ(this.today);
-  selectedDate: Date = new Date();
+  today: Date = new Date();
+  todayDate: number = this.today.setHours(0, 0, 0, 0);
+  selectedDateMs: number = this.todayDate;
+  selectedDateISO: string = dateToIsoNoTimeNoTZ(this.today.getTime());
+  daysList: string[] = [];
 
   constructor(private cdRef: ChangeDetectorRef, public moneyService: MoneyService) {}
 
@@ -67,17 +69,19 @@ export class MoneyTransactionsComponent implements OnInit {
       return;
     }
 
-    const newDate: Date = event.value;
+    const newDateMs = event.value.getTime();
 
-    if (newDate > this.selectedDate) {
+    if (newDateMs > this.selectedDateMs) {
       this.direction = 'left';
-    } else if (newDate < this.selectedDate) {
+    } else if (newDateMs < this.selectedDateMs) {
       this.direction = 'right';
     }
 
     this.cdRef.detectChanges();
-    this.selectedDate = newDate;
-    this.selectedDateISO = dateToIsoNoTimeNoTZ(newDate);
+    this.selectedDateMs = newDateMs;
+    this.selectedDateISO = dateToIsoNoTimeNoTZ(newDateMs);
+
+    this.regenerateDaysList();
   }
 
   next(): void {
@@ -93,32 +97,36 @@ export class MoneyTransactionsComponent implements OnInit {
   }
 
   switchCurrentDay(shift: number) {
-    const currIdx = Object.keys(this.moneyService.transactionsByDay$$()).indexOf(this.selectedDateISO);
-    let keys = Object.keys(this.moneyService.transactionsByDay$$());
+    const newDay = new Date(this.selectedDateMs);
+    newDay.setDate(newDay.getDate() + shift);
+    this.selectedDateMs = newDay.getTime();
+    this.selectedDateISO = dateToIsoNoTimeNoTZ(this.selectedDateMs);
+    this.dateForm.setValue(new Date(this.selectedDateMs));
+    console.log('lolkek04', this.dateForm.value);
 
-    if (keys[currIdx + shift] in this.moneyService.transactionsByDay$$()) {
-      this.selectedDateISO = keys[currIdx + shift];
-      this.selectedDate = new Date(this.selectedDateISO);
-      this.dateForm.setValue(this.selectedDate);
+    this.regenerateDaysList();
+  }
+
+  regenerateDaysList() {
+    const dayIdx = this.daysList.indexOf(this.selectedDateISO);
+
+    if (dayIdx < 5 || dayIdx > 15) {
+      this.daysList = generateDatesList(this.selectedDateISO);
+      this.moneyService.getTransactions(this.selectedDateISO);
     }
   }
 
-  isFirstDay(): boolean {
-    const keys = Object.keys(this.moneyService.transactionsByDay$$());
-    return this.selectedDateISO === keys[0];
-  }
-
   isLastDay(): boolean {
-    const keys = Object.keys(this.moneyService.transactionsByDay$$());
-    return this.selectedDateISO === keys[keys.length - 1];
+    return this.today.getTime() === this.selectedDateMs;
   }
 
   formatDate(dateIso: string): string {
     const date = new Date(dateIso);
-    const options: DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' };
-    const result = date.toLocaleDateString('ru-RU', options);
+    const result = date.toLocaleDateString('ru-RU', { weekday: 'long', month: 'long', day: 'numeric' });
     return result.replace(result[0], result[0].toUpperCase());
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.daysList = generateDatesList(this.selectedDateISO);
+  }
 }
