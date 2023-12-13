@@ -29,6 +29,8 @@ interface TransactionsByDay {
 export class MoneyService {
   token = this.auth.getToken();
 
+  currentDay: string = '';
+
   currencies$$: WritableSignal<{ [id: number]: Currency }> = signal({});
   banks$$: WritableSignal<{ [id: number]: Bank }> = signal({});
   accounts$$: WritableSignal<{ [id: number]: Account }> = signal({});
@@ -57,7 +59,7 @@ export class MoneyService {
     let transactionsByDay: TransactionsByDay = {};
 
     for (let day = startDate; day <= endDate; day.setDate(day.getDate() + 1)) {
-      const isoDate = dateToIsoNoTimeNoTZ(day);
+      const isoDate = dateToIsoNoTimeNoTZ(day.getTime());
       transactionsByDay[isoDate] = {};
 
       transactionIds.forEach((id) => {
@@ -368,7 +370,7 @@ export class MoneyService {
   getTransactions(day?: string): void {
     this.performRequest(
       HttpMethod.GET,
-      `/api/money/transaction/${day ?? dateToIsoNoTimeNoTZ(new Date())}`,
+      `/api/money/transaction/${day ?? dateToIsoNoTimeNoTZ(new Date().getTime())}`,
       null,
       this.transactions$$,
       'transactions_list',
@@ -418,6 +420,6 @@ export class MoneyService {
 
   transactionsChanged(): void {
     this.dataSharingService.dataChanged$.emit();
-    this.getTransactions();
+    this.getTransactions(this.currentDay);
   }
 }

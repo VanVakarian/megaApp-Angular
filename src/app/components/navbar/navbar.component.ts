@@ -13,7 +13,7 @@ export class NavbarComponent {
   public buttons = [
     { label: 'Ккал', link: '/kcals', requiresAuth: true, iconName: 'restaurant', bgClass: 'food-bg' },
     { label: 'Обзор', link: '/dashboard', requiresAuth: true, iconName: 'remove_red_eye', bgClass: 'money-bg' },
-    { label: 'Сделки', link: '/transactions', requiresAuth: true, iconName: 'receipt_long', bgClass: 'money-bg' },
+    { label: 'Дневник операций', link: '/transactions', requiresAuth: true, iconName: 'receipt_long', bgClass: 'money-bg' },
     { label: 'Управление', link: '/manage', requiresAuth: true, iconName: 'account_balance', bgClass: 'money-bg' },
     { label: 'Настройки', link: '/settings', requiresAuth: true, iconName: 'settings', bgClass: 'settings-bg' },
     { label: 'Войти', link: '/login', requiresAuth: false, iconName: 'login', bgClass: 'login-bg' },
