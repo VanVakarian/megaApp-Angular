@@ -1,3 +1,31 @@
+:root {
+  --fonts-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --fonts-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --fonts-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --mat-badge-text-font: var(--fonts-sans) !important;
+  --mat-bottom-sheet-container-text-font: var(--fonts-sans) !important;
+  --mat-datepicker-calendar-text-font: var(--fonts-sans) !important;
+  --mat-expansion-container-text-font: var(--fonts-sans) !important;
+  --mat-expansion-header-text-font: var(--fonts-sans) !important;
+  --mat-form-field-container-text-font: var(--fonts-sans) !important;
+  --mat-form-field-subscript-text-font: var(--fonts-sans) !important;
+  --mat-legacy-button-toggle-text-font: var(--fonts-sans) !important;
+  --mat-menu-item-label-text-font: var(--fonts-sans) !important;
+  --mat-optgroup-label-text-font: var(--fonts-sans) !important;
+  --mat-option-label-text-font: var(--fonts-sans) !important;
+  --mat-paginator-container-text-font: var(--fonts-sans) !important;
+  --mat-select-trigger-text-font: var(--fonts-sans) !important;
+  --mat-standard-button-toggle-text-font: var(--fonts-sans) !important;
+  --mat-stepper-container-text-font: var(--fonts-sans) !important;
+  --mat-stepper-header-label-text-font: var(--fonts-sans) !important;
+  --mat-table-footer-supporting-text-font: var(--fonts-sans) !important;
+  --mat-table-header-headline-font: var(--fonts-sans) !important;
+  --mat-table-row-item-label-text-font: var(--fonts-sans) !important;
+  --mat-toolbar-title-text-font: var(--fonts-sans) !important;
+  --mdc-filled-text-field-label-text-font: var(--fonts-sans) !important;
+  --mdc-outlined-text-field-label-text-font: var(--fonts-sans) !important;
+}
+
 .mat-mdc-dialog-content {
   padding: 10px !important;
 }
