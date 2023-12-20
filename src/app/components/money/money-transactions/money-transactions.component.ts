@@ -3,7 +3,7 @@ import { FormControl } from '@angular/forms';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 
 import { Transaction } from 'src/app/shared/interfaces';
-import { slideInOutAnimation } from 'src/app/components/money/money-transactions/animations';
+import { slideInOutAnimation } from 'src/app/shared/animations';
 import { MoneyService } from 'src/app/services/money.service';
 import { dateToIsoNoTimeNoTZ, generateDatesList, divideNumberWithWhitespaces, splitNumber } from 'src/app/shared/utils';
 

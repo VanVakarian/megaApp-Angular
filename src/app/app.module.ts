@@ -3,7 +3,7 @@ import { NavbarComponent } from 'src/app/components/navbar/navbar.component';
 import { ModalYNComponent } from 'src/app/components/shared-components/modal-y-n/modal-y-n.component';
 import { MatDialogModal } from 'src/app/components/shared-components/mat-dialog-modal/mat-dialog-modal.component';
 
-import { KcalsPageComponent } from 'src/app/components/kcals-page/kcals-page.component';
+import { KcalFoodComponent } from 'src/app/components/kcal/food/kcal-food.component';
 
 import { MoneyDashboardComponent } from 'src/app/components/money/money-dashboard/money-dashboard.component';
 import { MoneyManageComponent } from 'src/app/components/money/money-manage/money-manage.component';
@@ -42,7 +42,7 @@ import { MatNativeDateModule } from '@angular/material/core';
     ModalYNComponent,
     MatDialogModal,
 
-    KcalsPageComponent,
+    KcalFoodComponent,
 
     MoneyDashboardComponent,
     MoneyManageComponent,

@@ -12,6 +12,67 @@ export interface AuthResponse {
   token: string;
 }
 
+// FOOD //
+
+export interface DiaryEntry {
+  id: number;
+  date: string;
+  catalogue_id: number;
+  food_weight: number;
+}
+
+export interface Diary {
+  [date: string]: {
+    ['food']: {
+      [id: number]: DiaryEntry;
+    };
+    ['weight']: number;
+    ['target_kcals']: number;
+  };
+}
+
+export interface FormattedDiaryEntry {
+  id: number;
+  date: string;
+  catalogue_id: number;
+  food_weight: number;
+  formatted_food_name: string;
+  formatted_weight: string;
+  formatted_kcals: string;
+  formatted_percent: string;
+  fraction: number;
+}
+
+export interface FormattedDiary {
+  [date: string]: {
+    ['food']: {
+      [id: number]: FormattedDiaryEntry;
+    };
+    ['weight']: number;
+    ['target_kcals']: number;
+  };
+}
+
+interface CatalogueEntry {
+  id: number;
+  name: string;
+  kcals: number;
+}
+
+export interface Catalogue {
+  [id: number]: CatalogueEntry;
+}
+
+export interface Coefficients {
+  [id: number]: number;
+}
+
+export interface Stats {
+  [id: string]: [number, number, number, number];
+}
+
+// MONEY //
+
 export interface Currency {
   id: number;
   title: string;

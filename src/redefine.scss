@@ -24,14 +24,21 @@
   --mat-toolbar-title-text-font: var(--fonts-sans) !important;
   --mdc-filled-text-field-label-text-font: var(--fonts-sans) !important;
   --mdc-outlined-text-field-label-text-font: var(--fonts-sans) !important;
+  --mdc-typography-button-font-family: var(--fonts-sans) !important;
+  --mdc-typography-font-family: var(--fonts-sans) !important;
 }
 
 .mat-mdc-dialog-content {
   padding: 10px !important;
 }
 
-.main-expansion-panel {
-  // --mat-expansion-header-collapsed-state-height: 44px;
+.food-expansion-panel {
+  padding-left: 11px !important;
+  padding-right: 11px !important;
+}
+
+.food-expansion-panel-title {
+  margin-right: 7px !important;
 }
 
 .sub-expansion-panel-38px-50px {

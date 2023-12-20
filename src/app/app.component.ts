@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { MoneyService } from './services/money.service';
 import { DateAdapter } from '@angular/material/core';
+
+import { MoneyService } from 'src/app/services/money.service';
+import { FoodService } from 'src/app/services/food.service';
 
 @Component({
   selector: 'app-root',
@@ -12,7 +14,11 @@ export class MainAppComponent implements OnInit {
 
   menuOpened = false;
 
-  constructor(public moneyService: MoneyService, private dateAdapter: DateAdapter<Date>) {}
+  constructor(
+    public moneyService: MoneyService,
+    public foodService: FoodService,
+    private dateAdapter: DateAdapter<Date>
+  ) {}
 
   hamburgerPressed(hamburgerCheckboxStatus: boolean) {
     this.menuOpened = hamburgerCheckboxStatus;
@@ -30,6 +36,9 @@ export class MainAppComponent implements OnInit {
     };
 
     // TODO: think of a better way to initially fetch data
+    this.foodService.getFullUpdate();
+    this.foodService.getStats();
+
     this.moneyService.getCurrencies();
     this.moneyService.getBanks();
     this.moneyService.getAccounts();
