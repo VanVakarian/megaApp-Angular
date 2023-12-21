@@ -4,6 +4,7 @@ import { ModalYNComponent } from 'src/app/components/shared-components/modal-y-n
 import { MatDialogModal } from 'src/app/components/shared-components/mat-dialog-modal/mat-dialog-modal.component';
 
 import { KcalFoodComponent } from 'src/app/components/kcal/food/kcal-food.component';
+import { BodyWeightFormComponent } from './components/kcal/food/forms/body-weight-form.component';
 
 import { MoneyDashboardComponent } from 'src/app/components/money/money-dashboard/money-dashboard.component';
 import { MoneyManageComponent } from 'src/app/components/money/money-manage/money-manage.component';
@@ -43,6 +44,7 @@ import { MatNativeDateModule } from '@angular/material/core';
     MatDialogModal,
 
     KcalFoodComponent,
+    BodyWeightFormComponent,
 
     MoneyDashboardComponent,
     MoneyManageComponent,

@@ -12,7 +12,7 @@ export interface AuthResponse {
   token: string;
 }
 
-// FOOD //
+// FOOD ////////////////////////////////////////////////////////////////////////
 
 export interface DiaryEntry {
   id: number;
@@ -26,7 +26,7 @@ export interface Diary {
     ['food']: {
       [id: number]: DiaryEntry;
     };
-    ['weight']: number;
+    ['body_weight']: number | null;
     ['target_kcals']: number;
   };
 }
@@ -37,10 +37,10 @@ export interface FormattedDiaryEntry {
   catalogue_id: number;
   food_weight: number;
   formatted_food_name: string;
-  formatted_weight: string;
-  formatted_kcals: string;
-  formatted_percent: string;
-  fraction: number;
+  formatted_food_weight: string;
+  formatted_food_kcals: string;
+  formatted_food_percent: string;
+  food_fraction_of_days_norm: number;
 }
 
 export interface FormattedDiary {
@@ -48,7 +48,7 @@ export interface FormattedDiary {
     ['food']: {
       [id: number]: FormattedDiaryEntry;
     };
-    ['weight']: number;
+    ['body_weight']: number | null;
     ['target_kcals']: number;
   };
 }
@@ -67,11 +67,16 @@ export interface Coefficients {
   [id: number]: number;
 }
 
+export interface BodyWeight {
+  body_weight: number;
+  date_iso: string;
+}
+
 export interface Stats {
   [id: string]: [number, number, number, number];
 }
 
-// MONEY //
+// MONEY ///////////////////////////////////////////////////////////////////////
 
 export interface Currency {
   id: number;

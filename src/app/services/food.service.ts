@@ -1,11 +1,12 @@
 import { computed, effect, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { Catalogue, Coefficients, Diary, FormattedDiary, Stats } from 'src/app/shared/interfaces';
+import { Catalogue, Coefficients, Diary, FormattedDiary, Stats, BodyWeight } from 'src/app/shared/interfaces';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { DataSharingService } from 'src/app/services/data-sharing.service';
+import { AuthService } from 'src/app/services/auth/auth.service';
 import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
+import { Subject } from 'rxjs';
 
 enum HttpMethod {
   GET = 'GET',
@@ -13,7 +14,8 @@ enum HttpMethod {
   PUT = 'PUT',
   DELETE = 'DELETE',
 }
-type PayloadType = Diary;
+
+type PayloadType = Diary | BodyWeight;
 type WritableSignalTypes = Diary | Catalogue | Coefficients | Stats;
 
 @Injectable({
@@ -30,6 +32,8 @@ export class FoodService {
   diaryFormatted$$: Signal<FormattedDiary> = computed(() => this.formatDiary());
 
   stats$$: WritableSignal<Stats> = signal({});
+
+  requestResults$ = new Subject<string>();
 
   constructor(
     private auth: AuthService,
@@ -50,7 +54,7 @@ export class FoodService {
     for (const date in this.diary$$()) {
       formattedDiary[date] = {
         food: {},
-        weight: this.diary$$()[date].weight,
+        body_weight: this.diary$$()[date].body_weight,
         target_kcals: this.diary$$()[date].target_kcals,
       };
 
@@ -63,15 +67,14 @@ export class FoodService {
             this.coefficients$$()[entry.catalogue_id]
         );
         const percent = Math.round((kcals / this.diary$$()[date].target_kcals) * 100);
-        // const fraction = (kcals / this.diary$$()[date].target_kcals);
 
         formattedDiary[date].food[id] = {
           ...entry,
           formatted_food_name: foodName,
-          formatted_weight: `${entry.food_weight} г.`,
-          formatted_kcals: `${kcals} ккал.`,
-          formatted_percent: `${percent}%`,
-          fraction: percent
+          formatted_food_weight: `${entry.food_weight} г.`,
+          formatted_food_kcals: `${kcals} ккал.`,
+          formatted_food_percent: `${percent}%`,
+          food_fraction_of_days_norm: percent,
         };
       }
     }
@@ -123,10 +126,12 @@ export class FoodService {
           if (callback) {
             callback();
           }
+          this.requestResults$.next('ok');
         },
         error: (error) => {
           console.log(errorMessage, error);
           this.notificationsService.addNotification(errorMessage, 'error');
+          this.requestResults$.next('error');
         },
       });
   }
@@ -195,6 +200,20 @@ export class FoodService {
   //     this.currenciesChanged.bind(this)
   //   );
   // }
+
+  // BODY WEIGHT ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  postBodyWeight(bodyWeightObj: BodyWeight): void {
+    this.performRequest(
+      HttpMethod.POST,
+      `/api/kcal/body_weight/`,
+      bodyWeightObj,
+      [],
+      [],
+      'Вес сохранён успешно',
+      'Ошибка при запросе статистики'
+    );
+  }
 
   // STATS /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

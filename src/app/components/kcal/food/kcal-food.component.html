@@ -5,67 +5,80 @@
         class="card m-1"
         [@slideInOut]="direction"
       >
-        <mat-card class="mb-2">
-          <div class="my-2 overflow-hidden whitespace-nowrap text-center text-lg font-medium">
-            {{ formatDate(selectedDateISO) }}
-          </div>
-        </mat-card>
-
-        <mat-accordion class="base-grid">
-          <ng-container *ngFor="let food of foodService.diaryFormatted$$()?.[selectedDateISO]?.['food'] | keyvalue">
-            <mat-expansion-panel class="sub-expansion-panel-38px-50px sub-grid">
-              <mat-expansion-panel-header
-                #header
-                class="food-expansion-panel sub-grid"
-                [ngStyle]="getHeaderStyle(food.value.fraction)"
-              >
-                <mat-panel-title class="food-expansion-panel-title sub-grid">
-                  <div
-                    #foodCont
-                    class="sub-grid flex w-full gap-1 overflow-hidden whitespace-nowrap text-base font-normal"
-                  >
-                    <div
-                      #foodName
-                      class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-white bg-clip-text text-transparent"
-                    >
-                      {{ food.value.formatted_food_name }}
-                    </div>
-                    <div
-                      class="text-right"
-                      #foodWeight
-                    >
-                      {{ food.value.formatted_weight }}
-                    </div>
-                    <div
-                      class="text-right"
-                      #foodKcals
-                    >
-                      {{ food.value.formatted_kcals }}
-                    </div>
-                    <div
-                      class="text-right"
-                      #foodPercent
-                    >
-                      {{ food.value.formatted_percent }}
-                    </div>
+        <mat-accordion>
+          <div class="mb-2">
+            <mat-expansion-panel class="sub-expansion-panel-38px-50px">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <div class="ml-4 w-full overflow-hidden whitespace-nowrap text-center text-lg font-medium">
+                    {{ formatDate(selectedDateISO) }}
                   </div>
                 </mat-panel-title>
               </mat-expansion-panel-header>
 
-              <!-- <app-transaction-expense-income-form
+              <app-body-weight-form
+                *ngIf="foodService.diaryFormatted$$()?.[selectedDateISO]"
+                [selectedDate]="selectedDateISO"
+              />
+            </mat-expansion-panel>
+          </div>
+
+          <div class="mb-2">
+            <ng-container *ngFor="let food of foodService.diaryFormatted$$()?.[selectedDateISO]?.['food'] | keyvalue">
+              <mat-expansion-panel class="sub-expansion-panel-38px-50px">
+                <mat-expansion-panel-header
+                  #header
+                  class="food-expansion-panel"
+                  [ngStyle]="setBackgroundStyle(food.value.food_fraction_of_days_norm)"
+                >
+                  <mat-panel-title class="food-expansion-panel-title">
+                    <div
+                      #foodCont
+                      class="flex w-full gap-1 overflow-hidden whitespace-nowrap text-base font-normal"
+                    >
+                      <div
+                        #foodName
+                        class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-white bg-clip-text text-transparent"
+                      >
+                        {{ food.value.formatted_food_name }}
+                      </div>
+                      <div
+                        class="text-right"
+                        #foodWeight
+                      >
+                        {{ food.value.formatted_food_weight }}
+                      </div>
+                      <div
+                        class="text-right"
+                        #foodKcals
+                      >
+                        {{ food.value.formatted_food_kcals }}
+                      </div>
+                      <div
+                        class="text-right"
+                        #foodPercent
+                      >
+                        {{ food.value.formatted_food_percent }}
+                      </div>
+                    </div>
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+
+                <!-- <app-transaction-expense-income-form
               [transaction]="transaction"
               [formrole]="'edit'"
               [transactionkind]="'expense'"
               [transactiondate]="selecteddateiso"
             /> -->
-            </mat-expansion-panel>
-          </ng-container>
+              </mat-expansion-panel>
+            </ng-container>
+          </div>
 
           <mat-expansion-panel class="sub-expansion-panel-38px-50px">
             <mat-expansion-panel-header class="food-expansion-panel">
               <mat-panel-title>
                 <mat-icon>add</mat-icon>
-                <div class="ml-1 overflow-hidden whitespace-nowrap text-base font-normal">добавить расход</div>
+                <div class="ml-1 overflow-hidden whitespace-nowrap text-base font-normal">добавить блюдо</div>
               </mat-panel-title>
             </mat-expansion-panel-header>
 

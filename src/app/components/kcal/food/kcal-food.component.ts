@@ -13,12 +13,11 @@ import {
 import { FormControl } from '@angular/forms';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 
-import { Diary, DiaryEntry, Transaction } from 'src/app/shared/interfaces';
 import { slideInOutAnimation } from 'src/app/shared/animations';
-import { dateToIsoNoTimeNoTZ, generateDatesList, divideNumberWithWhitespaces, splitNumber } from 'src/app/shared/utils';
+import { dateToIsoNoTimeNoTZ, generateDatesList } from 'src/app/shared/utils';
 import { FoodService } from 'src/app/services/food.service';
 import { FETCH_DAYS_RANGE_OFFSET } from 'src/app/shared/const';
-import { combineLatest, timer } from 'rxjs';
+import { combineLatest } from 'rxjs';
 
 @Component({
   selector: 'app-kcal-food',
@@ -26,15 +25,12 @@ import { combineLatest, timer } from 'rxjs';
   styleUrls: ['./kcal-food.component.scss'],
   animations: [slideInOutAnimation],
 })
-export class KcalFoodComponent implements OnInit, AfterViewInit {
+export class KcalFoodComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('foodCont') condDiv!: ElementRef;
   @ViewChildren('foodName') nameDivs!: QueryList<ElementRef>;
   @ViewChildren('foodWeight') weightsDivs!: QueryList<ElementRef>;
   @ViewChildren('foodKcals') kcalsDivs!: QueryList<ElementRef>;
   @ViewChildren('foodPercent') percentsDivs!: QueryList<ElementRef>;
-  // @ViewChild('header') headerDiv!: ElementRef;
-  // private observer!: MutationObserver;
-  // private intervalId: any;
 
   direction: string = 'left';
   calendarSelectedDay: FormControl = new FormControl(new Date());
@@ -46,6 +42,18 @@ export class KcalFoodComponent implements OnInit, AfterViewInit {
 
   constructor(private cdRef: ChangeDetectorRef, public foodService: FoodService, private ngZone: NgZone) {}
 
+  // VIEW FNs
+  formatDate(dateIso: string): string {
+    const date = new Date(dateIso);
+    const result = date.toLocaleDateString('ru-RU', { weekday: 'long', month: 'long', day: 'numeric' });
+    return result.replace(result[0], result[0].toUpperCase());
+  }
+
+  setBackgroundStyle(percent: number) {
+    return { background: `linear-gradient(to right, #c5d6ff ${percent}%, #ffffff00 ${percent}%)` };
+  }
+
+  // CARD SWITCHING AND CALENDAR
   onDatePicked(event: MatDatepickerInputEvent<Date>) {
     if (!event.value) {
       return;
@@ -104,27 +112,7 @@ export class KcalFoodComponent implements OnInit, AfterViewInit {
     return this.today.getTime() === this.selectedDateMs;
   }
 
-  formatDate(dateIso: string): string {
-    const date = new Date(dateIso);
-    const result = date.toLocaleDateString('ru-RU', { weekday: 'long', month: 'long', day: 'numeric' });
-    return result.replace(result[0], result[0].toUpperCase());
-  }
-
-  getHeaderStyle(percent: number) {
-    return { background: `linear-gradient(to right, #c5d6ff ${percent}%, #ffffff00 ${percent}%)` };
-  }
-
-  ngOnInit(): void {
-    this.daysList = generateDatesList(this.selectedDateISO);
-  }
-
-  ngAfterViewInit() {
-    combineLatest([this.weightsDivs.changes, this.kcalsDivs.changes, this.percentsDivs.changes]).subscribe(() =>
-      this.adjustWidths()
-    );
-    setTimeout(() => this.adjustWidths(), 100);
-  }
-
+  // COLUMN WIDH SETTING FNS
   private adjustWidths() {
     this.ngZone.run(() => {
       const weightsWidth = this.getMaxWidth(this.weightsDivs);
@@ -152,44 +140,19 @@ export class KcalFoodComponent implements OnInit, AfterViewInit {
       elem.nativeElement.style.width = `${width}px`;
     });
   }
+
+  // LIFECYCLE HOOKS
+  ngOnInit(): void {
+    this.daysList = generateDatesList(this.selectedDateISO);
+  }
+
+  ngAfterViewInit() {
+    // setting columns width
+    combineLatest([this.weightsDivs.changes, this.kcalsDivs.changes, this.percentsDivs.changes]).subscribe(() =>
+      this.adjustWidths()
+    );
+    setTimeout(() => this.adjustWidths(), 100);
+  }
+
+  ngOnDestroy(): void {}
 }
-
-// getCategoryTitle(transaction: Transaction) {
-//   const categoryId = transaction.category_id;
-//   return this.moneyService.categories$$()?.[categoryId]['title'];
-// }
-
-// formatTransactionAmount(transactionId: number | null) {
-//   if (transactionId) {
-//     const accountId = this.moneyService.transactions$$()?.[transactionId].account_id;
-//     const currencyId = this.moneyService.accounts$$()?.[accountId].currency_id;
-//     const symbol = this.moneyService.currencies$$()?.[currencyId].symbol;
-//     const symbolPos = this.moneyService.currencies$$()?.[currencyId].symbol_pos;
-//     const whitespace = this.moneyService.currencies$$()?.[currencyId].whitespace ? ' ' : '';
-//     const amount = this.moneyService.transactions$$()?.[transactionId].amount;
-
-//     const [sign, integer, decimal] = splitNumber(String(amount));
-//     const integerDivided = divideNumberWithWhitespaces(integer);
-//     const amountPrepped = `${sign}${integerDivided}${decimal}`;
-
-//     return symbolPos == 'prefix'
-//       ? `${symbol}${whitespace}${amountPrepped}`
-//       : `${amountPrepped}${whitespace}${symbol}`;
-//   }
-//   return '';
-// }
-
-// formatTransactionNotes(transaction: Transaction) {
-//   const notes = transaction.notes;
-//   return `${notes ? ' (' : ''}${notes}${notes ? ')' : ''}`;
-// }
-
-// getOutgoingTransferAccountTitle(transactionId: number) {
-//   const accountId = this.moneyService.transactions$$()?.[transactionId].account_id;
-//   return this.moneyService.accounts$$()?.[accountId]['title'];
-// }
-
-// getIncomingTransferAccountTitle(incomingTransactionId: number | null) {
-//   const incomingTransactionAccountId = this.moneyService.transactions$$()?.[incomingTransactionId!].account_id;
-//   return this.moneyService.accounts$$()?.[incomingTransactionAccountId]['title'];
-// }

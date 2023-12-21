@@ -93,3 +93,8 @@
 .cdk-overlay-pane {
   min-width: fit-content !important;
 }
+
+// Style to fix the weird border within material input with outline appearance caused by tailwind
+.mdc-notched-outline__notch {
+  border-right: none !important;
+}
