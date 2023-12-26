@@ -1,7 +1,16 @@
 import { computed, effect, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { Catalogue, Coefficients, Diary, FormattedDiary, Stats, BodyWeight } from 'src/app/shared/interfaces';
+import {
+  Catalogue,
+  Coefficients,
+  Diary,
+  FormattedDiary,
+  Stats,
+  BodyWeight,
+  CatalogueEntry,
+  PostRequestResult,
+} from 'src/app/shared/interfaces';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { DataSharingService } from 'src/app/services/data-sharing.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -15,8 +24,9 @@ enum HttpMethod {
   DELETE = 'DELETE',
 }
 
-type PayloadType = Diary | BodyWeight;
-type WritableSignalTypes = Diary | Catalogue | Coefficients | Stats;
+type PayloadType = Diary | BodyWeight | CatalogueEntry | null;
+type CatalogueIds = number[];
+type WritableSignalTypes = Diary | Catalogue | CatalogueIds | Coefficients | Stats;
 
 @Injectable({
   providedIn: 'root',
@@ -26,29 +36,29 @@ export class FoodService {
   currentDay: string = '';
 
   diary$$: WritableSignal<Diary> = signal({});
-  catalogue$$: WritableSignal<Catalogue> = signal({});
-  coefficients$$: WritableSignal<Coefficients> = signal({});
+  diaryFormatted$$: Signal<FormattedDiary> = computed(() => this.prepDiary());
 
-  diaryFormatted$$: Signal<FormattedDiary> = computed(() => this.formatDiary());
+  catalogue$$: WritableSignal<Catalogue> = signal({});
+  catalogueSelectedIds$$: WritableSignal<CatalogueIds> = signal([]);
+  catalogueSortedList$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedList());
+
+  coefficients$$: WritableSignal<Coefficients> = signal({});
 
   stats$$: WritableSignal<Stats> = signal({});
 
-  requestResults$ = new Subject<string>();
+  postRequestResult$ = new Subject<PostRequestResult>();
 
-  constructor(
-    private auth: AuthService,
-    private http: HttpClient,
-    private notificationsService: NotificationsService,
-    private dataSharingService: DataSharingService
-  ) {
-    effect(() => { console.log('DIARY have been updated:', this.diary$$()); }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE have been updated:', this.catalogue$$()); }); // prettier-ignore
-    effect(() => { console.log('COEFFICIENTS have been updated:', this.coefficients$$()); }); // prettier-ignore
-    effect(() => { console.log('DIARY FORMATTED have been updated:', this.diaryFormatted$$()); }); // prettier-ignore
-    effect(() => { console.log('STATS have been updated:', this.stats$$()); }); // prettier-ignore
+  constructor(private auth: AuthService, private http: HttpClient, private notificationsService: NotificationsService) {
+    // effect(() => { console.log('DIARY has been updated:', this.diary$$()); }); // prettier-ignore
+    // effect(() => { console.log('DIARY FORMATTED has been updated:', this.diaryFormatted$$()); }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE has been updated:', this.catalogue$$()); }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE SELECTED IDS has been updated:', this.catalogueSelectedIds$$()); }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE SORTED LIST has been updated:', this.catalogueSortedList$$()); }); // prettier-ignore
+    // effect(() => { console.log('COEFFICIENTS have been updated:', this.coefficients$$()); }); // prettier-ignore
+    // effect(() => { console.log('STATS have been updated:', this.stats$$()); }); // prettier-ignore
   }
 
-  formatDiary(): FormattedDiary {
+  prepDiary(): FormattedDiary {
     const formattedDiary: FormattedDiary = {};
 
     for (const date in this.diary$$()) {
@@ -82,6 +92,10 @@ export class FoodService {
     return formattedDiary;
   }
 
+  prepCatalogueSortedList() {
+    return Object.values(this.catalogue$$()).sort((a, b) => a.name.localeCompare(b.name));
+  }
+
   performRequest(
     method: HttpMethod,
     url: string,
@@ -106,32 +120,34 @@ export class FoodService {
         // TODO: 'any' is not the most elegant solution here, refactor to a better one
         next: (response: any) => {
           if (response && resultVariables && responsePropertyNames) {
-            for (let i = 0; i < resultVariables.length; i++) {
+            for (const [i, resultVariable] of resultVariables.entries()) {
               if (response[responsePropertyNames[i]]) {
-                resultVariables[i].set(response[responsePropertyNames[i]]);
+                resultVariable.set(response[responsePropertyNames[i]]);
               }
             }
           }
 
           switch (method) {
             case 'GET':
-              console.log(successMessage, response);
+              // console.log('GET:', successMessage, response);
               // this.notificationsService.addNotification(successMessage, 'success');
+              this.postRequestResult$.next({ ...response });
               break;
+
             default:
-              // console.log(successMessage, response);
+              console.log(successMessage, response);
+              this.postRequestResult$.next({ ...response });
               this.notificationsService.addNotification(successMessage, 'success');
           }
 
           if (callback) {
             callback();
           }
-          this.requestResults$.next('ok');
         },
         error: (error) => {
           console.log(errorMessage, error);
           this.notificationsService.addNotification(errorMessage, 'error');
-          this.requestResults$.next('error');
+          this.postRequestResult$.next({ result: false });
         },
       });
   }
@@ -141,77 +157,66 @@ export class FoodService {
   getFullUpdate(day?: string): void {
     this.performRequest(
       HttpMethod.GET,
-      `/api/kcal/full_update/${day ?? dateToIsoNoTimeNoTZ(new Date().getTime())}`,
+      `/api/food/full_update/${day ?? dateToIsoNoTimeNoTZ(new Date().getTime())}`,
       null,
-      [this.diary$$, this.catalogue$$, this.coefficients$$],
-      ['diary', 'catalogue', 'coefficients'],
-      'Еда получена',
-      'Ошибка при запросе еды'
+      [this.diary$$, this.catalogue$$, this.coefficients$$, this.catalogueSelectedIds$$],
+      ['diary', 'catalogue', 'coefficients', 'personal_catalogue_ids'],
+      'Полное обновление получено',
+      'Ошибка при запросе полного обновления'
     );
   }
-
-  // getFoodUpdate(day: string): void {
-  //   this.performRequest(
-  //     HttpMethod.GET,
-  //     `/api/kcal/food/${day}`,
-  //     null,
-  //     [this.diary$$],
-  //     ['diary'],
-  //     'Еда получена',
-  //     'Ошибка при запросе еды'
-  //   );
-  // }
-
-  // createCurrency(currency: Currency) {
-  //   this.performRequest(
-  //     HttpMethod.POST,
-  //     '/api/money/currency',
-  //     currency,
-  //     null,
-  //     null,
-  //     'Валюта успешно cоздана',
-  //     'Ошибка при создании валюты',
-  //     this.currenciesChanged.bind(this)
-  //   );
-  // }
-
-  // updateCurrency(currency: Currency): void {
-  //   this.performRequest(
-  //     HttpMethod.PUT,
-  //     `/api/money/currency/${currency.id}`,
-  //     currency,
-  //     null,
-  //     null,
-  //     'Валюта успешно изменена',
-  //     'Ошибка при изменении валюты',
-  //     this.currenciesChanged.bind(this)
-  //   );
-  // }
-
-  // deleteCurrency(currencyId: number): void {
-  //   this.performRequest(
-  //     HttpMethod.DELETE,
-  //     `/api/money/currency/${currencyId}`,
-  //     null,
-  //     null,
-  //     null,
-  //     'Валюта успешно удалена',
-  //     'Ошибка при удалении валюты',
-  //     this.currenciesChanged.bind(this)
-  //   );
-  // }
 
   // BODY WEIGHT ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
   postBodyWeight(bodyWeightObj: BodyWeight): void {
     this.performRequest(
       HttpMethod.POST,
-      `/api/kcal/body_weight/`,
+      `/api/food/body_weight/`,
       bodyWeightObj,
       [],
       [],
       'Вес сохранён успешно',
-      'Ошибка при запросе статистики'
+      'Ошибка при сохранении веса'
+    );
+  }
+
+  // CATALOGUE  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  postCatalogueEntry(catalogueObj: CatalogueEntry): void {
+    this.performRequest(
+      HttpMethod.POST,
+      `/api/food/catalogue/`,
+      catalogueObj,
+      [],
+      [],
+      'Еда в каталог сохранёна успешно',
+      'Ошибка при сохранении еды в каталог'
+    );
+  }
+
+  // USER-CATALOGUE  ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+  putUserFoodId(foodId: number | string): void {
+    this.performRequest(
+      HttpMethod.PUT,
+      `/api/food/user-catalogue/${foodId}`,
+      null,
+      [],
+      [],
+      'Еда в пользовательский каталог добавлена успешно',
+      'Ошибка при сохранении еды в пользовательский каталог'
+    );
+  }
+
+  deleteUserFoodId(foodId: number | string): void {
+    this.performRequest(
+      HttpMethod.DELETE,
+      `/api/food/user-catalogue/${foodId}`,
+      null,
+      [],
+      [],
+      'Еда из пользовательского каталога удалена успешно',
+      'Ошибка при удалении еды из пользовательского каталога'
     );
   }
 
@@ -220,17 +225,12 @@ export class FoodService {
   getStats(day?: string): void {
     this.performRequest(
       HttpMethod.GET,
-      `/api/kcal/stats/${day ?? dateToIsoNoTimeNoTZ(new Date().getTime())}`,
+      `/api/food/stats/${day ?? dateToIsoNoTimeNoTZ(new Date().getTime())}`,
       null,
       [this.stats$$],
       ['stats'],
       'Статистика получена',
       'Ошибка при запросе статистики'
     );
-  }
-
-  transactionsChanged(): void {
-    this.dataSharingService.dataChanged$.emit();
-    this.getFullUpdate(this.currentDay);
   }
 }

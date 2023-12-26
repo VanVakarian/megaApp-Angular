@@ -20,12 +20,12 @@ import { FETCH_DAYS_RANGE_OFFSET } from 'src/app/shared/const';
 import { combineLatest } from 'rxjs';
 
 @Component({
-  selector: 'app-kcal-food',
-  templateUrl: './kcal-food.component.html',
-  styleUrls: ['./kcal-food.component.scss'],
+  selector: 'app-food-diary',
+  templateUrl: './food-diary.component.html',
+  styleUrls: ['./food-diary.component.scss'],
   animations: [slideInOutAnimation],
 })
-export class KcalFoodComponent implements OnInit, AfterViewInit, OnDestroy {
+export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('foodCont') condDiv!: ElementRef;
   @ViewChildren('foodName') nameDivs!: QueryList<ElementRef>;
   @ViewChildren('foodWeight') weightsDivs!: QueryList<ElementRef>;

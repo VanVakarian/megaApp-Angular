@@ -3,8 +3,11 @@ import { NavbarComponent } from 'src/app/components/navbar/navbar.component';
 import { ModalYNComponent } from 'src/app/components/shared-components/modal-y-n/modal-y-n.component';
 import { MatDialogModal } from 'src/app/components/shared-components/mat-dialog-modal/mat-dialog-modal.component';
 
-import { KcalFoodComponent } from 'src/app/components/kcal/food/kcal-food.component';
-import { BodyWeightFormComponent } from './components/kcal/food/forms/body-weight-form.component';
+import { FoodDiaryComponent } from 'src/app/components/food/food-diary/food-diary.component';
+import { BodyWeightFormComponent } from './components/food/food-diary/forms/body-weight-form.component';
+
+import { FoodCatalogueComponent } from './components/food/food-catalogue/food-catalogue.component';
+import { FoodCatalogueFormComponent } from './components/food/food-catalogue/forms/food-form.component';
 
 import { MoneyDashboardComponent } from 'src/app/components/money/money-dashboard/money-dashboard.component';
 import { MoneyManageComponent } from 'src/app/components/money/money-manage/money-manage.component';
@@ -43,8 +46,11 @@ import { MatNativeDateModule } from '@angular/material/core';
     ModalYNComponent,
     MatDialogModal,
 
-    KcalFoodComponent,
+    FoodDiaryComponent,
     BodyWeightFormComponent,
+    
+    FoodCatalogueComponent,
+    FoodCatalogueFormComponent,
 
     MoneyDashboardComponent,
     MoneyManageComponent,

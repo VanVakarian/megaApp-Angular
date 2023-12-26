@@ -1,0 +1,144 @@
+<div class="grid grid-cols-1 overflow-x-hidden">
+  <ng-container *ngFor="let day of daysList">
+    <ng-container *ngIf="day === selectedDateISO">
+      <div
+        class="card m-1"
+        [@slideInOut]="direction"
+      >
+        <mat-accordion>
+          <div class="mb-2">
+            <mat-expansion-panel class="sub-expansion-panel-38px-50px">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <div class="ml-4 w-full overflow-hidden whitespace-nowrap text-center text-lg font-medium">
+                    {{ formatDate(selectedDateISO) }}
+                  </div>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+
+              <app-body-weight-form
+                *ngIf="foodService.diaryFormatted$$()?.[selectedDateISO]"
+                [selectedDate]="selectedDateISO"
+              />
+            </mat-expansion-panel>
+          </div>
+
+          <div class="mb-2">
+            <ng-container *ngFor="let food of foodService.diaryFormatted$$()?.[selectedDateISO]?.['food'] | keyvalue">
+              <mat-expansion-panel class="sub-expansion-panel-38px-50px">
+                <mat-expansion-panel-header
+                  #header
+                  class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
+                  [ngStyle]="setBackgroundStyle(food.value.food_fraction_of_days_norm)"
+                >
+                  <mat-panel-title class="mat-panel-title-margin-remove">
+                    <div
+                      #foodCont
+                      class="flex w-full gap-1 overflow-hidden whitespace-nowrap text-base font-normal"
+                    >
+                      <div
+                        #foodName
+                        class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-white bg-clip-text text-transparent"
+                      >
+                        {{ food.value.formatted_food_name }}
+                      </div>
+                      <div
+                        #foodWeight
+                        class="text-right"
+                      >
+                        {{ food.value.formatted_food_weight }}
+                      </div>
+                      <div
+                        #foodKcals
+                        class="text-right"
+                      >
+                        {{ food.value.formatted_food_kcals }}
+                      </div>
+                      <div
+                        #foodPercent
+                        class="text-right"
+                      >
+                        {{ food.value.formatted_food_percent }}
+                      </div>
+                    </div>
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+
+                <!-- <app-transaction-expense-income-form
+              [transaction]="transaction"
+              [formrole]="'edit'"
+              [transactionkind]="'expense'"
+              [transactiondate]="selecteddateiso"
+            /> -->
+              </mat-expansion-panel>
+            </ng-container>
+          </div>
+
+          <mat-expansion-panel class="sub-expansion-panel-38px-50px">
+            <mat-expansion-panel-header
+              class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
+            >
+              <mat-panel-title>
+                <mat-icon>add</mat-icon>
+                <div class="ml-1 overflow-hidden whitespace-nowrap text-base font-normal">добавить блюдо</div>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <!-- <app-transaction-expense-income-form
+            [formrole]="'new'"
+            [transactionkind]="'expense'"
+            [transactiondate]="selecteddateiso"
+          /> -->
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
+    </ng-container>
+  </ng-container>
+</div>
+
+<div class="fixed bottom-6 left-1/2 z-[1] flex -translate-x-1/2 transform gap-5">
+  <button
+    mat-mini-fab
+    class="scale-125"
+    color="primary"
+    (click)="previous()"
+  >
+    <mat-icon class="scale-150">chevron_left</mat-icon>
+  </button>
+
+  <button
+    mat-mini-fab
+    class="scale-125"
+    color="primary"
+    (click)="picker.open()"
+  >
+    <mat-icon>calendar_today</mat-icon>
+  </button>
+
+  <button
+    mat-mini-fab
+    class="scale-125"
+    color="primary"
+    (click)="next()"
+    [disabled]="isLastDay()"
+  >
+    <mat-icon class="scale-150">chevron_right</mat-icon>
+  </button>
+</div>
+
+<mat-form-field class="hide-form">
+  <input
+    matInput
+    [matDatepicker]="picker"
+    [formControl]="calendarSelectedDay"
+    (dateChange)="onDatePicked($event)"
+    [max]="today"
+  />
+  <mat-datepicker-toggle [for]="picker" />
+  <mat-datepicker
+    touchUi
+    #picker
+  />
+</mat-form-field>
+
+<div class="h-[15vh]"></div>

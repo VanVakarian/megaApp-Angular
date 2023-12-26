@@ -1,16 +1,7 @@
 import { animate, sequence, style, transition, trigger } from '@angular/animations';
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  Input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  effect,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { Subscription, debounceTime, distinctUntilChanged, filter, take } from 'rxjs';
+import { Subscription, debounceTime, filter, take } from 'rxjs';
 
 import { FoodService } from 'src/app/services/food.service';
 import { BodyWeight } from 'src/app/shared/interfaces';
@@ -21,7 +12,7 @@ import { BodyWeight } from 'src/app/shared/interfaces';
   styleUrls: ['./body-weight-form.component.scss'],
   animations: [
     trigger('countdown-bar', [
-      transition(':enter', [sequence([style({ width: '0%' }), animate('3s', style({ width: '100%' }))])]),
+      transition(':enter', [sequence([style({ width: '0%' }), animate('2s', style({ width: '100%' }))])]),
     ]),
   ],
 })
@@ -44,8 +35,6 @@ export class BodyWeightFormComponent implements OnInit, AfterViewInit, OnChanges
 
   constructor(private cdRef: ChangeDetectorRef, public foodService: FoodService) {}
 
-  progressBarFill() {}
-
   onWeightInput() {
     this.bodyWeightForm.controls['bodyWeight'].markAsTouched();
     if (this.bodyWeightForm.valid && this.bodyWeightForm.get('bodyWeight')?.value !== this.bodyWeightPrevValue) {
@@ -61,7 +50,7 @@ export class BodyWeightFormComponent implements OnInit, AfterViewInit, OnChanges
     this.bodyWeightChange$.unsubscribe(); // Unsubscribe so that debounce wont fire up
     this.bodyWeightChange$ = this.bodyWeightForm.valueChanges // reinitalize subscription
       .pipe(
-        debounceTime(3000),
+        debounceTime(2000),
         filter(() => this.bodyWeightForm.get('bodyWeight')?.value !== this.bodyWeightPrevValue)
       )
       .subscribe(() => {
@@ -76,8 +65,8 @@ export class BodyWeightFormComponent implements OnInit, AfterViewInit, OnChanges
     this.countdownBarIsVisible = false;
     this.waitBarVisible = true;
 
-    this.foodService.requestResults$.pipe(take(1)).subscribe((value) => {
-      if (value === 'ok') {
+    this.foodService.postRequestResult$.pipe(take(1)).subscribe((respoonse) => {
+      if (respoonse.result) {
         this.bodyWeightForm.get('bodyWeight')?.enable();
         this.waitBarVisible = false;
         this.bodyWeightPrevValue = this.bodyWeightForm.get('bodyWeight')?.value;
@@ -88,7 +77,7 @@ export class BodyWeightFormComponent implements OnInit, AfterViewInit, OnChanges
     });
 
     const bodyWeightObj: BodyWeight = {
-      body_weight: parseFloat(this.bodyWeightForm.get('bodyWeight')?.value),
+      body_weight: parseFloat(this.bodyWeightForm.get('bodyWeight')?.value.replace(',', '.')),
       date_iso: this.selectedDate,
     };
     this.foodService.postBodyWeight(bodyWeightObj);
@@ -97,7 +86,7 @@ export class BodyWeightFormComponent implements OnInit, AfterViewInit, OnChanges
   ngOnInit(): void {
     this.bodyWeightChange$ = this.bodyWeightForm.valueChanges
       .pipe(
-        debounceTime(3000),
+        debounceTime(2000),
         filter(() => this.bodyWeightForm.get('bodyWeight')?.value !== this.bodyWeightPrevValue)
       )
       .subscribe(() => {
@@ -108,10 +97,8 @@ export class BodyWeightFormComponent implements OnInit, AfterViewInit, OnChanges
   }
 
   ngOnChanges(): void {
-    console.log('lolkek770');
     if (this.selectedDate) {
       const weight = this.foodService.diary$$()?.[this.selectedDate]?.['body_weight'];
-      console.log('lolkek771', weight);
       this.bodyWeightForm.patchValue({ bodyWeight: weight });
       this.bodyWeightPrevValue = String(weight);
     }

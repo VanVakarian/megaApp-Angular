@@ -22,7 +22,7 @@ export class TransactionTransferForm implements OnInit, OnDestroy {
 
   constructor(private confirmModal: ConfirmationDialogService, public moneyService: MoneyService) {}
 
-  public transactionForm = new FormGroup({
+  transactionForm = new FormGroup({
     id: new FormControl(0),
     date: new FormControl(''),
     amount: new FormControl(

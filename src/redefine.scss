@@ -32,13 +32,28 @@
   padding: 10px !important;
 }
 
-.food-expansion-panel {
-  padding-left: 11px !important;
-  padding-right: 11px !important;
+
+// FOOD ////////////////////////////////////////////////////////////////////////
+
+// tweaking to expansion panel formatting of entries in food diary
+.mat-expansion-panel-header-margins-decrease {
+  padding: 0px 8px !important;
 }
 
-.food-expansion-panel-title {
-  margin-right: 7px !important;
+.mat-panel-title-margin-remove {
+  margin-right: 0px !important;
+}
+.expansion-panel-arrow-indiactor-remove .mat-expansion-indicator {
+  display: none !important; // removing little expansion panel arrow indicator to win back some space
+}
+
+// removing unnecessary hint div under the input in catalogue
+.catalogue-filter-input-hint-remove .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
+
+.mat-button-enlarged-45-px {
+  height: 45px !important;
 }
 
 .sub-expansion-panel-38px-50px {

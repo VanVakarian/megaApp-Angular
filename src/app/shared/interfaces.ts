@@ -12,6 +12,13 @@ export interface AuthResponse {
   token: string;
 }
 
+// MISC ////////////////////////////////////////////////////////////////////////
+
+export interface PostRequestResult {
+  result: boolean;
+  value?: string;
+}
+
 // FOOD ////////////////////////////////////////////////////////////////////////
 
 export interface DiaryEntry {
@@ -53,14 +60,14 @@ export interface FormattedDiary {
   };
 }
 
-interface CatalogueEntry {
+export interface CatalogueEntry {
   id: number;
   name: string;
   kcals: number;
 }
 
 export interface Catalogue {
-  [id: number]: CatalogueEntry;
+  [id: string | number]: CatalogueEntry;
 }
 
 export interface Coefficients {
