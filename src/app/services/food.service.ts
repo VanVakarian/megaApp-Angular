@@ -10,9 +10,9 @@ import {
   BodyWeight,
   CatalogueEntry,
   PostRequestResult,
+  DiaryEntry,
 } from 'src/app/shared/interfaces';
 import { NotificationsService } from 'src/app/services/notifications.service';
-import { DataSharingService } from 'src/app/services/data-sharing.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
 import { Subject } from 'rxjs';
@@ -24,7 +24,7 @@ enum HttpMethod {
   DELETE = 'DELETE',
 }
 
-type PayloadType = Diary | BodyWeight | CatalogueEntry | null;
+type PayloadType = Diary | BodyWeight | CatalogueEntry | DiaryEntry | null;
 type CatalogueIds = number[];
 type WritableSignalTypes = Diary | Catalogue | CatalogueIds | Coefficients | Stats;
 
@@ -40,7 +40,9 @@ export class FoodService {
 
   catalogue$$: WritableSignal<Catalogue> = signal({});
   catalogueSelectedIds$$: WritableSignal<CatalogueIds> = signal([]);
-  catalogueSortedList$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedList());
+
+  catalogueSortedListSelected$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(true));
+  catalogueSortedListLeftOut$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(false));
 
   coefficients$$: WritableSignal<Coefficients> = signal({});
 
@@ -49,13 +51,14 @@ export class FoodService {
   postRequestResult$ = new Subject<PostRequestResult>();
 
   constructor(private auth: AuthService, private http: HttpClient, private notificationsService: NotificationsService) {
-    // effect(() => { console.log('DIARY has been updated:', this.diary$$()); }); // prettier-ignore
-    // effect(() => { console.log('DIARY FORMATTED has been updated:', this.diaryFormatted$$()); }); // prettier-ignore
-    // effect(() => { console.log('CATALOGUE has been updated:', this.catalogue$$()); }); // prettier-ignore
-    // effect(() => { console.log('CATALOGUE SELECTED IDS has been updated:', this.catalogueSelectedIds$$()); }); // prettier-ignore
-    // effect(() => { console.log('CATALOGUE SORTED LIST has been updated:', this.catalogueSortedList$$()); }); // prettier-ignore
-    // effect(() => { console.log('COEFFICIENTS have been updated:', this.coefficients$$()); }); // prettier-ignore
-    // effect(() => { console.log('STATS have been updated:', this.stats$$()); }); // prettier-ignore
+    effect(() => { console.log('DIARY has been updated:', this.diary$$()); }); // prettier-ignore
+    effect(() => { console.log('DIARY FORMATTED has been updated:', this.diaryFormatted$$()); }); // prettier-ignore
+    effect(() => { console.log('CATALOGUE has been updated:', this.catalogue$$()); }); // prettier-ignore
+    effect(() => { console.log('CATALOGUE SELECTED IDS has been updated:', this.catalogueSelectedIds$$()); }); // prettier-ignore
+    effect(() => { console.log('CATALOGUE SORTED LIST SELECTED has been updated:', this.catalogueSortedListSelected$$()); }); // prettier-ignore
+    effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT has been updated:', this.catalogueSortedListLeftOut$$()); }); // prettier-ignore
+    effect(() => { console.log('COEFFICIENTS have been updated:', this.coefficients$$()); }); // prettier-ignore
+    effect(() => { console.log('STATS have been updated:', this.stats$$()); }); // prettier-ignore
   }
 
   prepDiary(): FormattedDiary {
@@ -92,8 +95,12 @@ export class FoodService {
     return formattedDiary;
   }
 
-  prepCatalogueSortedList() {
-    return Object.values(this.catalogue$$()).sort((a, b) => a.name.localeCompare(b.name));
+  prepCatalogueSortedListSeparate(selected: boolean): CatalogueEntry[] {
+    return Object.values(this.catalogue$$())
+      .filter((item) =>
+        selected ? this.catalogueSelectedIds$$().includes(item.id) : !this.catalogueSelectedIds$$().includes(item.id)
+      )
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   performRequest(
@@ -168,11 +175,11 @@ export class FoodService {
 
   // BODY WEIGHT ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  postBodyWeight(bodyWeightObj: BodyWeight): void {
+  postBodyWeight(bodyWeight: BodyWeight): void {
     this.performRequest(
       HttpMethod.POST,
       `/api/food/body_weight/`,
-      bodyWeightObj,
+      bodyWeight,
       [],
       [],
       'Вес сохранён успешно',
@@ -180,13 +187,28 @@ export class FoodService {
     );
   }
 
+  // DIARY /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  postDiaryEntry(diaryEntry: DiaryEntry): void {
+    console.log('diaryEntry', diaryEntry);
+    this.performRequest(
+      HttpMethod.POST,
+      `/api/food/diary/`,
+      diaryEntry,
+      [],
+      [],
+      'Запись в дневник питания добавлена успешно',
+      'Ошибка при добавлении записи в дневник питания'
+    );
+  }
+
   // CATALOGUE  ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  postCatalogueEntry(catalogueObj: CatalogueEntry): void {
+  postCatalogueEntry(catalogueEntry: CatalogueEntry): void {
     this.performRequest(
       HttpMethod.POST,
       `/api/food/catalogue/`,
-      catalogueObj,
+      catalogueEntry,
       [],
       [],
       'Еда в каталог сохранёна успешно',

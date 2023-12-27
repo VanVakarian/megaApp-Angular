@@ -1,0 +1,108 @@
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { Observable, map, startWith, take } from 'rxjs';
+
+import { FoodService } from 'src/app/services/food.service';
+import { CatalogueEntry, DiaryEntry } from 'src/app/shared/interfaces';
+
+@Component({
+  selector: 'app-new-diary-entry-form',
+  templateUrl: './new-diary-entry-form.component.html',
+})
+export class NewDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewInit {
+  @Input() formRole: string = '';
+  @Input() selectedDateISO: string = '';
+  @Input() diaryEntry?: DiaryEntry;
+
+  @Output() closeEvent = new EventEmitter();
+
+  @ViewChild('foodInputElem') foodInputElem!: ElementRef;
+
+  filteredCatalogue!: Observable<CatalogueEntry[]>;
+
+  food_name = new FormControl('');
+
+  diaryEntryForm: FormGroup = new FormGroup({
+    catalogue_id: new FormControl(0),
+    date_iso: new FormControl(''),
+    food_weight: new FormControl(null, [Validators.required, Validators.pattern(/^\d+$/)]), // digits only
+  });
+
+  constructor(public foodService: FoodService) {}
+
+  isFormValid(): boolean {
+    return this.diaryEntryForm.valid;
+  }
+
+  onFoodSelected(event: MatAutocompleteSelectedEvent) {
+    const selectedFood = this.foodService
+      .catalogueSortedListSelected$$()
+      .find((food) => food.name === event.option.value);
+    if (selectedFood) {
+      this.diaryEntryForm.get('catalogue_id')!.setValue(selectedFood.id);
+    }
+  }
+
+  onSubmit(): void {
+    this.diaryEntryForm.disable();
+    this.foodService.postRequestResult$.pipe(take(1)).subscribe((response) => {
+      if (response.result) {
+        if (response.value) {
+          const diaryEntry: DiaryEntry = {
+            id: parseInt(response.value),
+            date_iso: this.diaryEntryForm.value.date_iso,
+            catalogue_id: this.diaryEntryForm.value.catalogue_id,
+            food_weight: parseInt(this.diaryEntryForm.value.food_weight),
+          };
+          this.foodService.diary$$.update((diary) => {
+            diary[this.selectedDateISO]['food'][diaryEntry.id] = diaryEntry;
+            return diary;
+          });
+          this.closeEvent.emit();
+        }
+        this.diaryEntryForm.enable();
+      } else {
+        this.diaryEntryForm.enable();
+      }
+    });
+
+    this.foodService.postDiaryEntry(this.diaryEntryForm.value);
+  }
+
+  ngOnInit(): void {
+    this.filteredCatalogue = this.food_name.valueChanges.pipe(
+      startWith(''),
+      map((value) => this._filter(value || ''))
+    );
+  }
+
+  private _filter(value: string): CatalogueEntry[] {
+    const filterValue = value.toLowerCase();
+    return this.foodService
+      .catalogueSortedListSelected$$()
+      .filter((food) => food.name.toLowerCase().includes(filterValue));
+  }
+
+  ngOnChanges(): void {
+    if (this.selectedDateISO) {
+      this.diaryEntryForm.get('date_iso')!.setValue(this.selectedDateISO);
+    }
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.foodInputElem.nativeElement.focus();
+    }, 175); // The purpose of this delay is to provide time for the animation to finish, allowing the dropdown list to appear correctly
+  }
+}

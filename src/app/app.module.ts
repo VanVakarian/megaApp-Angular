@@ -5,6 +5,8 @@ import { MatDialogModal } from 'src/app/components/shared-components/mat-dialog-
 
 import { FoodDiaryComponent } from 'src/app/components/food/food-diary/food-diary.component';
 import { BodyWeightFormComponent } from './components/food/food-diary/forms/body-weight-form.component';
+import { NewDiaryEntryFormComponent } from './components/food/food-diary/forms/new-diary-entry-form.component';
+import { EditDiaryEntryFormComponent } from './components/food/food-diary/forms/edit-diary-entry-form.component';
 
 import { FoodCatalogueComponent } from './components/food/food-catalogue/food-catalogue.component';
 import { FoodCatalogueFormComponent } from './components/food/food-catalogue/forms/food-form.component';
@@ -48,7 +50,9 @@ import { MatNativeDateModule } from '@angular/material/core';
 
     FoodDiaryComponent,
     BodyWeightFormComponent,
-    
+    NewDiaryEntryFormComponent,
+    EditDiaryEntryFormComponent,
+
     FoodCatalogueComponent,
     FoodCatalogueFormComponent,
 

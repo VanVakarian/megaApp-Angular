@@ -11,8 +11,8 @@
 
   <div class="h-1"></div>
 
-  <ng-container *ngFor="let food of foodService.catalogueSortedList$$()">
-    <ng-container *ngIf="foodIsSelected(food.id) && nameIncludesSearchQuery(food.name)">
+  <ng-container *ngFor="let food of foodService.catalogueSortedListSelected$$()">
+    <ng-container *ngIf="nameIncludesSearchQuery(food.name)">
       <mat-expansion-panel
         #foodExpansionPanel
         attr.data-food-id="{{ food.id }}"
@@ -53,8 +53,8 @@
 
   <div class="h-1"></div>
 
-  <ng-container *ngFor="let food of foodService.catalogueSortedList$$()">
-    <ng-container *ngIf="!foodIsSelected(food.id) && nameIncludesSearchQuery(food.name)">
+  <ng-container *ngFor="let food of foodService.catalogueSortedListLeftOut$$()">
+    <ng-container *ngIf="nameIncludesSearchQuery(food.name)">
       <mat-expansion-panel
         #foodExpansionPanel
         attr.data-food-id="{{ food.id }}"

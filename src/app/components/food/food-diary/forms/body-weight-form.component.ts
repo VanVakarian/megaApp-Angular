@@ -23,7 +23,7 @@ export class BodyWeightFormComponent implements OnInit, AfterViewInit, OnChanges
   waitBarVisible: boolean = false;
   bodyWeightPrevValue: string = '';
 
-  public bodyWeightForm: FormGroup = new FormGroup({
+  bodyWeightForm: FormGroup = new FormGroup({
     bodyWeight: new FormControl(
       '',
       // a two- or a three-digit number with or without a decimal part with only one digit after a dot (or a comma)

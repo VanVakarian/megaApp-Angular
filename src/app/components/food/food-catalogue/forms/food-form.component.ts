@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { take } from 'rxjs';
+
 import { FoodService } from 'src/app/services/food.service';
 import { CatalogueEntry } from 'src/app/shared/interfaces';
 
@@ -22,7 +23,7 @@ export class FoodCatalogueFormComponent implements OnInit, AfterViewInit, OnChan
     name: new FormControl('', [Validators.required]),
     kcals: new FormControl(this.categoryEntry?.id ? this.categoryEntry.id : null, [
       Validators.required,
-      Validators.pattern(/^\d+$/),
+      Validators.pattern(/^\d+$/), // digits only
     ]),
   });
 
@@ -51,7 +52,9 @@ export class FoodCatalogueFormComponent implements OnInit, AfterViewInit, OnChan
         this.initialValues.name = this.foodForm.value.name ? this.foodForm.value.name : '';
 
         if (response.value) {
-          this.updateCatalogue(parseInt(response.value));
+          const foodId = parseInt(response.value);
+          this.updateCatalogue(foodId);
+          this.addFoodIdToCatalogueSelectedLocally(foodId);
         }
 
         this.foodForm.enable();

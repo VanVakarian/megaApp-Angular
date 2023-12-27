@@ -13,6 +13,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 const materialComponents = [
   MatButtonModule,
@@ -28,6 +29,7 @@ const materialComponents = [
   MatSidenavModule,
   MatIconModule,
   MatDatepickerModule,
+  MatAutocompleteModule,
 ];
 
 @NgModule({

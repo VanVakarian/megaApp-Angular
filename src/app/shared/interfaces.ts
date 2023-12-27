@@ -23,7 +23,7 @@ export interface PostRequestResult {
 
 export interface DiaryEntry {
   id: number;
-  date: string;
+  date_iso: string;
   catalogue_id: number;
   food_weight: number;
 }
@@ -40,7 +40,7 @@ export interface Diary {
 
 export interface FormattedDiaryEntry {
   id: number;
-  date: string;
+  date_iso: string;
   catalogue_id: number;
   food_weight: number;
   formatted_food_name: string;

@@ -18,15 +18,26 @@ import { dateToIsoNoTimeNoTZ, generateDatesList } from 'src/app/shared/utils';
 import { FoodService } from 'src/app/services/food.service';
 import { FETCH_DAYS_RANGE_OFFSET } from 'src/app/shared/const';
 import { combineLatest } from 'rxjs';
+import { animate, style, transition, trigger } from '@angular/animations';
 
 @Component({
   selector: 'app-food-diary',
   templateUrl: './food-diary.component.html',
   styleUrls: ['./food-diary.component.scss'],
-  animations: [slideInOutAnimation],
+  animations: [
+    slideInOutAnimation,
+    trigger('flyInOut', [
+      transition(':enter', [
+        style({ transform: 'scale(0)' }),
+        animate('0.15s ease-in', style({ transform: 'scale(1)' })),
+      ]),
+      // transition(':leave', [animate('0.5s ease-out', style({ transform: 'translateX(100%)' }))]),
+    ]),
+  ],
 })
 export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('foodCont') condDiv!: ElementRef;
+
   @ViewChildren('foodName') nameDivs!: QueryList<ElementRef>;
   @ViewChildren('foodWeight') weightsDivs!: QueryList<ElementRef>;
   @ViewChildren('foodKcals') kcalsDivs!: QueryList<ElementRef>;
@@ -39,6 +50,7 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedDateMs: number = this.todayDate;
   selectedDateISO: string = dateToIsoNoTimeNoTZ(this.today.getTime());
   daysList: string[] = [];
+  showFloatingWindow: boolean = false;
 
   constructor(private cdRef: ChangeDetectorRef, public foodService: FoodService, private ngZone: NgZone) {}
 
@@ -53,8 +65,14 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
     return { background: `linear-gradient(to right, #c5d6ff ${percent}%, #ffffff00 ${percent}%)` };
   }
 
+  // DIARY
+
+  onCloseEvent(): void {
+    this.showFloatingWindow = false;
+  }
+
   // CARD SWITCHING AND CALENDAR
-  onDatePicked(event: MatDatepickerInputEvent<Date>) {
+  onDatePicked(event: MatDatepickerInputEvent<Date>): void {
     if (!event.value) {
       return;
     }
@@ -96,7 +114,7 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
     this.regenerateDaysList();
   }
 
-  regenerateDaysList() {
+  regenerateDaysList(): void {
     const dayIdx = this.daysList.indexOf(this.selectedDateISO);
 
     if (
@@ -113,7 +131,7 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // COLUMN WIDH SETTING FNS
-  private adjustWidths() {
+  private adjustWidths(): void {
     this.ngZone.run(() => {
       const weightsWidth = this.getMaxWidth(this.weightsDivs);
       const kcalsWidth = this.getMaxWidth(this.kcalsDivs);
@@ -135,7 +153,7 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
     return Math.max(...widths);
   }
 
-  private setWidth(elems: QueryList<ElementRef>, width: number) {
+  private setWidth(elems: QueryList<ElementRef>, width: number): void {
     elems.forEach((elem) => {
       elem.nativeElement.style.width = `${width}px`;
     });
@@ -146,7 +164,7 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
     this.daysList = generateDatesList(this.selectedDateISO);
   }
 
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     // setting columns width
     combineLatest([this.weightsDivs.changes, this.kcalsDivs.changes, this.percentsDivs.changes]).subscribe(() =>
       this.adjustWidths()
