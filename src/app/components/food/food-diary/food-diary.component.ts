@@ -12,13 +12,13 @@ import {
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
+import { animate, style, transition, trigger } from '@angular/animations';
+import { combineLatest } from 'rxjs';
 
 import { slideInOutAnimation } from 'src/app/shared/animations';
 import { dateToIsoNoTimeNoTZ, generateDatesList } from 'src/app/shared/utils';
 import { FoodService } from 'src/app/services/food.service';
 import { FETCH_DAYS_RANGE_OFFSET } from 'src/app/shared/const';
-import { combineLatest } from 'rxjs';
-import { animate, style, transition, trigger } from '@angular/animations';
 
 @Component({
   selector: 'app-food-diary',

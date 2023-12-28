@@ -38,7 +38,7 @@
                     >
                       <div
                         #foodName
-                        class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-white bg-clip-text text-transparent"
+                        class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-transparent bg-clip-text text-transparent"
                       >
                         {{ food.value.formatted_food_name }}
                       </div>
@@ -64,12 +64,9 @@
                   </mat-panel-title>
                 </mat-expansion-panel-header>
 
-                <!-- <app-transaction-expense-income-form
-              [transaction]="transaction"
-              [formrole]="'edit'"
-              [transactionkind]="'expense'"
-              [transactiondate]="selecteddateiso"
-            /> -->
+                <app-edit-diary-entry-form
+                  [diaryEntry]="food.value"
+                />
               </mat-expansion-panel>
             </ng-container>
           </div>
@@ -129,7 +126,7 @@
 
 <div class="h-[15vh]"></div>
 
-<!-- Floating window with new diary entry form -->
+<!-- Floating window for a 'new diary entry' form -->
 <div
   class="fixed bottom-6 left-6"
   style="z-index: 10"
@@ -158,7 +155,6 @@
       <div class="mb-4 text-center text-xl font-medium">Добавление записи</div>
 
       <app-new-diary-entry-form
-        [formRole]="'new'"
         [selectedDateISO]="selectedDateISO"
         (closeEvent)="onCloseEvent()"
       />

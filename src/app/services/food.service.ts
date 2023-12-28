@@ -190,7 +190,6 @@ export class FoodService {
   // DIARY /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   postDiaryEntry(diaryEntry: DiaryEntry): void {
-    console.log('diaryEntry', diaryEntry);
     this.performRequest(
       HttpMethod.POST,
       `/api/food/diary/`,
@@ -202,6 +201,17 @@ export class FoodService {
     );
   }
 
+  putDiaryEntry(diaryEntry: DiaryEntry): void {
+    this.performRequest(
+      HttpMethod.PUT,
+      `/api/food/diary/`,
+      diaryEntry,
+      [],
+      [],
+      'Запись в дневнике питания обновлена успешно',
+      'Ошибка при обновлении записи в дневнике питания'
+    );
+  }
   // CATALOGUE  ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   postCatalogueEntry(catalogueEntry: CatalogueEntry): void {

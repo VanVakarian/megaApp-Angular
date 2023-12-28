@@ -7,9 +7,12 @@ import {
   OnChanges,
   OnInit,
   Output,
+  Signal,
   ViewChild,
+  computed,
+  effect,
 } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { Observable, map, startWith, take } from 'rxjs';
 
@@ -21,37 +24,56 @@ import { CatalogueEntry, DiaryEntry } from 'src/app/shared/interfaces';
   templateUrl: './new-diary-entry-form.component.html',
 })
 export class NewDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewInit {
-  @Input() formRole: string = '';
   @Input() selectedDateISO: string = '';
   @Input() diaryEntry?: DiaryEntry;
 
   @Output() closeEvent = new EventEmitter();
 
   @ViewChild('foodInputElem') foodInputElem!: ElementRef;
+  @ViewChild('weightInputElem') weightInputElem!: ElementRef;
 
   filteredCatalogue!: Observable<CatalogueEntry[]>;
 
-  food_name = new FormControl('');
+  catalogueNames$$: Signal<string[]> = computed(() =>
+    this.foodService.catalogueSortedListSelected$$().map((food) => food.name)
+  );
+
+  food_name = new FormControl('', [Validators.required, this.customCatalogueNameValidator(this.catalogueNames$$())]);
+
+  // A custom validator that checks whether the value exists in the given names array.
+  private customCatalogueNameValidator(names: string[]): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      const forbidden = !names.includes(control.value);
+      return forbidden ? { forbiddenName: { value: control.value } } : null;
+    };
+  }
 
   diaryEntryForm: FormGroup = new FormGroup({
+    date: new FormControl(''),
     catalogue_id: new FormControl(0),
-    date_iso: new FormControl(''),
     food_weight: new FormControl(null, [Validators.required, Validators.pattern(/^\d+$/)]), // digits only
   });
 
-  constructor(public foodService: FoodService) {}
+  constructor(public foodService: FoodService) {
+    effect(() => { console.log('CATALOGUE NAMES has been updated:', this.catalogueNames$$()) }); // prettier-ignore
+  }
 
   isFormValid(): boolean {
-    return this.diaryEntryForm.valid;
+    return this.diaryEntryForm.valid && this.food_name.valid;
   }
 
   onFoodSelected(event: MatAutocompleteSelectedEvent) {
     const selectedFood = this.foodService
       .catalogueSortedListSelected$$()
       .find((food) => food.name === event.option.value);
+
     if (selectedFood) {
       this.diaryEntryForm.get('catalogue_id')!.setValue(selectedFood.id);
     }
+
+    setTimeout(() => {
+      this.weightInputElem.nativeElement.focus();
+    }, 100); // Without this 'delay' focus doesn't work
   }
 
   onSubmit(): void {
@@ -61,7 +83,7 @@ export class NewDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewI
         if (response.value) {
           const diaryEntry: DiaryEntry = {
             id: parseInt(response.value),
-            date_iso: this.diaryEntryForm.value.date_iso,
+            date: this.diaryEntryForm.value.date,
             catalogue_id: this.diaryEntryForm.value.catalogue_id,
             food_weight: parseInt(this.diaryEntryForm.value.food_weight),
           };
@@ -96,7 +118,7 @@ export class NewDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewI
 
   ngOnChanges(): void {
     if (this.selectedDateISO) {
-      this.diaryEntryForm.get('date_iso')!.setValue(this.selectedDateISO);
+      this.diaryEntryForm.get('date')!.setValue(this.selectedDateISO);
     }
   }
 
