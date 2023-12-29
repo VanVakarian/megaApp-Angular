@@ -1,4 +1,4 @@
-import { computed, effect, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { computed, effect, EventEmitter, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import {
@@ -9,7 +9,7 @@ import {
   Stats,
   BodyWeight,
   CatalogueEntry,
-  PostRequestResult,
+  ServerResponse,
   DiaryEntry,
 } from 'src/app/shared/interfaces';
 import { NotificationsService } from 'src/app/services/notifications.service';
@@ -48,7 +48,9 @@ export class FoodService {
 
   stats$$: WritableSignal<Stats> = signal({});
 
-  postRequestResult$ = new Subject<PostRequestResult>();
+  postRequestResult$ = new Subject<ServerResponse>();
+
+  diaryEntryClicked$: EventEmitter<number> = new EventEmitter<number>();
 
   constructor(private auth: AuthService, private http: HttpClient, private notificationsService: NotificationsService) {
     effect(() => { console.log('DIARY has been updated:', this.diary$$()); }); // prettier-ignore
@@ -69,6 +71,7 @@ export class FoodService {
         food: {},
         body_weight: this.diary$$()[date].body_weight,
         target_kcals: this.diary$$()[date].target_kcals,
+        days_kcals_percent: 0,
       };
 
       for (const id in this.diary$$()[date].food) {
@@ -79,19 +82,20 @@ export class FoodService {
             (entry.food_weight / 100) *
             this.coefficients$$()[entry.catalogue_id]
         );
-        const percent = Math.round((kcals / this.diary$$()[date].target_kcals) * 100);
+        const percent = (kcals / this.diary$$()[date].target_kcals) * 100;
 
         formattedDiary[date].food[id] = {
           ...entry,
           formatted_food_name: foodName,
           formatted_food_weight: `${entry.food_weight} г.`,
-          formatted_food_kcals: `${kcals} ккал.`,
-          formatted_food_percent: `${percent}%`,
-          food_fraction_of_days_norm: percent,
+          // formatted_food_kcals: `${kcals} ккал.`, // not sure if there should be 'ккал' postfix or not. It takes too much space, imo
+          formatted_food_kcals: `${kcals}`,
+          formatted_food_percent: `${Math.round(percent)}%`,
+          food_kcal_percentage_of_days_norm: percent,
         };
+        formattedDiary[date].days_kcals_percent += percent;
       }
     }
-
     return formattedDiary;
   }
 
@@ -114,7 +118,7 @@ export class FoodService {
     callback?: () => void
   ): void {
     if (!this.token) {
-      this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
+      // this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
       return;
     }
 
@@ -138,13 +142,13 @@ export class FoodService {
             case 'GET':
               // console.log('GET:', successMessage, response);
               // this.notificationsService.addNotification(successMessage, 'success');
-              this.postRequestResult$.next({ ...response });
+              this.postRequestResult$.next({ ...(response as ServerResponse) });
               break;
 
             default:
-              console.log(successMessage, response);
-              this.postRequestResult$.next({ ...response });
+              // console.log(successMessage, response);
               this.notificationsService.addNotification(successMessage, 'success');
+              this.postRequestResult$.next({ ...(response as ServerResponse) });
           }
 
           if (callback) {
@@ -154,7 +158,7 @@ export class FoodService {
         error: (error) => {
           console.log(errorMessage, error);
           this.notificationsService.addNotification(errorMessage, 'error');
-          this.postRequestResult$.next({ result: false });
+          this.postRequestResult$.next({ result: false, value: '' });
         },
       });
   }
@@ -212,6 +216,19 @@ export class FoodService {
       'Ошибка при обновлении записи в дневнике питания'
     );
   }
+
+  deleteDiaryEntry(diaryEntryId: number): void {
+    this.performRequest(
+      HttpMethod.DELETE,
+      `/api/food/diary/${diaryEntryId}`,
+      null,
+      [],
+      [],
+      'Запись из дневника питания удалена успешно',
+      'Ошибка при удалении записи из дневника питания'
+    );
+  }
+
   // CATALOGUE  ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   postCatalogueEntry(catalogueEntry: CatalogueEntry): void {

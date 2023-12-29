@@ -14,7 +14,7 @@ export interface AuthResponse {
 
 // MISC ////////////////////////////////////////////////////////////////////////
 
-export interface PostRequestResult {
+export interface ServerResponse {
   result: boolean;
   value?: string;
 }
@@ -47,7 +47,7 @@ export interface FormattedDiaryEntry {
   formatted_food_weight: string;
   formatted_food_kcals: string;
   formatted_food_percent: string;
-  food_fraction_of_days_norm: number;
+  food_kcal_percentage_of_days_norm: number;
 }
 
 export interface FormattedDiary {
@@ -57,6 +57,7 @@ export interface FormattedDiary {
     };
     ['body_weight']: number | null;
     ['target_kcals']: number;
+    ['days_kcals_percent']: number;
   };
 }
 

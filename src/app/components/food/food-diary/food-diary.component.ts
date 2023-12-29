@@ -44,12 +44,14 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('foodPercent') percentsDivs!: QueryList<ElementRef>;
 
   direction: string = 'left';
+  daysList: string[] = [];
   calendarSelectedDay: FormControl = new FormControl(new Date());
+
   today: Date = new Date();
   todayDate: number = this.today.setHours(0, 0, 0, 0);
   selectedDateMs: number = this.todayDate;
   selectedDateISO: string = dateToIsoNoTimeNoTZ(this.today.getTime());
-  daysList: string[] = [];
+
   showFloatingWindow: boolean = false;
 
   constructor(private cdRef: ChangeDetectorRef, public foodService: FoodService, private ngZone: NgZone) {}
@@ -62,10 +64,18 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   setBackgroundStyle(percent: number) {
-    return { background: `linear-gradient(to right, #c5d6ff ${percent}%, #ffffff00 ${percent}%)` };
+    console.log('lolkek percent', percent);
+    const percentCapped = percent <= 100 ? percent : 100;
+    return {
+      background: `linear-gradient(to right, #c5d6ff ${percentCapped}%, #ffffff00 ${percentCapped}%)`,
+    };
   }
 
   // DIARY
+
+  diaryEntryExpanded(diaryEntryId: number) {
+    this.foodService.diaryEntryClicked$.emit(diaryEntryId);
+  }
 
   onCloseEvent(): void {
     this.showFloatingWindow = false;
@@ -138,8 +148,8 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
       const percentsWidth = this.getMaxWidth(this.percentsDivs);
 
       this.setWidth(this.weightsDivs, weightsWidth + 3);
-      this.setWidth(this.kcalsDivs, kcalsWidth + 3);
-      this.setWidth(this.percentsDivs, percentsWidth + 3);
+      this.setWidth(this.kcalsDivs, kcalsWidth + 0);
+      this.setWidth(this.percentsDivs, percentsWidth + 10);
 
       if (this.condDiv && this.condDiv.nativeElement) {
         const remainingWidth = this.condDiv.nativeElement.offsetWidth - weightsWidth - kcalsWidth - percentsWidth;

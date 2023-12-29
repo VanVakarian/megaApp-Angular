@@ -1,16 +1,16 @@
-import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
-import { take } from 'rxjs';
+import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
+import { Subscription, delay, filter, take } from 'rxjs';
 
 import { FoodService } from 'src/app/services/food.service';
 import { ConfirmationDialogService } from 'src/app/services/mat-dialog-modal.service';
-import { DiaryEntry } from 'src/app/shared/interfaces';
+import { DiaryEntry, ServerResponse } from 'src/app/shared/interfaces';
 
 @Component({
   selector: 'app-edit-diary-entry-form',
   templateUrl: './edit-diary-entry-form.component.html',
 })
-export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewInit {
+export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   @Input() diaryEntry!: DiaryEntry;
 
   // TODO: make focus of change field upon panel open
@@ -20,7 +20,18 @@ export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterView
   errorMessageText: string = '';
   errorMessageShow: boolean = false;
 
-  constructor(public foodService: FoodService, private confirmModal: ConfirmationDialogService) {}
+  private diaryEntryClickedSubscription: Subscription;
+
+  constructor(public foodService: FoodService, private confirmModal: ConfirmationDialogService) {
+    this.diaryEntryClickedSubscription = this.foodService.diaryEntryClicked$
+      .pipe(
+        filter((diaryEntryId) => this.diaryEntryForm.value.id === diaryEntryId),
+        delay(100) // delay is the duration of the panel expansion animation, otherwise focus messes with it.
+      )
+      .subscribe(() => {
+        this.foodWeightChangeElem.nativeElement.focus();
+      });
+  }
 
   diaryEntryForm: FormGroup = new FormGroup({
     id: new FormControl(0),
@@ -85,11 +96,12 @@ export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterView
 
   onSubmit(): void {
     this.diaryEntryForm.disable();
-    this.foodService.postRequestResult$.pipe(take(1)).subscribe((response) => {
+    this.foodService.postRequestResult$.pipe(take(1)).subscribe((response: ServerResponse) => {
       if (response.result) {
         if (response.value) {
+          const diaryEntryId: number = parseInt(response.value);
           this.foodService.diary$$.update((diary) => {
-            diary[this.diaryEntryForm.value.date]['food'][this.diaryEntryForm.value.id]['food_weight'] =
+            diary[this.diaryEntryForm.value.date]['food'][diaryEntryId]['food_weight'] =
               this.diaryEntryForm.value.food_weight_final;
             return diary;
           });
@@ -100,21 +112,44 @@ export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterView
       }
     });
 
-    const formToSend: DiaryEntry = {
+    const preppedFormValues: DiaryEntry = {
       id: this.diaryEntryForm.value.id,
       date: this.diaryEntryForm.value.date,
       catalogue_id: this.diaryEntryForm.value.catalogue_id,
       food_weight: this.diaryEntryForm.value.food_weight_final,
     };
-    this.foodService.putDiaryEntry(formToSend);
+    this.foodService.putDiaryEntry(preppedFormValues);
   }
 
   openConfirmationModal(actionQuestion: string): void {
-    this.confirmModal.openModal(actionQuestion).subscribe((result) => {
-      if (result) {
-        // this.moneyService.deleteAccount(this.accountForm.value.id as number);
+    this.confirmModal
+      .openModal(actionQuestion)
+      .pipe(take(1))
+      .subscribe((result) => {
+        if (result) {
+          this.onDelete();
+        }
+      });
+  }
+
+  onDelete(): void {
+    this.diaryEntryForm.disable();
+    this.foodService.postRequestResult$.pipe(take(1)).subscribe((response) => {
+      if (response.result) {
+        if (response.value) {
+          const diaryEntryId: number = parseInt(response.value);
+          this.foodService.diary$$.update((diary) => {
+            delete diary[this.diaryEntryForm.value.date]['food'][diaryEntryId];
+            return diary;
+          });
+        }
+        this.diaryEntryForm.enable();
+      } else {
+        this.diaryEntryForm.enable();
       }
     });
+
+    this.foodService.deleteDiaryEntry(this.diaryEntryForm.value.id as number);
   }
 
   ngOnInit(): void {}
@@ -127,9 +162,9 @@ export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterView
     }
   }
 
-  ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.foodWeightChangeElem.nativeElement.focus();
-    }, 175); // The purpose of this delay is to provide time for the animation to finish, allowing the dropdown list to appear correctly
+  ngAfterViewInit(): void {}
+
+  ngOnDestroy(): void {
+    this.diaryEntryClickedSubscription.unsubscribe();
   }
 }

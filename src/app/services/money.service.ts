@@ -86,7 +86,7 @@ export class MoneyService {
     callback?: () => void
   ): void {
     if (!this.token) {
-      this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
+      // this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
       return;
     }
 

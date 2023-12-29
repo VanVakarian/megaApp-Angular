@@ -24,12 +24,57 @@
           </div>
 
           <div class="mb-2">
+            <!-- <mat-expansion-panel class="sub-expansion-panel-38px-50px"> -->
+            <!-- <mat-expansion-panel-header
+                class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
+                [ngStyle]="setBackgroundStyle(foodService.diaryFormatted$$()?.[selectedDateISO]?.['days_kcals_percent'] ?? 0)"
+              > -->
+            <!-- <mat-panel-title class="mat-panel-title-margin-remove"> -->
+            <!-- style="background-color: white !important" -->
+            <mat-card>
+              <div
+                #foodCont
+                class="flex w-full gap-1 overflow-hidden whitespace-nowrap bg-white py-[7px] text-base font-normal"
+                [ngStyle]="setBackgroundStyle(foodService.diaryFormatted$$()?.[selectedDateISO]?.['days_kcals_percent'] ?? 0)"
+              >
+                <div
+                  #foodName
+                  class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-transparent bg-clip-text text-center text-transparent"
+                >
+                  Блюдо:
+                </div>
+                <div
+                  #foodWeight
+                  class="text-center"
+                >
+                  г.
+                </div>
+                <div
+                  #foodKcals
+                  class="text-center"
+                >
+                  ккал.
+                </div>
+                <div
+                  #foodPercent
+                  class="text-center"
+                >
+                  %
+                </div>
+              </div>
+            </mat-card>
+            <!-- </mat-panel-title> -->
+            <!-- </mat-expansion-panel-header> -->
+            <!-- </mat-expansion-panel> -->
+
             <ng-container *ngFor="let food of foodService.diaryFormatted$$()?.[selectedDateISO]?.['food'] | keyvalue">
-              <mat-expansion-panel class="sub-expansion-panel-38px-50px">
+              <mat-expansion-panel
+                class="sub-expansion-panel-38px-50px"
+                (opened)="diaryEntryExpanded(food.value.id)"
+              >
                 <mat-expansion-panel-header
-                  #header
                   class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
-                  [ngStyle]="setBackgroundStyle(food.value.food_fraction_of_days_norm)"
+                  [ngStyle]="setBackgroundStyle(food.value.food_kcal_percentage_of_days_norm)"
                 >
                   <mat-panel-title class="mat-panel-title-margin-remove">
                     <div
@@ -64,9 +109,7 @@
                   </mat-panel-title>
                 </mat-expansion-panel-header>
 
-                <app-edit-diary-entry-form
-                  [diaryEntry]="food.value"
-                />
+                <app-edit-diary-entry-form [diaryEntry]="food.value" />
               </mat-expansion-panel>
             </ng-container>
           </div>
