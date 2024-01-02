@@ -55,7 +55,7 @@ export class NewDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewI
   });
 
   constructor(public foodService: FoodService) {
-    effect(() => { console.log('CATALOGUE NAMES has been updated:', this.catalogueNames$$()) }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE NAMES has been updated:', this.catalogueNames$$()) }); // prettier-ignore
   }
 
   isFormValid(): boolean {

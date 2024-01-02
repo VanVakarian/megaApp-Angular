@@ -4,7 +4,6 @@ import {
   Component,
   ElementRef,
   NgZone,
-  OnDestroy,
   OnInit,
   QueryList,
   ViewChild,
@@ -35,9 +34,8 @@ import { FETCH_DAYS_RANGE_OFFSET } from 'src/app/shared/const';
     ]),
   ],
 })
-export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
+export class FoodDiaryComponent implements OnInit, AfterViewInit {
   @ViewChild('foodCont') condDiv!: ElementRef;
-
   @ViewChildren('foodName') nameDivs!: QueryList<ElementRef>;
   @ViewChildren('foodWeight') weightsDivs!: QueryList<ElementRef>;
   @ViewChildren('foodKcals') kcalsDivs!: QueryList<ElementRef>;
@@ -64,11 +62,14 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   setBackgroundStyle(percent: number) {
-    console.log('lolkek percent', percent);
     const percentCapped = percent <= 100 ? percent : 100;
     return {
       background: `linear-gradient(to right, #c5d6ff ${percentCapped}%, #ffffff00 ${percentCapped}%)`,
     };
+  }
+
+  formatSelectedDaysEatenPercent(): number {
+    return Math.round(this.foodService.diaryFormatted$$()?.[this.selectedDateISO]?.['days_kcals_percent'] * 10) / 10;
   }
 
   // DIARY
@@ -181,6 +182,4 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
     );
     setTimeout(() => this.adjustWidths(), 100);
   }
-
-  ngOnDestroy(): void {}
 }

@@ -18,54 +18,60 @@
 
               <app-body-weight-form
                 *ngIf="foodService.diaryFormatted$$()?.[selectedDateISO]"
-                [selectedDate]="selectedDateISO"
+                [selectedDateISO]="selectedDateISO"
               />
+
+              <div class="h-2"></div>
+
+              <app-bmi [selectedDateISO]="selectedDateISO" />
             </mat-expansion-panel>
           </div>
 
           <div class="mb-2">
-            <!-- <mat-expansion-panel class="sub-expansion-panel-38px-50px"> -->
-            <!-- <mat-expansion-panel-header
-                class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
-                [ngStyle]="setBackgroundStyle(foodService.diaryFormatted$$()?.[selectedDateISO]?.['days_kcals_percent'] ?? 0)"
-              > -->
-            <!-- <mat-panel-title class="mat-panel-title-margin-remove"> -->
-            <!-- style="background-color: white !important" -->
-            <mat-card>
-              <div
-                #foodCont
-                class="flex w-full gap-1 overflow-hidden whitespace-nowrap bg-white py-[7px] text-base font-normal"
-                [ngStyle]="setBackgroundStyle(foodService.diaryFormatted$$()?.[selectedDateISO]?.['days_kcals_percent'] ?? 0)"
-              >
-                <div
-                  #foodName
-                  class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-transparent bg-clip-text text-center text-transparent"
-                >
-                  Блюдо:
-                </div>
-                <div
-                  #foodWeight
-                  class="text-center"
-                >
-                  г.
-                </div>
-                <div
-                  #foodKcals
-                  class="text-center"
-                >
-                  ккал.
-                </div>
-                <div
-                  #foodPercent
-                  class="text-center"
-                >
-                  %
-                </div>
+            <mat-card
+              [ngStyle]="setBackgroundStyle(foodService.diaryFormatted$$()?.[selectedDateISO]?.['days_kcals_percent'] ?? 0)"
+            >
+              <div class="overflow-hidden whitespace-nowrap text-center">
+                Съедено {{ foodService.diaryFormatted$$()?.[selectedDateISO]?.['days_kcals_eaten'] }} ккал от нормы
+                {{ foodService.diary$$()?.[selectedDateISO]?.['target_kcals'] }}
+                ({{ formatSelectedDaysEatenPercent() }}%)
               </div>
             </mat-card>
-            <!-- </mat-panel-title> -->
-            <!-- </mat-expansion-panel-header> -->
-            <!-- </mat-expansion-panel> -->
+          </div>
+
+          <div class="mb-2">
+            <div
+              #foodCont
+              class="flex w-full gap-1 overflow-hidden whitespace-nowrap bg-white text-base font-normal"
+            >
+              <div
+                #foodName
+                class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-transparent bg-clip-text text-center text-transparent"
+              >
+                Блюдо:
+              </div>
+
+              <div
+                #foodWeight
+                class="text-center"
+              >
+                г.
+              </div>
+
+              <div
+                #foodKcals
+                class="text-center"
+              >
+                ккал.
+              </div>
+
+              <div
+                #foodPercent
+                class="text-center"
+              >
+                %
+              </div>
+            </div>
 
             <ng-container *ngFor="let food of foodService.diaryFormatted$$()?.[selectedDateISO]?.['food'] | keyvalue">
               <mat-expansion-panel
@@ -87,18 +93,21 @@
                       >
                         {{ food.value.formatted_food_name }}
                       </div>
+
                       <div
                         #foodWeight
                         class="text-right"
                       >
                         {{ food.value.formatted_food_weight }}
                       </div>
+
                       <div
                         #foodKcals
                         class="text-right"
                       >
                         {{ food.value.formatted_food_kcals }}
                       </div>
+
                       <div
                         #foodPercent
                         class="text-right"

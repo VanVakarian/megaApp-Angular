@@ -16,8 +16,8 @@ import { BodyWeight } from 'src/app/shared/interfaces';
     ]),
   ],
 })
-export class BodyWeightFormComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
-  @Input() selectedDate!: string;
+export class BodyWeightFormComponent implements OnInit, OnChanges, OnDestroy {
+  @Input() selectedDateISO!: string;
 
   countdownBarIsVisible: boolean = false;
   waitBarVisible: boolean = false;
@@ -65,21 +65,27 @@ export class BodyWeightFormComponent implements OnInit, AfterViewInit, OnChanges
     this.countdownBarIsVisible = false;
     this.waitBarVisible = true;
 
+    const bodyWeightObj: BodyWeight = {
+      body_weight: this.bodyWeightForm.get('bodyWeight')?.value.replace(',', '.'),
+      date_iso: this.selectedDateISO,
+    };
+
     this.foodService.postRequestResult$.pipe(take(1)).subscribe((respoonse) => {
       if (respoonse.result) {
         this.bodyWeightForm.get('bodyWeight')?.enable();
         this.waitBarVisible = false;
-        this.bodyWeightPrevValue = this.bodyWeightForm.get('bodyWeight')?.value;
+        this.bodyWeightPrevValue = bodyWeightObj.body_weight;
+
+        this.foodService.diary$$.update((diary) => {
+          diary[this.selectedDateISO]['body_weight'] = parseFloat(bodyWeightObj.body_weight);
+          return diary;
+        });
       } else {
         this.bodyWeightForm.get('bodyWeight')?.enable();
         this.waitBarVisible = false;
       }
     });
 
-    const bodyWeightObj: BodyWeight = {
-      body_weight: parseFloat(this.bodyWeightForm.get('bodyWeight')?.value.replace(',', '.')),
-      date_iso: this.selectedDate,
-    };
     this.foodService.postBodyWeight(bodyWeightObj);
   }
 
@@ -97,14 +103,12 @@ export class BodyWeightFormComponent implements OnInit, AfterViewInit, OnChanges
   }
 
   ngOnChanges(): void {
-    if (this.selectedDate) {
-      const weight = this.foodService.diary$$()?.[this.selectedDate]?.['body_weight'];
+    if (this.selectedDateISO) {
+      const weight = this.foodService.diary$$()?.[this.selectedDateISO]?.['body_weight'];
       this.bodyWeightForm.patchValue({ bodyWeight: weight });
       this.bodyWeightPrevValue = String(weight);
     }
   }
-
-  ngAfterViewInit(): void {}
 
   ngOnDestroy(): void {
     this.bodyWeightChange$.unsubscribe();

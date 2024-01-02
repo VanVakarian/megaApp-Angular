@@ -1,4 +1,4 @@
-import { computed, effect, EventEmitter, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { computed, EventEmitter, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import {
@@ -11,6 +11,7 @@ import {
   CatalogueEntry,
   ServerResponse,
   DiaryEntry,
+  BMI,
 } from 'src/app/shared/interfaces';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -26,7 +27,8 @@ enum HttpMethod {
 
 type PayloadType = Diary | BodyWeight | CatalogueEntry | DiaryEntry | null;
 type CatalogueIds = number[];
-type WritableSignalTypes = Diary | Catalogue | CatalogueIds | Coefficients | Stats;
+type Height = number;
+type WritableSignalTypes = Diary | Catalogue | CatalogueIds | Coefficients | Height | Stats;
 
 @Injectable({
   providedIn: 'root',
@@ -46,6 +48,9 @@ export class FoodService {
 
   coefficients$$: WritableSignal<Coefficients> = signal({});
 
+  height$$: WritableSignal<number> = signal(0);
+  bmi$$: Signal<BMI> = computed(() => this.prepBMI());
+
   stats$$: WritableSignal<Stats> = signal({});
 
   postRequestResult$ = new Subject<ServerResponse>();
@@ -53,14 +58,16 @@ export class FoodService {
   diaryEntryClicked$: EventEmitter<number> = new EventEmitter<number>();
 
   constructor(private auth: AuthService, private http: HttpClient, private notificationsService: NotificationsService) {
-    effect(() => { console.log('DIARY has been updated:', this.diary$$()); }); // prettier-ignore
-    effect(() => { console.log('DIARY FORMATTED has been updated:', this.diaryFormatted$$()); }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE has been updated:', this.catalogue$$()); }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE SELECTED IDS has been updated:', this.catalogueSelectedIds$$()); }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE SORTED LIST SELECTED has been updated:', this.catalogueSortedListSelected$$()); }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT has been updated:', this.catalogueSortedListLeftOut$$()); }); // prettier-ignore
-    effect(() => { console.log('COEFFICIENTS have been updated:', this.coefficients$$()); }); // prettier-ignore
-    effect(() => { console.log('STATS have been updated:', this.stats$$()); }); // prettier-ignore
+    // effect(() => { console.log('DIARY has been updated:', this.diary$$()); }); // prettier-ignore
+    // effect(() => { console.log('DIARY FORMATTED has been updated:', this.diaryFormatted$$()); }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE has been updated:', this.catalogue$$()); }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE SELECTED IDS have been updated:', this.catalogueSelectedIds$$()); }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE SORTED LIST SELECTED has been updated:', this.catalogueSortedListSelected$$()); }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT has been updated:', this.catalogueSortedListLeftOut$$()); }); // prettier-ignore
+    // effect(() => { console.log('COEFFICIENTS have been updated:', this.coefficients$$()); }); // prettier-ignore
+    // effect(() => { console.log('HEIGHT has been updated:', this.height$$()); }); // prettier-ignore
+    // effect(() => { console.log('BMI has been updated:', this.bmi$$()); }); // prettier-ignore
+    // effect(() => { console.log('STATS have been updated:', this.stats$$()); }); // prettier-ignore
   }
 
   prepDiary(): FormattedDiary {
@@ -71,6 +78,7 @@ export class FoodService {
         food: {},
         body_weight: this.diary$$()[date].body_weight,
         target_kcals: this.diary$$()[date].target_kcals,
+        days_kcals_eaten: 0,
         days_kcals_percent: 0,
       };
 
@@ -93,6 +101,7 @@ export class FoodService {
           formatted_food_percent: `${Math.round(percent)}%`,
           food_kcal_percentage_of_days_norm: percent,
         };
+        formattedDiary[date].days_kcals_eaten += kcals;
         formattedDiary[date].days_kcals_percent += percent;
       }
     }
@@ -105,6 +114,28 @@ export class FoodService {
         selected ? this.catalogueSelectedIds$$().includes(item.id) : !this.catalogueSelectedIds$$().includes(item.id)
       )
       .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  prepBMI(): BMI {
+    let bmiResultObj: BMI = { widthFractions: [], bmiKgs: [], pointerShiftsInPxByDate: {} };
+
+    const heightMeters = this.height$$() / 100;
+    const bmiValues = [16, 18.5, 25, 30, 35, 40, 45];
+    const bmiKgs = bmiValues.map((value) => {
+      return Math.round(value * (heightMeters * heightMeters));
+    });
+    bmiResultObj['bmiKgs'] = bmiKgs;
+
+    bmiResultObj['widthFractions'] = [0.0864, 0.2235, 0.1728, 0.1728, 0.1716, 0.1729];
+
+    const days = Object.keys(this.diary$$());
+    days.forEach((day) => {
+      const thisDaysWeight = this.diary$$()[day]['body_weight'];
+      const percentShift = ((thisDaysWeight ?? 0) - bmiKgs[0]) / (bmiKgs[bmiKgs.length - 1] - bmiKgs[0]);
+      bmiResultObj['pointerShiftsInPxByDate'][day] = (window.innerWidth - 78) * percentShift;
+    });
+
+    return bmiResultObj;
   }
 
   performRequest(
@@ -170,8 +201,8 @@ export class FoodService {
       HttpMethod.GET,
       `/api/food/full_update/${day ?? dateToIsoNoTimeNoTZ(new Date().getTime())}`,
       null,
-      [this.diary$$, this.catalogue$$, this.coefficients$$, this.catalogueSelectedIds$$],
-      ['diary', 'catalogue', 'coefficients', 'personal_catalogue_ids'],
+      [this.diary$$, this.catalogue$$, this.coefficients$$, this.catalogueSelectedIds$$, this.height$$],
+      ['diary', 'catalogue', 'coefficients', 'personal_catalogue_ids', 'height'],
       'Полное обновление получено',
       'Ошибка при запросе полного обновления'
     );

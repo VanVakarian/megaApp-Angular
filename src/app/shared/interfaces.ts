@@ -57,6 +57,7 @@ export interface FormattedDiary {
     };
     ['body_weight']: number | null;
     ['target_kcals']: number;
+    ['days_kcals_eaten']: number;
     ['days_kcals_percent']: number;
   };
 }
@@ -76,8 +77,14 @@ export interface Coefficients {
 }
 
 export interface BodyWeight {
-  body_weight: number;
+  body_weight: string;
   date_iso: string;
+}
+
+export interface BMI {
+  widthFractions: number[];
+  bmiKgs: number[];
+  pointerShiftsInPxByDate: { [date: string]: number };
 }
 
 export interface Stats {
