@@ -35,7 +35,7 @@ import { FETCH_DAYS_RANGE_OFFSET } from 'src/app/shared/const';
   ],
 })
 export class FoodDiaryComponent implements OnInit, AfterViewInit {
-  @ViewChild('foodCont') condDiv!: ElementRef;
+  @ViewChild('foodCont') contDiv!: ElementRef;
   @ViewChildren('foodName') nameDivs!: QueryList<ElementRef>;
   @ViewChildren('foodWeight') weightsDivs!: QueryList<ElementRef>;
   @ViewChildren('foodKcals') kcalsDivs!: QueryList<ElementRef>;
@@ -73,7 +73,6 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit {
   }
 
   // DIARY
-
   diaryEntryExpanded(diaryEntryId: number) {
     this.foodService.diaryEntryClicked$.emit(diaryEntryId);
   }
@@ -144,16 +143,20 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit {
   // COLUMN WIDH SETTING FNS
   private adjustWidths(): void {
     this.ngZone.run(() => {
+      this.setWidth(this.weightsDivs);
+      this.setWidth(this.kcalsDivs);
+      this.setWidth(this.percentsDivs);
+
       const weightsWidth = this.getMaxWidth(this.weightsDivs);
       const kcalsWidth = this.getMaxWidth(this.kcalsDivs);
       const percentsWidth = this.getMaxWidth(this.percentsDivs);
 
       this.setWidth(this.weightsDivs, weightsWidth + 3);
       this.setWidth(this.kcalsDivs, kcalsWidth + 0);
-      this.setWidth(this.percentsDivs, percentsWidth + 10);
+      this.setWidth(this.percentsDivs, percentsWidth + 12);
 
-      if (this.condDiv && this.condDiv.nativeElement) {
-        const remainingWidth = this.condDiv.nativeElement.offsetWidth - weightsWidth - kcalsWidth - percentsWidth;
+      if (this.contDiv && this.contDiv.nativeElement) {
+        const remainingWidth = this.contDiv.nativeElement.offsetWidth - weightsWidth - kcalsWidth - percentsWidth;
         this.setWidth(this.nameDivs, remainingWidth);
       }
     });
@@ -164,9 +167,9 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit {
     return Math.max(...widths);
   }
 
-  private setWidth(elems: QueryList<ElementRef>, width: number): void {
+  private setWidth(elems: QueryList<ElementRef>, width?: number): void {
     elems.forEach((elem) => {
-      elem.nativeElement.style.width = `${width}px`;
+      elem.nativeElement.style.width = width === undefined ? 'auto' : `${width}px`;
     });
   }
 

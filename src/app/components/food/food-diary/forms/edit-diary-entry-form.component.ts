@@ -36,7 +36,7 @@ export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterView
   diaryEntryForm: FormGroup = new FormGroup({
     id: new FormControl(0),
     date: new FormControl(''),
-    catalogue_id: new FormControl(0),
+    food_catalogue_id: new FormControl(0),
     food_weight: new FormControl(null),
     food_weight_initial: new FormControl(0),
     food_weight_new: new FormControl(null),
@@ -115,7 +115,7 @@ export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterView
     const preppedFormValues: DiaryEntry = {
       id: this.diaryEntryForm.value.id,
       date: this.diaryEntryForm.value.date,
-      catalogue_id: this.diaryEntryForm.value.catalogue_id,
+      food_catalogue_id: this.diaryEntryForm.value.food_catalogue_id,
       food_weight: this.diaryEntryForm.value.food_weight_final,
     };
     this.foodService.putDiaryEntry(preppedFormValues);

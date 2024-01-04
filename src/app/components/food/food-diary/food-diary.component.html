@@ -32,7 +32,7 @@
               [ngStyle]="setBackgroundStyle(foodService.diaryFormatted$$()?.[selectedDateISO]?.['days_kcals_percent'] ?? 0)"
             >
               <div class="overflow-hidden whitespace-nowrap text-center">
-                Съедено {{ foodService.diaryFormatted$$()?.[selectedDateISO]?.['days_kcals_eaten'] }} ккал от нормы
+                Съедено {{ foodService.diaryFormatted$$()?.[selectedDateISO]?.['days_kcals_eaten'] }} ккал. от нормы
                 {{ foodService.diary$$()?.[selectedDateISO]?.['target_kcals'] }}
                 ({{ formatSelectedDaysEatenPercent() }}%)
               </div>
@@ -62,7 +62,7 @@
                 #foodKcals
                 class="text-center"
               >
-                ккал.
+                ккал
               </div>
 
               <div

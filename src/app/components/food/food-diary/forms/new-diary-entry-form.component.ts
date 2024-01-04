@@ -50,7 +50,7 @@ export class NewDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewI
 
   diaryEntryForm: FormGroup = new FormGroup({
     date: new FormControl(''),
-    catalogue_id: new FormControl(0),
+    food_catalogue_id: new FormControl(0),
     food_weight: new FormControl(null, [Validators.required, Validators.pattern(/^\d+$/)]), // digits only
   });
 
@@ -68,7 +68,7 @@ export class NewDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewI
       .find((food) => food.name === event.option.value);
 
     if (selectedFood) {
-      this.diaryEntryForm.get('catalogue_id')!.setValue(selectedFood.id);
+      this.diaryEntryForm.get('food_catalogue_id')!.setValue(selectedFood.id);
     }
 
     setTimeout(() => {
@@ -84,7 +84,7 @@ export class NewDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewI
           const diaryEntry: DiaryEntry = {
             id: parseInt(response.value),
             date: this.diaryEntryForm.value.date,
-            catalogue_id: this.diaryEntryForm.value.catalogue_id,
+            food_catalogue_id: this.diaryEntryForm.value.food_catalogue_id,
             food_weight: parseInt(this.diaryEntryForm.value.food_weight),
           };
           this.foodService.diary$$.update((diary) => {
