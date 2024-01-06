@@ -14,8 +14,8 @@ export class LoginPageComponent implements OnInit {
 
   constructor(public auth: AuthService, private router: Router, public route: ActivatedRoute) {
     this.loginForm = new FormGroup({
-      // email: new FormControl(null, [Validators.required, Validators.email]),
-      email: new FormControl(null, [Validators.required]),
+      // username: new FormControl(null, [Validators.required, Validators.username]),
+      username: new FormControl(null, [Validators.required]),
       password: new FormControl(null, [Validators.required, Validators.minLength(6)]),
     });
   }
@@ -35,7 +35,7 @@ export class LoginPageComponent implements OnInit {
     this.submitted = true;
 
     const user: UserLogin = {
-      email: this.loginForm.value.email,
+      username: this.loginForm.value.username,
       password: this.loginForm.value.password,
     };
 
