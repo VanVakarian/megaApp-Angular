@@ -51,7 +51,7 @@ export class NewDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewI
   diaryEntryForm: FormGroup = new FormGroup({
     date: new FormControl(''),
     food_catalogue_id: new FormControl(0),
-    food_weight: new FormControl(null, [Validators.required, Validators.pattern(/^\d+$/)]), // digits only
+    food_weight: new FormControl(null, [Validators.required, Validators.pattern(/^\d+$/)]), // Digits only
   });
 
   constructor(public foodService: FoodService) {
@@ -78,17 +78,18 @@ export class NewDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewI
 
   onSubmit(): void {
     this.diaryEntryForm.disable();
+    const preppedDiaryEntry: DiaryEntry = {
+      ...this.diaryEntryForm.value,
+      food_weight: parseInt(this.diaryEntryForm.value.food_weight),
+      history: [{ action: 'init', value: parseInt(this.diaryEntryForm.value.food_weight) }],
+    };
+
     this.foodService.postRequestResult$.pipe(take(1)).subscribe((response) => {
       if (response.result) {
         if (response.value) {
-          const diaryEntry: DiaryEntry = {
-            id: parseInt(response.value),
-            date: this.diaryEntryForm.value.date,
-            food_catalogue_id: this.diaryEntryForm.value.food_catalogue_id,
-            food_weight: parseInt(this.diaryEntryForm.value.food_weight),
-          };
+          const diaryEntryId = parseInt(response.value);
           this.foodService.diary$$.update((diary) => {
-            diary[this.selectedDateISO]['food'][diaryEntry.id] = diaryEntry;
+            diary[this.selectedDateISO]['food'][diaryEntryId] = { ...preppedDiaryEntry, id: diaryEntryId };
             return diary;
           });
           this.closeEvent.emit();
@@ -99,7 +100,7 @@ export class NewDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewI
       }
     });
 
-    this.foodService.postDiaryEntry(this.diaryEntryForm.value);
+    this.foodService.postDiaryEntry(preppedDiaryEntry);
   }
 
   ngOnInit(): void {

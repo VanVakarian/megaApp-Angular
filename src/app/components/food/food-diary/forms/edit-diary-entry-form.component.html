@@ -1,6 +1,36 @@
-<div class="my-4 text-center text-xl">
-  {{ this.foodService.catalogue$$()?.[this.diaryEntryForm.get('food_catalogue_id')?.value]?.name }}
+<div class="relative">
+  <div class="my-3 mr-3 text-center text-xl">
+    {{ this.foodService.catalogue$$()?.[this.diaryEntryForm.get('food_catalogue_id')?.value]?.name }}
+  </div>
+
+  <div class="absolute -bottom-[7px] -right-[20px]">
+    <button
+      mat-mini-fab
+      color="basic"
+      class="scale-75"
+      style="background-color: white"
+      (click)="toggleHistory()"
+    >
+      <mat-icon *ngIf="showHistory">expand_less</mat-icon>
+      <mat-icon *ngIf="!showHistory">expand_more</mat-icon>
+    </button>
+  </div>
 </div>
+
+<mat-expansion-panel [expanded]="showHistory">
+  <div class="mt-4 flex flex-col gap-2">
+    <div
+      *ngFor="let historyEntry of diaryEntry.history"
+      class="relative"
+    >
+      <mat-icon class="absolute -left-[6px] -top-[2px] scale-75">{{
+        chooseIconForHistoryEntry(historyEntry)
+      }}</mat-icon>
+
+      <div class="ml-5">{{ formHistoryEntry(historyEntry) }}</div>
+    </div>
+  </div>
+</mat-expansion-panel>
 
 <form
   [formGroup]="diaryEntryForm"
@@ -33,6 +63,7 @@
 
       <span
         matSuffix
+        *ngIf="diaryEntryForm.value.food_weight_new && diaryEntryForm.value.food_weight_new !== ''"
         class="mx-2"
       >
         г.
@@ -66,6 +97,7 @@
 
       <span
         matSuffix
+        *ngIf="diaryEntryForm.value.food_weight_change && diaryEntryForm.value.food_weight_change !== ''"
         class="mx-2"
       >
         г.

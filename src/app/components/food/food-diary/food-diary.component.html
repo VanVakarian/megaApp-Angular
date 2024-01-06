@@ -21,8 +21,6 @@
                 [selectedDateISO]="selectedDateISO"
               />
 
-              <div class="h-2"></div>
-
               <app-bmi [selectedDateISO]="selectedDateISO" />
             </mat-expansion-panel>
           </div>
@@ -62,7 +60,7 @@
                 #foodKcals
                 class="text-center"
               >
-                ккал
+                kcal
               </div>
 
               <div
@@ -75,8 +73,9 @@
 
             <ng-container *ngFor="let food of foodService.diaryFormatted$$()?.[selectedDateISO]?.['food'] | keyvalue">
               <mat-expansion-panel
+                #diaryEntry
                 class="sub-expansion-panel-38px-50px"
-                (opened)="diaryEntryExpanded(food.value.id)"
+                (opened)="diaryEntryExpanded(diaryEntry, food.value.id)"
               >
                 <mat-expansion-panel-header
                   class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
@@ -91,28 +90,28 @@
                         #foodName
                         class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-transparent bg-clip-text text-transparent"
                       >
-                        {{ food.value.formatted_food_name }}
+                        {{ food.value.food_name }}
                       </div>
 
                       <div
                         #foodWeight
                         class="text-right"
                       >
-                        {{ food.value.formatted_food_weight }}
+                        {{ food.value.food_weight }}<span class="text-xs"> Г.</span>
                       </div>
 
                       <div
                         #foodKcals
                         class="text-right"
                       >
-                        {{ food.value.formatted_food_kcals }}
+                        {{ food.value.food_kcals }}
                       </div>
 
                       <div
                         #foodPercent
                         class="text-right"
                       >
-                        {{ food.value.formatted_food_percent }}
+                        {{ food.value.food_percent }}<span class="text-xs">%</span>
                       </div>
                     </div>
                   </mat-panel-title>
@@ -176,7 +175,7 @@
   />
 </mat-form-field>
 
-<div class="h-[15vh]"></div>
+<div class="h-[40vh]"></div>
 
 <!-- Floating window for a 'new diary entry' form -->
 <div
@@ -195,7 +194,7 @@
 
 <div
   *ngIf="showFloatingWindow"
-  class="fixed inset-0 flex flex-col justify-center bg-gray-700 bg-opacity-50 p-8"
+  class="fixed left-0 top-0 flex h-full flex-col bg-gray-700 bg-opacity-50 px-8 pt-2"
   style="z-index: 90"
   (click)="showFloatingWindow = false"
 >

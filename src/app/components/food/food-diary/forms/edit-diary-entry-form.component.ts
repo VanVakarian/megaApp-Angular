@@ -1,29 +1,33 @@
-import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { Component, ElementRef, Input, OnChanges, OnDestroy, ViewChild } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subscription, delay, filter, take } from 'rxjs';
 
 import { FoodService } from 'src/app/services/food.service';
 import { ConfirmationDialogService } from 'src/app/services/mat-dialog-modal.service';
-import { DiaryEntry, ServerResponse } from 'src/app/shared/interfaces';
+import { DiaryEntry, HistoryEntry, ServerResponse } from 'src/app/shared/interfaces';
 
 @Component({
   selector: 'app-edit-diary-entry-form',
   templateUrl: './edit-diary-entry-form.component.html',
 })
-export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
+export class EditDiaryEntryFormComponent implements OnChanges, OnDestroy {
   @Input() diaryEntry!: DiaryEntry;
 
-  // TODO: make focus of change field upon panel open
   @ViewChild('foodWeightChangeElem') foodWeightChangeElem!: ElementRef;
 
   oldWeightDescriptionString: string = '';
   errorMessageText: string = '';
   errorMessageShow: boolean = false;
 
+  showHistory: boolean = false;
+  private historyAction: 'set' | 'add' | 'subtract' = 'set';
+
+  private newWeightPattern = /^(?!0+$)\d+$/; // Digits only, but not zero
+  private editWeightPattern = /^[-+]?\d+$/; // Digits only with or without a plus or a minus
   private diaryEntryClickedSubscription: Subscription;
 
   constructor(public foodService: FoodService, private confirmModal: ConfirmationDialogService) {
-    this.diaryEntryClickedSubscription = this.foodService.diaryEntryClicked$
+    this.diaryEntryClickedSubscription = this.foodService.diaryEntryClickedFocus$
       .pipe(
         filter((diaryEntryId) => this.diaryEntryForm.value.id === diaryEntryId),
         delay(100) // delay is the duration of the panel expansion animation, otherwise focus messes with it.
@@ -39,23 +43,23 @@ export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterView
     food_catalogue_id: new FormControl(0),
     food_weight: new FormControl(null),
     food_weight_initial: new FormControl(0),
-    food_weight_new: new FormControl(null),
-    food_weight_change: new FormControl(null),
+    food_weight_new: new FormControl(null, [Validators.pattern(this.newWeightPattern)]),
+    food_weight_change: new FormControl(null, [Validators.pattern(this.editWeightPattern)]),
     food_weight_final: new FormControl(0),
   });
 
   isFormValid(): boolean {
     return (
       this.diaryEntryForm.valid &&
-      this.diaryEntryForm.value.food_weight_initial !== this.diaryEntryForm.value.food_weight_new
+      this.diaryEntryForm.value.food_weight_initial !== this.diaryEntryForm.value.food_weight_new &&
+      (this.diaryEntryForm.value.food_weight_new || this.diaryEntryForm.value.food_weight_change)
     );
   }
 
   onNewWeightInput() {
     this.diaryEntryForm.get('food_weight_change')?.setValue(null);
     const newWeight = this.diaryEntryForm.value.food_weight_new;
-    const pattern = /^(?!0+$)\d+$/; // Digits only, but not zero
-    if (pattern.test(newWeight)) {
+    if (this.newWeightPattern.test(newWeight)) {
       this.diaryEntryForm.get('food_weight_final')?.setValue(parseInt(newWeight));
       this.oldWeightDescriptionString = `${this.diaryEntryForm.value.food_weight_initial} г.`;
       this.errorMessageShow = false;
@@ -70,8 +74,10 @@ export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterView
     this.diaryEntryForm.get('food_weight_new')?.setValue(null);
     const foorWeightChangeStr = this.diaryEntryForm.value.food_weight_change;
     const foodWeightChangeInt = parseInt(foorWeightChangeStr);
-    const pattern = /^[-+]?\d+$/; // digits only with or without a plus or a minus
-    if (pattern.test(foorWeightChangeStr) && this.diaryEntryForm.value.food_weight_initial + foodWeightChangeInt > 0) {
+    if (
+      this.editWeightPattern.test(foorWeightChangeStr) &&
+      this.diaryEntryForm.value.food_weight_initial + foodWeightChangeInt > 0
+    ) {
       const sign = foodWeightChangeInt < 0 ? '-' : '+';
       this.diaryEntryForm
         .get('food_weight_final')
@@ -81,7 +87,7 @@ export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterView
       )} г.`;
       this.errorMessageShow = false;
     } else if (
-      pattern.test(foorWeightChangeStr) &&
+      this.editWeightPattern.test(foorWeightChangeStr) &&
       this.diaryEntryForm.value.food_weight_initial + foodWeightChangeInt <= 0
     ) {
       this.diaryEntryForm.get('food_weight_final')?.setValue(this.diaryEntryForm.value.food_weight_initial);
@@ -95,6 +101,11 @@ export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterView
   }
 
   onSubmit(): void {
+    const weightChange = this.diaryEntryForm.value.food_weight_change;
+    this.historyAction = weightChange ? (weightChange.includes('-') ? 'subtract' : 'add') : 'set';
+    const value = weightChange || this.diaryEntryForm.value.food_weight_final;
+    const history = { action: this.historyAction, value: Math.abs(parseInt(value)) };
+
     this.diaryEntryForm.disable();
     this.foodService.postRequestResult$.pipe(take(1)).subscribe((response: ServerResponse) => {
       if (response.result) {
@@ -103,6 +114,7 @@ export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterView
           this.foodService.diary$$.update((diary) => {
             diary[this.diaryEntryForm.value.date]['food'][diaryEntryId]['food_weight'] =
               this.diaryEntryForm.value.food_weight_final;
+            diary[this.diaryEntryForm.value.date]['food'][diaryEntryId]['history'].push(history);
             return diary;
           });
         }
@@ -117,6 +129,7 @@ export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterView
       date: this.diaryEntryForm.value.date,
       food_catalogue_id: this.diaryEntryForm.value.food_catalogue_id,
       food_weight: this.diaryEntryForm.value.food_weight_final,
+      history: [history],
     };
     this.foodService.putDiaryEntry(preppedFormValues);
   }
@@ -152,8 +165,38 @@ export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterView
     this.foodService.deleteDiaryEntry(this.diaryEntryForm.value.id as number);
   }
 
-  ngOnInit(): void {}
+  // HISTORY
+  toggleHistory() {
+    this.showHistory = !this.showHistory;
+  }
 
+  formHistoryEntry(historyEntry: HistoryEntry) {
+    switch (historyEntry.action) {
+      case 'init':
+        return `Запись создана с весом ${historyEntry.value} г.`;
+      case 'set':
+        return `Задан новый вес: ${historyEntry.value} г.`;
+      case 'add':
+        return `Добавлено ${historyEntry.value} г.`;
+      case 'subtract':
+        return `Убрано ${historyEntry.value} г.`;
+    }
+  }
+
+  chooseIconForHistoryEntry(historyEntry: HistoryEntry) {
+    switch (historyEntry.action) {
+      case 'init':
+        return 'grade';
+      case 'set':
+        return 'create';
+      case 'add':
+        return 'add';
+      case 'subtract':
+        return 'remove';
+    }
+  }
+
+  // LIFECYCLE HOOKS
   ngOnChanges(): void {
     if (this.diaryEntry) {
       this.diaryEntryForm.patchValue(this.diaryEntry);
@@ -161,8 +204,6 @@ export class EditDiaryEntryFormComponent implements OnInit, OnChanges, AfterView
       this.oldWeightDescriptionString = `${this.diaryEntry.food_weight} г.`;
     }
   }
-
-  ngAfterViewInit(): void {}
 
   ngOnDestroy(): void {
     this.diaryEntryClickedSubscription.unsubscribe();

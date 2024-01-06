@@ -21,12 +21,17 @@ export interface ServerResponse {
 
 // FOOD ////////////////////////////////////////////////////////////////////////
 
+export interface HistoryEntry {
+  action: 'init' | 'set' | 'add' | 'subtract';
+  value: number;
+}
+
 export interface DiaryEntry {
   id: number;
   date: string;
   food_catalogue_id: number;
   food_weight: number;
-  // history: string;
+  history: HistoryEntry[];
 }
 
 export interface Diary {
@@ -44,10 +49,10 @@ export interface FormattedDiaryEntry {
   date: string;
   food_catalogue_id: number;
   food_weight: number;
-  formatted_food_name: string;
-  formatted_food_weight: string;
-  formatted_food_kcals: string;
-  formatted_food_percent: string;
+  history: HistoryEntry[];
+  food_name: string;
+  food_kcals: number;
+  food_percent: string;
   food_kcal_percentage_of_days_norm: number;
 }
 

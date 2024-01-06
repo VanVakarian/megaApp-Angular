@@ -9,10 +9,11 @@ import {
   ViewChild,
   ViewChildren,
 } from '@angular/core';
+import { combineLatest } from 'rxjs';
 import { FormControl } from '@angular/forms';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
+import { MatExpansionPanel } from '@angular/material/expansion';
 import { animate, style, transition, trigger } from '@angular/animations';
-import { combineLatest } from 'rxjs';
 
 import { slideInOutAnimation } from 'src/app/shared/animations';
 import { dateToIsoNoTimeNoTZ, generateDatesList } from 'src/app/shared/utils';
@@ -40,6 +41,8 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit {
   @ViewChildren('foodWeight') weightsDivs!: QueryList<ElementRef>;
   @ViewChildren('foodKcals') kcalsDivs!: QueryList<ElementRef>;
   @ViewChildren('foodPercent') percentsDivs!: QueryList<ElementRef>;
+
+  @ViewChild('#diaryEntry') diaryEntryDivs!: ElementRef;
 
   direction: string = 'left';
   daysList: string[] = [];
@@ -73,8 +76,9 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit {
   }
 
   // DIARY
-  diaryEntryExpanded(diaryEntryId: number) {
-    this.foodService.diaryEntryClicked$.emit(diaryEntryId);
+  diaryEntryExpanded(diaryEntry: MatExpansionPanel, diaryEntryId: number) {
+    this.foodService.diaryEntryClickedFocus$.next(diaryEntryId);
+    this.foodService.diaryEntryClickedScroll$.next(diaryEntry._body);
   }
 
   onCloseEvent(): void {
@@ -152,7 +156,7 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit {
       const percentsWidth = this.getMaxWidth(this.percentsDivs);
 
       this.setWidth(this.weightsDivs, weightsWidth + 3);
-      this.setWidth(this.kcalsDivs, kcalsWidth + 0);
+      this.setWidth(this.kcalsDivs, kcalsWidth + 10);
       this.setWidth(this.percentsDivs, percentsWidth + 12);
 
       if (this.contDiv && this.contDiv.nativeElement) {

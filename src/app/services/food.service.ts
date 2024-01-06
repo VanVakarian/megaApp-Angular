@@ -1,4 +1,4 @@
-import { computed, effect, EventEmitter, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { computed, effect, ElementRef, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import {
@@ -54,8 +54,8 @@ export class FoodService {
   stats$$: WritableSignal<Stats> = signal({});
 
   postRequestResult$ = new Subject<ServerResponse>();
-
-  diaryEntryClicked$: EventEmitter<number> = new EventEmitter<number>();
+  diaryEntryClickedFocus$ = new Subject<number>();
+  diaryEntryClickedScroll$ = new Subject<ElementRef>();
 
   constructor(private auth: AuthService, private http: HttpClient, private notificationsService: NotificationsService) {
     // effect(() => { console.log('DIARY has been updated:', this.diary$$()); }); // prettier-ignore
@@ -84,21 +84,18 @@ export class FoodService {
 
       for (const id in this.diary$$()[date].food) {
         const entry = this.diary$$()[date].food[id];
-        const foodName = this.catalogue$$()[entry.food_catalogue_id].name;
         const kcals = Math.round(
           this.catalogue$$()[entry.food_catalogue_id].kcals *
             (entry.food_weight / 100) *
-            this.coefficients$$()[entry.food_catalogue_id]
+            (this.coefficients$$()[entry.food_catalogue_id] || 1) // Without this check you can not add recently added to catalogue food to the diary
         );
         const percent = (kcals / this.diary$$()[date].target_kcals) * 100;
 
         formattedDiary[date].food[id] = {
           ...entry,
-          formatted_food_name: foodName,
-          formatted_food_weight: `${entry.food_weight} г.`,
-          // formatted_food_kcals: `${kcals} ккал.`, // not sure if there should be 'ккал' postfix or not. It takes too much space, imo
-          formatted_food_kcals: `${kcals}`,
-          formatted_food_percent: `${Math.floor(percent) < 100 ? percent.toFixed(1) : Math.round(percent).toString()}%`,
+          food_name: this.catalogue$$()[entry.food_catalogue_id].name,
+          food_kcals: kcals,
+          food_percent: `${Math.floor(percent) < 100 ? percent.toFixed(1) : Math.round(percent).toString()}`,
           food_kcal_percentage_of_days_norm: percent,
         };
         formattedDiary[date].days_kcals_eaten += kcals;

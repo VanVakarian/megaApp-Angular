@@ -39,7 +39,7 @@ import { AppRoutingModule } from 'src/app/app-routing.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MaterialModule } from 'src/app/shared/material.module';
+import { MaterialModule } from 'src/app/material.module';
 import { MatNativeDateModule } from '@angular/material/core';
 
 @NgModule({

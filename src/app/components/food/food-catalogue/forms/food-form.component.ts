@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { take } from 'rxjs';
 
@@ -9,7 +9,7 @@ import { CatalogueEntry } from 'src/app/shared/interfaces';
   selector: 'app-food-catalogue-form',
   templateUrl: './food-catalogue-form.component.html',
 })
-export class FoodCatalogueFormComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
+export class FoodCatalogueFormComponent implements OnChanges {
   @Input() categoryEntry?: CatalogueEntry;
   @Input() formRole: string = '';
   @Output() ownershipChanged = new EventEmitter<number>();
@@ -21,9 +21,9 @@ export class FoodCatalogueFormComponent implements OnInit, AfterViewInit, OnChan
   foodForm = new FormGroup({
     id: new FormControl(0),
     name: new FormControl('', [Validators.required]),
-    kcals: new FormControl(this.categoryEntry?.id ? this.categoryEntry.id : null, [
+    kcals: new FormControl(this.categoryEntry?.id ? this.categoryEntry.kcals : null, [
       Validators.required,
-      Validators.pattern(/^\d+$/), // digits only
+      Validators.pattern(/^\d+$/), // Digits only
     ]),
   });
 
@@ -54,7 +54,7 @@ export class FoodCatalogueFormComponent implements OnInit, AfterViewInit, OnChan
         if (response.value) {
           const foodId = parseInt(response.value);
           this.updateCatalogue(foodId);
-          this.addFoodIdToCatalogueSelectedLocally(foodId);
+          this.addFoodIdToCatalogueSelectedSendRequest(foodId);
         }
 
         this.foodForm.enable();
@@ -68,10 +68,11 @@ export class FoodCatalogueFormComponent implements OnInit, AfterViewInit, OnChan
     this.foodService.postCatalogueEntry(this.foodForm.value as CatalogueEntry);
   }
 
-  updateCatalogue(id: number) {
+  updateCatalogue(foodId: number) {
     const name = this.foodForm.value.name || '';
-    const kcals = this.foodForm.value.kcals || 0;
-    const newCatalogueValue: CatalogueEntry = { id, name, kcals };
+    const kcalsStr = this.foodForm.value.kcals || '';
+    const kcalsInt = parseInt(kcalsStr.toString());
+    const newCatalogueValue: CatalogueEntry = { id: foodId, name: name, kcals: kcalsInt };
 
     if (this.formRole === 'new') {
       this.foodService.catalogue$$.update((obj) => ({ ...obj, [newCatalogueValue.id]: newCatalogueValue }));
@@ -100,6 +101,26 @@ export class FoodCatalogueFormComponent implements OnInit, AfterViewInit, OnChan
     }
   }
 
+  removeFoodIdFromCatalogueSelectedSendRequest(foodId: number) {
+    this.changeOwnershipButtonDisabled = true;
+
+    this.foodService.postRequestResult$.pipe(take(1)).subscribe((response) => {
+      if (response.result) {
+        this.removeFoodIdFromCatalogueSelectedLocally(foodId);
+        this.changeOwnershipButtonDisabled = false;
+      } else {
+        this.changeOwnershipButtonDisabled = false;
+      }
+    });
+
+    this.foodService.deleteUserFoodId(foodId);
+  }
+
+  removeFoodIdFromCatalogueSelectedLocally(foodId: number) {
+    this.foodService.catalogueSelectedIds$$.update((list) => list.filter((item) => item !== foodId));
+    this.ownershipChanged.emit(foodId);
+  }
+
   addFoodIdToCatalogueSelectedSendRequest(foodId: number) {
     this.changeOwnershipButtonDisabled = true;
 
@@ -120,36 +141,11 @@ export class FoodCatalogueFormComponent implements OnInit, AfterViewInit, OnChan
     this.ownershipChanged.emit(foodId);
   }
 
-  removeFoodIdFromCatalogueSelectedSendRequest(foodId: number) {
-    this.changeOwnershipButtonDisabled = true;
-
-    this.foodService.postRequestResult$.pipe(take(1)).subscribe((response) => {
-      if (response.result) {
-        this.removeFoodIdFromCatalogueSelectedLocally(foodId);
-        this.changeOwnershipButtonDisabled = false;
-      } else {
-        this.changeOwnershipButtonDisabled = false;
-      }
-    });
-
-    this.foodService.deleteUserFoodId(foodId);
-  }
-  removeFoodIdFromCatalogueSelectedLocally(foodId: number) {
-    this.foodService.catalogueSelectedIds$$.update((list) => list.filter((item) => item !== foodId));
-    this.ownershipChanged.emit(foodId);
-  }
-
   // LIFECYCLE HOOKS
-  ngOnInit(): void {}
-
   ngOnChanges(): void {
     if (this.categoryEntry) {
       this.foodForm.patchValue(this.categoryEntry as CatalogueEntry);
       this.initialValues = { ...this.categoryEntry };
     }
   }
-
-  ngAfterViewInit(): void {}
-
-  ngOnDestroy(): void {}
 }

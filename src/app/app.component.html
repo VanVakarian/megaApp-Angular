@@ -10,7 +10,7 @@
     <app-navbar (menuClosed)="closeMenu()"></app-navbar>
   </mat-sidenav>
 
-  <mat-sidenav-content>
+  <mat-sidenav-content #scrollable>
     <div class="p-2">
       <router-outlet></router-outlet>
     </div>
