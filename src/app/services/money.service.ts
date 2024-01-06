@@ -28,7 +28,6 @@ interface TransactionsByDay {
 })
 export class MoneyService {
   token = this.auth.getToken();
-
   currentDay: string = '';
 
   currencies$$: WritableSignal<{ [id: number]: Currency }> = signal({});
@@ -36,7 +35,7 @@ export class MoneyService {
   accounts$$: WritableSignal<{ [id: number]: Account }> = signal({});
   categories$$: WritableSignal<{ [id: number]: Category }> = signal({});
   transactions$$: WritableSignal<{ [id: number]: Transaction }> = signal({});
-  transactionsByDay$$: Signal<TransactionsByDay> = computed(() => this.groupByDayAndKind(this.transactions$$()));
+  transactionsByDay$$: Signal<TransactionsByDay> = computed(() => this.groupByDayAndKind());
 
   constructor(
     private auth: AuthService,
@@ -52,9 +51,9 @@ export class MoneyService {
     // effect(() => { console.log('TRANSACTIONS BY DAY have been updated:', this.transactionsByDay$$()); }); // prettier-ignore
   }
 
-  groupByDayAndKind(transactions: { [id: number]: Transaction }): TransactionsByDay {
-    const transactionIds = Object.keys(transactions).map(Number);
-    const startDate = new Date(transactions[transactionIds[0]]?.date + 'T00:00');
+  groupByDayAndKind(): TransactionsByDay {
+    const transactionIds = Object.keys(this.transactions$$()).map(Number);
+    const startDate = new Date(this.transactions$$()[transactionIds[0]]?.date + 'T00:00');
     const endDate = new Date();
     let transactionsByDay: TransactionsByDay = {};
 
@@ -63,13 +62,13 @@ export class MoneyService {
       transactionsByDay[isoDate] = {};
 
       transactionIds.forEach((id) => {
-        if (transactions[id].date === isoDate) {
-          const kind = transactions[id].kind;
+        if (this.transactions$$()[id].date === isoDate) {
+          const kind = this.transactions$$()[id].kind;
 
           if (!transactionsByDay[isoDate][kind]) {
             transactionsByDay[isoDate][kind] = [];
           }
-          transactionsByDay[isoDate][kind].push(transactions[id]);
+          transactionsByDay[isoDate][kind].push(this.transactions$$()[id]);
         }
       });
     }
@@ -87,7 +86,7 @@ export class MoneyService {
     callback?: () => void
   ): void {
     if (!this.token) {
-      this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
+      // this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
       return;
     }
 

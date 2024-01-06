@@ -22,7 +22,7 @@ export class TransactionTransferForm implements OnInit, OnDestroy {
 
   constructor(private confirmModal: ConfirmationDialogService, public moneyService: MoneyService) {}
 
-  public transactionForm = new FormGroup({
+  transactionForm = new FormGroup({
     id: new FormControl(0),
     date: new FormControl(''),
     amount: new FormControl(
@@ -65,6 +65,7 @@ export class TransactionTransferForm implements OnInit, OnDestroy {
     this.transactionForm.value.date = this.transactionDate;
     this.transactionForm.value.amount = Math.abs(this.transactionForm.value.amount!);
     this.transactionForm.value.target_account_amount = Math.abs(this.transactionForm.value.target_account_amount!);
+    this.moneyService.currentDay = this.transactionDate;
 
     if (this.formRole === 'new') {
       this.moneyService.createTransaction(this.transactionForm.value as Transaction);

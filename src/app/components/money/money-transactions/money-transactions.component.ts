@@ -3,7 +3,7 @@ import { FormControl } from '@angular/forms';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 
 import { Transaction } from 'src/app/shared/interfaces';
-import { slideInOutAnimation } from 'src/app/components/money/money-transactions/animations';
+import { slideInOutAnimation } from 'src/app/shared/animations';
 import { MoneyService } from 'src/app/services/money.service';
 import { dateToIsoNoTimeNoTZ, generateDatesList, divideNumberWithWhitespaces, splitNumber } from 'src/app/shared/utils';
 
@@ -15,7 +15,7 @@ import { dateToIsoNoTimeNoTZ, generateDatesList, divideNumberWithWhitespaces, sp
 })
 export class MoneyTransactionsComponent implements OnInit {
   direction: string = 'left';
-  dateForm: FormControl = new FormControl(new Date());
+  calendarSelectedDay: FormControl = new FormControl(new Date());
   today: Date = new Date();
   todayDate: number = this.today.setHours(0, 0, 0, 0);
   selectedDateMs: number = this.todayDate;
@@ -101,8 +101,7 @@ export class MoneyTransactionsComponent implements OnInit {
     newDay.setDate(newDay.getDate() + shift);
     this.selectedDateMs = newDay.getTime();
     this.selectedDateISO = dateToIsoNoTimeNoTZ(this.selectedDateMs);
-    this.dateForm.setValue(new Date(this.selectedDateMs));
-    console.log('lolkek04', this.dateForm.value);
+    this.calendarSelectedDay.setValue(new Date(this.selectedDateMs));
 
     this.regenerateDaysList();
   }

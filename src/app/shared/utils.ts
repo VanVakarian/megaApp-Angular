@@ -1,3 +1,5 @@
+import { FETCH_DAYS_RANGE_OFFSET } from 'src/app/shared/const';
+
 export function dateToIsoNoTimeNoTZ(milliseconds: number): string {
   // There was a more neat way (date.toISOString().slice(0,10)), but there were problems with TZs
   const date = new Date(milliseconds);
@@ -9,7 +11,7 @@ export function generateDatesList(inputDateIso: string): string[] {
   const inputDate = new Date(inputDateIso);
   const resultDatesList: string[] = [];
 
-  for (let i = -10; i <= 10; i++) {
+  for (let i = -FETCH_DAYS_RANGE_OFFSET; i <= FETCH_DAYS_RANGE_OFFSET; i++) {
     const newDate = new Date(inputDate);
     newDate.setDate(inputDate.getDate() + i);
     newDate.setHours(0, 0, 0, 0);

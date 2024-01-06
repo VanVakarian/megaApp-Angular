@@ -17,14 +17,14 @@
           <div class="mb-1 ml-1 text-lg font-medium">Расходы:</div>
         </div>
 
-        <mat-accordion class="sub-expansion-panel-38px-50px">
+        <mat-accordion>
           <ng-container *ngFor="let transaction of moneyService.transactionsByDay$$()?.[selectedDateISO]?.['expense']">
-            <mat-expansion-panel>
+            <mat-expansion-panel class="sub-expansion-panel-38px-50px">
               <mat-expansion-panel-header>
                 <mat-panel-title>
                   <div class="flex w-full overflow-hidden whitespace-nowrap text-base font-normal">
                     <div
-                      class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-white bg-clip-text text-transparent"
+                      class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-transparent bg-clip-text text-transparent"
                     >
                       {{ getCategoryTitle(transaction) }} {{ formatTransactionNotes(transaction) }}
                     </div>
@@ -42,7 +42,7 @@
             </mat-expansion-panel>
           </ng-container>
 
-          <mat-expansion-panel>
+          <mat-expansion-panel class="sub-expansion-panel-38px-50px">
             <mat-expansion-panel-header>
               <mat-panel-title>
                 <mat-icon>add</mat-icon>
@@ -64,14 +64,14 @@
           <div class="mb-1 ml-2 text-lg font-medium">Доходы:</div>
         </div>
 
-        <mat-accordion class="sub-expansion-panel-38px-50px">
+        <mat-accordion>
           <ng-container *ngFor="let transaction of moneyService.transactionsByDay$$()?.[selectedDateISO]?.['income']">
-            <mat-expansion-panel>
+            <mat-expansion-panel class="sub-expansion-panel-38px-50px">
               <mat-expansion-panel-header>
                 <mat-panel-title>
                   <div class="flex w-full overflow-hidden whitespace-nowrap text-base font-normal">
                     <div
-                      class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-white bg-clip-text text-transparent"
+                      class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-transparent bg-clip-text text-transparent"
                     >
                       {{ getCategoryTitle(transaction) }} {{ formatTransactionNotes(transaction) }}
                     </div>
@@ -89,7 +89,7 @@
             </mat-expansion-panel>
           </ng-container>
 
-          <mat-expansion-panel>
+          <mat-expansion-panel class="sub-expansion-panel-38px-50px">
             <mat-expansion-panel-header>
               <mat-panel-title>
                 <mat-icon>add</mat-icon>
@@ -112,19 +112,19 @@
           <div class="mb-1 ml-2 text-lg font-medium">Переводы:</div>
         </div>
 
-        <mat-accordion class="sub-expansion-panel-38px-50px">
+        <mat-accordion>
           <ng-container
             *ngFor="let transaction of moneyService.transactionsByDay$$()?.[selectedDateISO]?.['transfer']; let i = index"
           >
             <ng-container *ngIf="i % 2 === 0">
-              <mat-expansion-panel>
-                <mat-expansion-panel-header class="expansion-panel-2-row-header relative">
-                  <mat-icon class="absolute left-[10px] top-[18px] -rotate-[135deg] scale-100">turn_left</mat-icon>
-                  <mat-panel-title>
+              <mat-expansion-panel class="expansion-panel-2-row">
+                <mat-expansion-panel-header class="expansion-panel-2-row-header">
+                  <mat-panel-title class="relative">
+                    <mat-icon class="absolute left-[1px] top-[15px] -rotate-[135deg] scale-100">turn_left</mat-icon>
                     <div class="flex w-full flex-col">
                       <div class="flex w-full overflow-hidden text-base font-normal">
                         <div
-                          class="ml-3 grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-white bg-clip-text text-transparent"
+                          class="ml-6 grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-transparent bg-clip-text text-transparent"
                         >
                           {{ getOutgoingTransferAccountTitle(transaction.id) }}
                         </div>
@@ -134,7 +134,7 @@
                       </div>
                       <div class="flex w-full overflow-hidden text-base font-normal">
                         <div
-                          class="ml-3 grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-white bg-clip-text text-transparent"
+                          class="ml-6 grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-transparent bg-clip-text text-transparent"
                         >
                           {{ getIncomingTransferAccountTitle(transaction.twin_transaction_id) }}
                         </div>
@@ -155,7 +155,7 @@
             </ng-container>
           </ng-container>
 
-          <mat-expansion-panel>
+          <mat-expansion-panel class="sub-expansion-panel-38px-50px">
             <mat-expansion-panel-header>
               <mat-panel-title>
                 <mat-icon>add</mat-icon>
@@ -174,19 +174,22 @@
   </ng-container>
 </div>
 
-<div class="fixed bottom-6 left-1/2 z-[1] flex -translate-x-1/2 transform gap-5">
+<div
+  class="fixed bottom-6 left-1/2 flex -translate-x-1/2 transform gap-5"
+  style="z-index: 10"
+>
   <button
     mat-mini-fab
-    class="btn-resize"
+    class="scale-125"
     color="primary"
     (click)="previous()"
   >
-    <mat-icon class="icon-resize">chevron_left</mat-icon>
+    <mat-icon class="scale-150">chevron_left</mat-icon>
   </button>
 
   <button
     mat-mini-fab
-    class="btn-resize"
+    class="scale-125"
     color="primary"
     (click)="picker.open()"
   >
@@ -195,12 +198,12 @@
 
   <button
     mat-mini-fab
-    class="btn-resize"
+    class="scale-125"
     color="primary"
     (click)="next()"
     [disabled]="isLastDay()"
   >
-    <mat-icon class="icon-resize">chevron_right</mat-icon>
+    <mat-icon class="scale-150">chevron_right</mat-icon>
   </button>
 </div>
 
@@ -208,7 +211,7 @@
   <input
     matInput
     [matDatepicker]="picker"
-    [formControl]="dateForm"
+    [formControl]="calendarSelectedDay"
     (dateChange)="onDatePicked($event)"
     [max]="today"
   />

@@ -10,7 +10,7 @@
     <app-navbar (menuClosed)="closeMenu()"></app-navbar>
   </mat-sidenav>
 
-  <mat-sidenav-content>
+  <mat-sidenav-content #scrollable>
     <div class="p-2">
       <router-outlet></router-outlet>
     </div>
@@ -18,7 +18,10 @@
 </mat-sidenav-container>
 
 <!-- Hamburher button -->
-<div class="fixed bottom-2 right-4 z-10">
+<div
+  class="fixed bottom-2 right-4"
+  style="z-index: 100"
+>
   <label class="hamburger">
     <input
       #hamburger

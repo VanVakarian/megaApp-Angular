@@ -24,14 +24,36 @@
   --mat-toolbar-title-text-font: var(--fonts-sans) !important;
   --mdc-filled-text-field-label-text-font: var(--fonts-sans) !important;
   --mdc-outlined-text-field-label-text-font: var(--fonts-sans) !important;
+  --mdc-typography-button-font-family: var(--fonts-sans) !important;
+  --mdc-typography-font-family: var(--fonts-sans) !important;
 }
 
 .mat-mdc-dialog-content {
   padding: 10px !important;
 }
 
-.main-expansion-panel {
-  // --mat-expansion-header-collapsed-state-height: 44px;
+
+// FOOD ////////////////////////////////////////////////////////////////////////
+
+// tweaking to expansion panel formatting of entries in food diary
+.mat-expansion-panel-header-margins-decrease {
+  padding: 0px 8px !important;
+}
+
+.mat-panel-title-margin-remove {
+  margin-right: 0px !important;
+}
+.expansion-panel-arrow-indiactor-remove .mat-expansion-indicator {
+  display: none !important; // removing little expansion panel arrow indicator to win back some space
+}
+
+// removing unnecessary hint div under the input in catalogue
+.catalogue-filter-input-hint-remove .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
+
+.mat-button-enlarged-45-px {
+  height: 45px !important;
 }
 
 .sub-expansion-panel-38px-50px {
@@ -39,8 +61,14 @@
   --mat-expansion-header-expanded-state-height: 50px;
 }
 
+.expansion-panel-2-row {
+  --mat-expansion-header-collapsed-state-height: 62px;
+  --mat-expansion-header-expanded-state-height: 74px;
+}
+
+// Making room for a mat-icon in 2-rowed transfer transaction. So it is not to be clipped.
 .expansion-panel-2-row-header {
-  height: 62px !important;
+  padding-left: 10px !important;
 }
 
 .mat-mdc-form-field-infix {
@@ -51,14 +79,6 @@
   background-color: transparent !important;
   box-shadow: none !important;
 }
-
-// .mat-button-toggle-group {
-//   height: 38px !important;
-// }
-
-// .mat-button-toggle-button {
-//   height: 38px !important;
-// }
 
 .menu-button {
   height: 48px !important;
@@ -87,4 +107,9 @@
 // Without this floating selector pane is the width of the mat-input, which can make the list items crumpled
 .cdk-overlay-pane {
   min-width: fit-content !important;
+}
+
+// Style to fix the weird border within material input with outline appearance caused by tailwind
+.mdc-notched-outline__notch {
+  border-right: none !important;
 }
