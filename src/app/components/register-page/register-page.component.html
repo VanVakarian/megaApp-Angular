@@ -6,22 +6,24 @@
       (ngSubmit)="submit()"
     >
       <div>
-        <div class="input-field-label">Email:</div>
+        <div class="input-field-label">Username:</div>
       </div>
       <div>
         <input
           class="input-field"
-          id="email"
-          type="email"
-          formControlName="email"
+          id="username"
+          type="username"
+          formControlName="username"
         />
       </div>
       <div
         class="input-field-errors"
-        *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid"
+        *ngIf="registerForm.get('username')?.touched && registerForm.get('username')?.invalid"
       >
-        <small *ngIf="registerForm.get('email')?.errors?.['required']"> Поле не должно быть пустым </small>
-        <small *ngIf="registerForm.get('email')?.errors?.['email']"> Поле должно содержать корректный email </small>
+        <small *ngIf="registerForm.get('username')?.errors?.['required']"> Поле не должно быть пустым </small>
+        <small *ngIf="registerForm.get('username')?.errors?.['username']">
+          Поле должно содержать корректный username
+        </small>
       </div>
 
       <div>

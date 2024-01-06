@@ -13,22 +13,24 @@
       </div>
 
       <div>
-        <div class="input-field-label">Email:</div>
+        <div class="input-field-label">Username:</div>
       </div>
       <div>
         <input
           class="input-field"
-          id="email"
-          type="email"
-          formControlName="email"
+          id="username"
+          type="username"
+          formControlName="username"
         />
       </div>
       <div
         class="input-field-errors"
-        *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid"
+        *ngIf="loginForm.get('username')?.touched && loginForm.get('username')?.invalid"
       >
-        <small *ngIf="loginForm.get('email')?.errors?.['required']"> Поле не должно быть пустым </small>
-        <small *ngIf="loginForm.get('email')?.errors?.['email']"> Поле должно содержать корректный email </small>
+        <small *ngIf="loginForm.get('username')?.errors?.['required']"> Поле не должно быть пустым </small>
+        <small *ngIf="loginForm.get('username')?.errors?.['username']">
+          Поле должно содержать корректный username
+        </small>
       </div>
 
       <div>

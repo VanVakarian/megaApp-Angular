@@ -12,11 +12,13 @@ export class RegisterPageComponent implements OnInit {
   registerForm: FormGroup;
   submitted = false;
 
-  constructor(public auth: AuthService, private router: Router) // private route: ActivatedRoute
-  {
+  constructor(
+    public auth: AuthService,
+    private router: Router // private route: ActivatedRoute
+  ) {
     this.registerForm = new FormGroup({
-      // email: new FormControl(null, [Validators.required, Validators.email]),
-      email: new FormControl(null, [Validators.required]),
+      // username: new FormControl(null, [Validators.required, Validators.username]),
+      username: new FormControl(null, [Validators.required]),
       password: new FormControl(null, [Validators.required, Validators.minLength(6)]),
     });
   }
@@ -32,7 +34,7 @@ export class RegisterPageComponent implements OnInit {
     this.submitted = true;
 
     const user: UserLogin = {
-      email: this.registerForm.value.email,
+      username: this.registerForm.value.username,
       password: this.registerForm.value.password,
     };
 

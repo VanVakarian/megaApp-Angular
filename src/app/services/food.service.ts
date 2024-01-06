@@ -1,5 +1,6 @@
 import { computed, effect, ElementRef, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Subject } from 'rxjs';
 
 import {
   Catalogue,
@@ -16,7 +17,6 @@ import {
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
-import { Subject } from 'rxjs';
 
 enum HttpMethod {
   GET = 'GET',
