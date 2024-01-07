@@ -80,6 +80,7 @@ export class NewDiaryEntryFormComponent implements OnInit, OnChanges, AfterViewI
     this.diaryEntryForm.disable();
     const preppedDiaryEntry: DiaryEntry = {
       ...this.diaryEntryForm.value,
+      id: null,
       food_weight: parseInt(this.diaryEntryForm.value.food_weight),
       history: [{ action: 'init', value: parseInt(this.diaryEntryForm.value.food_weight) }],
     };

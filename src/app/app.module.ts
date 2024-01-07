@@ -12,6 +12,8 @@ import { EditDiaryEntryFormComponent } from 'src/app/components/food/food-diary/
 import { FoodCatalogueComponent } from 'src/app/components/food/food-catalogue/food-catalogue.component';
 import { FoodCatalogueFormComponent } from 'src/app/components/food/food-catalogue/forms/food-form.component';
 
+import { FoodStatsComponent } from 'src/app/components/food/food-stats/food-stats.component';
+
 import { MoneyDashboardComponent } from 'src/app/components/money/money-dashboard/money-dashboard.component';
 import { MoneyManageComponent } from 'src/app/components/money/money-manage/money-manage.component';
 import { MoneyCurrencyComponent } from 'src/app/components/money/money-currency/money-currency.component';
@@ -57,6 +59,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 
     FoodCatalogueComponent,
     FoodCatalogueFormComponent,
+
+    FoodStatsComponent,
 
     MoneyDashboardComponent,
     MoneyManageComponent,
