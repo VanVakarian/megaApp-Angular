@@ -68,6 +68,9 @@ export class FoodService {
     // effect(() => { console.log('HEIGHT has been updated:', this.height$$()); }); // prettier-ignore
     // effect(() => { console.log('BMI has been updated:', this.bmi$$()); }); // prettier-ignore
     // effect(() => { console.log('STATS have been updated:', this.stats$$()); }); // prettier-ignore
+    // effect(() => { console.log('STATS DATES have been updated:', this.statsDates$$()); }); // prettier-ignore
+    // effect(() => { console.log('STATS WEIGHTS have been updated:', this.statsWeights$$()); }); // prettier-ignore
+    // effect(() => { console.log('STATS WEIGHTS AVG have been updated:', this.statsWeightsAvg$$()); }); // prettier-ignore
   }
 
   prepDiary(): FormattedDiary {
