@@ -13,6 +13,7 @@ export class NavbarComponent implements OnInit {
 
   buttons = [
     { label: 'Дневник питания', link: '/food-diary', requiresAuth: true, iconName: 'restaurant', bgClass: 'food-bg' }, // prettier-ignore
+    { label: 'Статистика', link: '/food-stats', requiresAuth: true, iconName: 'insights', bgClass: 'food-bg' }, // prettier-ignore
     { label: 'Каталог еды', link: '/food-catalogue', requiresAuth: true, iconName: 'menu_book', bgClass: 'food-bg' }, // prettier-ignore
     { label: 'Обзор', link: '/money-dashboard', requiresAuth: true, iconName: 'remove_red_eye', bgClass: 'money-bg' }, // prettier-ignore
     { label: 'Дневник операций', link: '/money-transactions', requiresAuth: true, iconName: 'receipt_long', bgClass: 'money-bg' }, // prettier-ignore

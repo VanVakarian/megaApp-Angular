@@ -1,3 +1,5 @@
+import { NgModule } from '@angular/core';
+
 import { MainAppComponent } from 'src/app/app.component';
 import { NavbarComponent } from 'src/app/components/navbar/navbar.component';
 import { ModalYNComponent } from 'src/app/components/shared-components/modal-y-n/modal-y-n.component';
@@ -35,7 +37,6 @@ import { RegisterPageComponent } from 'src/app/components/register-page/register
 
 import { NotificationsComponent } from 'src/app/components/shared-components/notifications/notifications.component';
 
-import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from 'src/app/app-routing.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -43,6 +44,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialModule } from 'src/app/material.module';
 import { MatNativeDateModule } from '@angular/material/core';
+import { NgChartsModule } from 'ng2-charts';
 
 @NgModule({
   declarations: [
@@ -86,12 +88,13 @@ import { MatNativeDateModule } from '@angular/material/core';
   imports: [
     BrowserModule,
     AppRoutingModule,
+    FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
-    FormsModule,
     BrowserAnimationsModule,
     MaterialModule,
     MatNativeDateModule,
+    NgChartsModule,
   ],
   providers: [],
   bootstrap: [MainAppComponent],

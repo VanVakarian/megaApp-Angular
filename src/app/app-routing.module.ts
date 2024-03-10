@@ -5,6 +5,7 @@ import { NgModule } from '@angular/core';
 import { SettingsPageComponent } from 'src/app/components/settings-page/settings-page.component';
 import { RegisterPageComponent } from 'src/app/components/register-page/register-page.component';
 import { FoodDiaryComponent } from 'src/app/components/food/food-diary/food-diary.component';
+import { FoodStatsComponent } from './components/food/food-stats/food-stats.component';
 import { FoodCatalogueComponent } from './components/food/food-catalogue/food-catalogue.component';
 import { MoneyDashboardComponent } from 'src/app/components/money/money-dashboard/money-dashboard.component';
 import { MoneyManageComponent } from 'src/app/components/money/money-manage/money-manage.component';
@@ -15,6 +16,7 @@ import { AuthGuard } from 'src/app/services/auth/auth.guard';
 const routes: Routes = [
   { path: '', redirectTo: 'food-diary', pathMatch: 'full' },
   { path: 'food-diary', component: FoodDiaryComponent, canActivate: [AuthGuard] },
+  { path: 'food-stats', component: FoodStatsComponent, canActivate: [AuthGuard] },
   { path: 'food-catalogue', component: FoodCatalogueComponent, canActivate: [AuthGuard] },
   { path: 'money-dashboard', component: MoneyDashboardComponent, canActivate: [AuthGuard] },
   { path: 'money-transactions', component: MoneyTransactionsComponent, canActivate: [AuthGuard] },
