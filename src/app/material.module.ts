@@ -14,6 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSliderModule } from '@angular/material/slider';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 
@@ -32,6 +33,7 @@ const materialComponents = [
   MatListModule,
   MatSelectModule,
   MatSidenavModule,
+  MatSliderModule,
   MatTableModule,
   MatTabsModule,
 ];
