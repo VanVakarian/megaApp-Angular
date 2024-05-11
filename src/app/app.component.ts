@@ -19,18 +19,18 @@ export class MainAppComponent implements OnInit {
   menuOpened = false;
 
   constructor(
-    public moneyService: MoneyService,
-    public foodService: FoodService,
-    private dateAdapter: DateAdapter<Date>
+    // public moneyService: MoneyService,
+    // public foodService: FoodService,
+    // private dateAdapter: DateAdapter<Date>
   ) {
-    this.foodService.diaryEntryClickedScroll$
-      .pipe(
-        delay(190) // Waiting for expansion panel animation to finish before scrolling. Otherwise it scrolls to the wrong place.
-      )
-      .subscribe((clickedElem: ElementRef) => {
-        const scrollPx = clickedElem.nativeElement.getBoundingClientRect().top - 50;
-        this.scrollable.getElementRef().nativeElement.scrollBy({ top: scrollPx, behavior: 'smooth' });
-      });
+    // this.foodService.diaryEntryClickedScroll$
+    //   .pipe(
+    //     delay(190) // Waiting for expansion panel animation to finish before scrolling. Otherwise it scrolls to the wrong place.
+    //   )
+    //   .subscribe((clickedElem: ElementRef) => {
+    //     const scrollPx = clickedElem.nativeElement.getBoundingClientRect().top - 50;
+    //     this.scrollable.getElementRef().nativeElement.scrollBy({ top: scrollPx, behavior: 'smooth' });
+    //   });
   }
 
   hamburgerPressed(hamburgerCheckboxStatus: boolean) {
@@ -43,19 +43,19 @@ export class MainAppComponent implements OnInit {
 
   ngOnInit(): void {
     // making monday to be the first day of the week in a calendar
-    this.dateAdapter.setLocale('ru-RU');
-    this.dateAdapter.getFirstDayOfWeek = () => {
-      return 1;
-    };
+    // this.dateAdapter.setLocale('ru-RU');
+    // this.dateAdapter.getFirstDayOfWeek = () => {
+    //   return 1;
+    // };
 
     // TODO: think of a better way to initially fetch data
-    this.foodService.getFullUpdate();
-    this.foodService.getStats();
+    // this.foodService.getFullUpdate();
+    // this.foodService.getStats();
 
-    this.moneyService.getCurrencies();
-    this.moneyService.getBanks();
-    this.moneyService.getAccounts();
-    this.moneyService.getCategories();
-    this.moneyService.getTransactions();
+    // this.moneyService.getCurrencies();
+    // this.moneyService.getBanks();
+    // this.moneyService.getAccounts();
+    // this.moneyService.getCategories();
+    // this.moneyService.getTransactions();
   }
 }

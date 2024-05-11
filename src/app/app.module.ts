@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 
 import { MainAppComponent } from 'src/app/app.component';
-import { NavbarComponent } from 'src/app/components/navbar/navbar.component';
+import { NavbarMobileComponent } from 'src/app/components/navbar-mobile/navbar-mobile.component';
 import { ModalYNComponent } from 'src/app/components/shared-components/modal-y-n/modal-y-n.component';
 import { MatDialogModal } from 'src/app/components/shared-components/mat-dialog-modal/mat-dialog-modal.component';
 
@@ -35,7 +35,7 @@ import { SettingsPageComponent } from 'src/app/components/settings-page/settings
 import { LoginPageComponent } from 'src/app/components/login-page/login-page.component';
 import { RegisterPageComponent } from 'src/app/components/register-page/register-page.component';
 
-import { NotificationsComponent } from 'src/app/components/shared-components/notifications/notifications.component';
+// import { NotificationsComponent } from 'src/app/components/shared-components/notifications/notifications.component';
 
 import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from 'src/app/app-routing.module';
@@ -49,7 +49,7 @@ import { NgChartsModule } from 'ng2-charts';
 @NgModule({
   declarations: [
     MainAppComponent,
-    NavbarComponent,
+    NavbarMobileComponent,
     ModalYNComponent,
     MatDialogModal,
 
@@ -83,7 +83,7 @@ import { NgChartsModule } from 'ng2-charts';
     LoginPageComponent,
     RegisterPageComponent,
 
-    NotificationsComponent,
+    // NotificationsComponent,
   ],
   imports: [
     BrowserModule,
