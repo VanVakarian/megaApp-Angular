@@ -1,0 +1,9 @@
+<div class="flex w-full max-w-[1200px] gap-2 py-2">
+  @for (button of buttons; track $index) {
+    <button class="main-menu-button" mat-raised-button [routerLink]="button.link">{{ button.label }}</button>
+  }
+  <div class="grow"></div>
+  <button class="main-menu-button" [routerLink]="buttonSettings.link" mat-raised-button>
+    {{ buttonSettings.label }}
+  </button>
+</div>

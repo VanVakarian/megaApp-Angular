@@ -2,30 +2,30 @@
   --fonts-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --fonts-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --fonts-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --mat-badge-text-font: var(--fonts-sans) !important;
-  --mat-bottom-sheet-container-text-font: var(--fonts-sans) !important;
-  --mat-datepicker-calendar-text-font: var(--fonts-sans) !important;
-  --mat-expansion-container-text-font: var(--fonts-sans) !important;
-  --mat-expansion-header-text-font: var(--fonts-sans) !important;
-  --mat-form-field-container-text-font: var(--fonts-sans) !important;
-  --mat-form-field-subscript-text-font: var(--fonts-sans) !important;
-  --mat-legacy-button-toggle-text-font: var(--fonts-sans) !important;
-  --mat-menu-item-label-text-font: var(--fonts-sans) !important;
-  --mat-optgroup-label-text-font: var(--fonts-sans) !important;
-  --mat-option-label-text-font: var(--fonts-sans) !important;
-  --mat-paginator-container-text-font: var(--fonts-sans) !important;
-  --mat-select-trigger-text-font: var(--fonts-sans) !important;
-  --mat-standard-button-toggle-text-font: var(--fonts-sans) !important;
-  --mat-stepper-container-text-font: var(--fonts-sans) !important;
-  --mat-stepper-header-label-text-font: var(--fonts-sans) !important;
-  --mat-table-footer-supporting-text-font: var(--fonts-sans) !important;
-  --mat-table-header-headline-font: var(--fonts-sans) !important;
-  --mat-table-row-item-label-text-font: var(--fonts-sans) !important;
-  --mat-toolbar-title-text-font: var(--fonts-sans) !important;
-  --mdc-filled-text-field-label-text-font: var(--fonts-sans) !important;
-  --mdc-outlined-text-field-label-text-font: var(--fonts-sans) !important;
-  --mdc-typography-button-font-family: var(--fonts-sans) !important;
-  --mdc-typography-font-family: var(--fonts-sans) !important;
+  // --mat-badge-text-font: var(--fonts-sans) !important;
+  // --mat-bottom-sheet-container-text-font: var(--fonts-sans) !important;
+  // --mat-datepicker-calendar-text-font: var(--fonts-sans) !important;
+  // --mat-expansion-container-text-font: var(--fonts-sans) !important;
+  // --mat-expansion-header-text-font: var(--fonts-sans) !important;
+  // --mat-form-field-container-text-font: var(--fonts-sans) !important;
+  // --mat-form-field-subscript-text-font: var(--fonts-sans) !important;
+  // --mat-legacy-button-toggle-text-font: var(--fonts-sans) !important;
+  // --mat-menu-item-label-text-font: var(--fonts-sans) !important;
+  // --mat-optgroup-label-text-font: var(--fonts-sans) !important;
+  // --mat-option-label-text-font: var(--fonts-sans) !important;
+  // --mat-paginator-container-text-font: var(--fonts-sans) !important;
+  // --mat-select-trigger-text-font: var(--fonts-sans) !important;
+  // --mat-standard-button-toggle-text-font: var(--fonts-sans) !important;
+  // --mat-stepper-container-text-font: var(--fonts-sans) !important;
+  // --mat-stepper-header-label-text-font: var(--fonts-sans) !important;
+  // --mat-table-footer-supporting-text-font: var(--fonts-sans) !important;
+  // --mat-table-header-headline-font: var(--fonts-sans) !important;
+  // --mat-table-row-item-label-text-font: var(--fonts-sans) !important;
+  // --mat-toolbar-title-text-font: var(--fonts-sans) !important;
+  // --mdc-filled-text-field-label-text-font: var(--fonts-sans) !important;
+  // --mdc-outlined-text-field-label-text-font: var(--fonts-sans) !important;
+  // --mdc-typography-button-font-family: var(--fonts-sans) !important;
+  // --mdc-typography-font-family: var(--fonts-sans) !important;
 }
 
 .mat-mdc-dialog-content {
@@ -43,6 +43,7 @@
 .mat-panel-title-margin-remove {
   margin-right: 0px !important;
 }
+
 .expansion-panel-arrow-indiactor-remove .mat-expansion-indicator {
   display: none !important; // removing little expansion panel arrow indicator to win back some space
 }
@@ -80,14 +81,21 @@
   box-shadow: none !important;
 }
 
-.menu-button {
+.main-menu-button .mdc-button__label {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+}
+
+.side-menu-button {
   height: 48px !important;
   padding: 0px !important;
 }
 
-.menu-button .mdc-button__label {
+.side-menu-button .mdc-button__label {
   width: 100% !important;
   height: 100% !important;
+  font-weight: 600 !important;
   padding: 10px 16px;
   overflow: hidden;
   margin: 0px;

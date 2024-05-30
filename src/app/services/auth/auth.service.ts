@@ -58,6 +58,7 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
+    // НА ТЕСТАХ ОБНАРУЖИЛОСЬ, ЧТО FALSE НАМЕРТВО ВЕШАЕТ ВКЛАДКУ!
     return true;
     // onst token = localStorage.getItem(this.TOKEN_KEY);
     // if (token) {

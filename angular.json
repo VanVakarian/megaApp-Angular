@@ -67,22 +67,22 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "megaapp:build:production"
+              "buildTarget": "megaapp:build:production"
             },
             "development": {
-              "browserTarget": "megaapp:build:development"
+              "buildTarget": "megaapp:build:development"
             }
           },
           "defaultConfiguration": "development",
           "options": {
-            "browserTarget": "your-application-name:build",
-            "proxyConfig": "proxy.conf.json"
+            "proxyConfig": "proxy.conf.json",
+            "buildTarget": "your-application-name:build"
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "megaapp:build"
+            "buildTarget": "megaapp:build"
           }
         },
         "test": {
