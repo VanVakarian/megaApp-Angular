@@ -1,11 +1,11 @@
 import { NgClass, NgFor, NgIf } from '@angular/common';
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, computed, signal } from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { AuthService } from 'src/app/services/auth.service';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -13,7 +13,7 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [NgIf, NgFor, RouterLink, NgClass, MatIconModule, MatButtonModule],
   templateUrl: './navbar-mobile.component.html',
-  styleUrls: ['./navbar-mobile.component.scss'],
+  styleUrl: './navbar-mobile.component.scss',
   animations: [
     trigger('menuSlide', [
       state('closed', style({ transform: 'translateX(100%)' })),
@@ -28,7 +28,6 @@ import { RouterLink } from '@angular/router';
   ],
 })
 export class NavbarMobileComponent implements OnInit {
-  public isAuthenticated = this.auth.isAuthenticated();
   public menuOpened: boolean = false;
   @ViewChild('fader') fader!: ElementRef;
 
@@ -39,7 +38,7 @@ export class NavbarMobileComponent implements OnInit {
     { label: 'Дневник финансов', link: '/money', requiresAuth: true, iconName: 'remove_red_eye', bgClass: 'money-bg' }, // prettier-ignore
   ];
 
-  constructor(private auth: AuthService) {}
+  constructor(public auth: AuthService) {}
 
   closeMenu() {
     this.menuOpened = false;
@@ -53,13 +52,9 @@ export class NavbarMobileComponent implements OnInit {
     } else {
       setTimeout(() => {
         this.fader.nativeElement.classList.add('hidden');
-      }, 250); // Должно совпадать с длительностью анимации fadeOut
+      }, 250); // Waiting for the fadeOut animation to complete before hiding fader background
     }
   }
 
-  ngOnInit(): void {
-    this.auth.authChange.subscribe((isAuthed) => {
-      this.isAuthenticated = isAuthed;
-    });
-  }
+  ngOnInit(): void {}
 }

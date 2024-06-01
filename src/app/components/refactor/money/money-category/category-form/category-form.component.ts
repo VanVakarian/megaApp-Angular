@@ -2,11 +2,11 @@ import { Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, ViewChild }
 import { Subscription } from 'rxjs';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { DataSharingService } from 'src/app/services/data-sharing.service';
-import { ConfirmationDialogService } from 'src/app/services/mat-dialog-modal.service';
-import { UtilsService } from 'src/app/services/utils.service';
+import { DataSharingService } from 'src/app/components/refactor/service/data-sharing.service';
+import { ConfirmationDialogService } from 'src/app/components/refactor/service/mat-dialog-modal.service';
+import { UtilsService } from 'src/app/components/refactor/service/utils.service';
 import { Category } from 'src/app/shared/interfaces';
-import { MoneyService } from 'src/app/services/money.service';
+import { MoneyService } from 'src/app/components/refactor/service/money.service';
 
 @Component({
   selector: 'app-category-form',

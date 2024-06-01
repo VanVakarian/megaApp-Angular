@@ -1,7 +1,7 @@
 <div [@menuSlide]="menuOpened ? 'open' : 'closed'" class="pointer-events-none fixed right-0 top-0 z-40 h-dvh lg:hidden">
   <div class="pointer-events-none mx-4 flex h-full flex-col justify-end gap-4">
     @for (button of buttons; track $index) {
-      @if ((isAuthenticated && button.requiresAuth) || (!isAuthenticated && !button.requiresAuth)) {
+      @if ((auth.checkIfAuthenticated && button.requiresAuth) || (!auth.checkIfAuthenticated && !button.requiresAuth)) {
         <button
           class="side-menu-button pointer-events-auto overflow-hidden"
           mat-raised-button
@@ -18,7 +18,7 @@
               <mat-icon>{{ button.iconName }}</mat-icon>
             </div>
 
-            <div class="mt-[1px] grow text-lg font-medium tracking-normal">
+            <div>
               {{ button.label }}
             </div>
           </div>

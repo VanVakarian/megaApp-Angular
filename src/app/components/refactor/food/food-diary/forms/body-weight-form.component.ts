@@ -3,7 +3,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, OnDestro
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subscription, debounceTime, filter, take } from 'rxjs';
 
-import { FoodService } from 'src/app/services/food.service';
+import { FoodService } from 'src/app/components/refactor/service/food.service';
 import { BodyWeight } from 'src/app/shared/interfaces';
 
 @Component({

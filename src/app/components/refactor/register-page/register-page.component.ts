@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { UserLogin } from '../../shared/interfaces';
+import { UserLogin } from 'src/app/shared/interfaces';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { AuthService } from 'src/app/components/refactor/service/auth/auth.service';
 
 @Component({
   selector: 'app-register-page',
@@ -14,7 +14,7 @@ export class RegisterPageComponent implements OnInit {
 
   constructor(
     public auth: AuthService,
-    private router: Router // private route: ActivatedRoute
+    private router: Router, // private route: ActivatedRoute
   ) {
     this.registerForm = new FormGroup({
       // username: new FormControl(null, [Validators.required, Validators.username]),

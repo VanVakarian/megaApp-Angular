@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { take } from 'rxjs';
 
-import { FoodService } from 'src/app/services/food.service';
+import { FoodService } from 'src/app/components/refactor/service/food.service';
 import { CatalogueEntry } from 'src/app/shared/interfaces';
 
 @Component({

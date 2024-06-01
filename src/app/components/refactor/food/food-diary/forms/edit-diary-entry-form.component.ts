@@ -2,8 +2,8 @@ import { Component, ElementRef, Input, OnChanges, OnDestroy, ViewChild } from '@
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subscription, delay, filter, take } from 'rxjs';
 
-import { FoodService } from 'src/app/services/food.service';
-import { ConfirmationDialogService } from 'src/app/services/mat-dialog-modal.service';
+import { FoodService } from 'src/app/components/refactor/service/food.service';
+import { ConfirmationDialogService } from 'src/app/components/refactor/service/mat-dialog-modal.service';
 import { DiaryEntry, HistoryEntry, ServerResponse } from 'src/app/shared/interfaces';
 
 @Component({

@@ -4,7 +4,7 @@ import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 
 import { Transaction } from 'src/app/shared/interfaces';
 import { slideInOutAnimation } from 'src/app/shared/animations';
-import { MoneyService } from 'src/app/services/money.service';
+import { MoneyService } from 'src/app/components/refactor/service/money.service';
 import { dateToIsoNoTimeNoTZ, generateDatesList, divideNumberWithWhitespaces, splitNumber } from 'src/app/shared/utils';
 
 @Component({

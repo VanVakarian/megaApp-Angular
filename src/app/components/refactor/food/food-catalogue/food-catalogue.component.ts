@@ -12,7 +12,7 @@ import {
   computed,
   signal,
 } from '@angular/core';
-import { FoodService } from 'src/app/services/food.service';
+import { FoodService } from 'src/app/components/refactor/service/food.service';
 
 @Component({
   selector: 'app-food-catalogue',

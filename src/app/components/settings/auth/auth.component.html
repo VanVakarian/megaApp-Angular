@@ -1,0 +1,56 @@
+<div class="m-auto my-6 max-w-[300px]">
+  @if (!auth.checkIfAuthenticated) {
+    <form [formGroup]="authForm" (ngSubmit)="submit()">
+      @if (!isLoginMode && justRegistered) {
+        <div class="w-full font-bold text-green-800">
+          Регистрация прошла успешно! Теперь вы можете войти со своими логином и паролем:
+        </div>
+      }
+
+      <div>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Логин</mat-label>
+
+          <input matInput id="username" type="text" formControlName="username" />
+
+          <mat-error *ngIf="authForm.get('username')?.touched && authForm.get('username')?.invalid">
+            <small *ngIf="authForm.get('username')?.errors?.['required']">Поле не должно быть пустым</small>
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Пароль</mat-label>
+
+          <input matInput id="password" type="password" formControlName="password" />
+
+          <mat-error *ngIf="authForm.get('password')?.touched && authForm.get('password')?.invalid">
+            <small *ngIf="authForm.get('password')?.errors?.['required']">Введите пароль</small>
+            <small *ngIf="authForm.get('password')?.errors?.['minlength']">
+              Пароль должен быть не менее
+              {{ authForm.get("password")?.errors?.["minlength"]?.requiredLength }} символов.
+            </small>
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+        class="w-full text-lg"
+        [disabled]="authForm.invalid || submitted"
+      >
+        {{ isLoginMode ? "Войти" : "Зарегистрироваться" }}
+      </button>
+    </form>
+
+    <div class="mt-4 flex justify-end gap-2 text-right">
+      <div class="mt-2">{{ isLoginMode ? "Нет аккаунта?" : "Уже есть аккаунт?" }}</div>
+      <button mat-raised-button (click)="toggleMode()">{{ isLoginMode ? "Зарегистрироваться" : "Войти" }}</button>
+    </div>
+  } @else {
+    <button mat-raised-button color="primary" class="w-full text-lg" (click)="auth.logout()">Выйти</button>
+  }
+</div>

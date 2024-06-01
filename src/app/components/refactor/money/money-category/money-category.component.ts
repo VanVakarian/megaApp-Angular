@@ -1,8 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatAccordion } from '@angular/material/expansion';
 
-import { DataSharingService } from 'src/app/services/data-sharing.service';
-import { MoneyService } from 'src/app/services/money.service';
+import { DataSharingService } from 'src/app/components/refactor/service/data-sharing.service';
+import { MoneyService } from 'src/app/components/refactor/service/money.service';
 
 @Component({
   selector: 'app-money-category',

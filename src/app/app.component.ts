@@ -5,6 +5,7 @@ import { Subscription, debounceTime, fromEvent, merge, throttleTime } from 'rxjs
 
 import { NavbarMobileComponent } from './components/navbars/navbar-mobile/navbar-mobile.component';
 import { NavbarDesktopComponent } from './components/navbars/navbar-desktop/navbar-desktop.component';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -18,7 +19,12 @@ export class MainAppComponent implements OnInit, OnDestroy {
   private scrollSubscription: Subscription | undefined;
   @ViewChild('header') header!: ElementRef;
 
-  constructor(private dateAdapter: DateAdapter<Date>) {}
+  constructor(
+    private dateAdapter: DateAdapter<Date>,
+    private auth: AuthService,
+  ) {
+    this.auth.initCheckToken();
+  }
 
   ngOnInit(): void {
     this.dateAdapter.setLocale('ru-RU');

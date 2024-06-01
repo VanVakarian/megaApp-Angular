@@ -14,8 +14,8 @@ import {
   DiaryEntry,
   BMI,
 } from 'src/app/shared/interfaces';
-import { NotificationsService } from 'src/app/services/notifications.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { NotificationsService } from 'src/app/components/refactor/service/notifications.service';
+import { AuthService } from 'src/app/components/refactor/service/auth/auth.service';
 import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
 
 enum HttpMethod {

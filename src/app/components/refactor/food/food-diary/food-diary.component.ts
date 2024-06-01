@@ -17,7 +17,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
 
 import { slideInOutAnimation } from 'src/app/shared/animations';
 import { dateToIsoNoTimeNoTZ, generateDatesList } from 'src/app/shared/utils';
-import { FoodService } from 'src/app/services/food.service';
+import { FoodService } from 'src/app/components/refactor/service/food.service';
 import { FETCH_DAYS_RANGE_OFFSET } from 'src/app/shared/const';
 
 @Component({

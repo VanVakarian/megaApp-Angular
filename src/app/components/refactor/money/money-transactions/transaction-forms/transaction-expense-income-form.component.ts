@@ -1,8 +1,8 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { ConfirmationDialogService } from 'src/app/services/mat-dialog-modal.service';
-import { MoneyService } from 'src/app/services/money.service';
+import { ConfirmationDialogService } from 'src/app/components/refactor/service/mat-dialog-modal.service';
+import { MoneyService } from 'src/app/components/refactor/service/money.service';
 import { Account, Transaction } from 'src/app/shared/interfaces';
 
 @Component({

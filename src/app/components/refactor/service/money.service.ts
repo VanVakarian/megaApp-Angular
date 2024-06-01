@@ -1,9 +1,9 @@
 import { computed, effect, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { AuthService } from 'src/app/components/refactor/service/auth/auth.service';
 import { Account, Bank, Category, Currency, Transaction } from 'src/app/shared/interfaces';
-import { NotificationsService } from 'src/app/services/notifications.service';
+import { NotificationsService } from 'src/app/components/refactor/service/notifications.service';
 import { DataSharingService } from './data-sharing.service';
 import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
 

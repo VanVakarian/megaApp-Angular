@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { AuthService } from 'src/app/components/refactor/service/auth/auth.service';
 
 @Component({
   selector: 'app-settings-page',
@@ -9,11 +9,11 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 export class SettingsPageComponent {
   constructor(private router: Router, public auth: AuthService) {
     auth.authChange.subscribe((isAuthed) => {
-      this.isAuthenticated = isAuthed;
+      this.checkIfAuthenticated = isAuthed;
     });
   }
 
-  isAuthenticated = this.auth.isAuthenticated();
+  checkIfAuthenticated = this.auth.checkIfAuthenticated();
 
   logout(event: Event) {
     event.preventDefault();

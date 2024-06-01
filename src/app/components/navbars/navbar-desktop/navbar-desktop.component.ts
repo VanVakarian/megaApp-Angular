@@ -1,8 +1,9 @@
 import { NgFor } from '@angular/common';
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
-import { AuthService } from 'src/app/services/auth/auth.service';
+
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-navbar-desktop',
@@ -11,16 +12,11 @@ import { AuthService } from 'src/app/services/auth/auth.service';
   templateUrl: './navbar-desktop.component.html',
 })
 export class NavbarDesktopComponent implements OnInit {
-  @Output() menuClosed = new EventEmitter();
-
-  isAuthenticated = this.auth.isAuthenticated();
-
   buttons = [
     { label: 'Дневник питания', link: ['/food', ''], requiresAuth: true, iconName: 'restaurant', bgClass: 'food-bg' }, // prettier-ignore
     { label: 'Дневник финансов', link: '/money', requiresAuth: true, iconName: 'remove_red_eye', bgClass: 'money-bg' }, // prettier-ignore
   ];
-  buttonSettings = { label: 'Настройки', link: '/settings', requiresAuth: true, iconName: 'settings', bgClass: 'settings-bg' } // prettier-ignore
-  ;
+  buttonSettings = { label: 'Настройки', link: '/settings', requiresAuth: false, iconName: 'settings', bgClass: 'settings-bg' }; // prettier-ignore
   // buttons = [
   //   { label: 'Дневник питания', link: '/food-diary', requiresAuth: true, iconName: 'restaurant', bgClass: 'food-bg' }, // prettier-ignore
   //   { label: 'Статистика', link: '/food-stats', requiresAuth: true, iconName: 'insights', bgClass: 'food-bg' }, // prettier-ignore
@@ -33,15 +29,7 @@ export class NavbarDesktopComponent implements OnInit {
   //   { label: 'Зарегистрироваться', link: '/register', requiresAuth: false, iconName: 'person_add', bgClass: 'register-bg' }, // prettier-ignore
   // ];
 
-  constructor(private auth: AuthService) {}
+  constructor(public auth: AuthService) {}
 
-  closeMenu() {
-    this.menuClosed.emit();
-  }
-
-  ngOnInit(): void {
-    this.auth.authChange.subscribe((isAuthed) => {
-      this.isAuthenticated = isAuthed;
-    });
-  }
+  ngOnInit(): void {}
 }

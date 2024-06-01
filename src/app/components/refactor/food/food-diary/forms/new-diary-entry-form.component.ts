@@ -16,7 +16,7 @@ import { AbstractControl, FormControl, FormGroup, ValidatorFn, Validators } from
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { Observable, map, startWith, take } from 'rxjs';
 
-import { FoodService } from 'src/app/services/food.service';
+import { FoodService } from 'src/app/components/refactor/service/food.service';
 import { CatalogueEntry, DiaryEntry } from 'src/app/shared/interfaces';
 
 @Component({

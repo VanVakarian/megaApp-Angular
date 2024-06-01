@@ -1,9 +1,4 @@
-export interface UserLogin {
-  username: string;
-  password: string;
-}
-
-export interface UserRegister {
+export interface UserCreds {
   username: string;
   password: string;
 }

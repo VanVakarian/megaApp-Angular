@@ -3,10 +3,10 @@ import { Subscription } from 'rxjs';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { Currency } from 'src/app/shared/interfaces';
-import { DataSharingService } from 'src/app/services/data-sharing.service';
-import { ConfirmationDialogService } from 'src/app/services/mat-dialog-modal.service';
-import { UtilsService } from 'src/app/services/utils.service';
-import { MoneyService } from 'src/app/services/money.service';
+import { DataSharingService } from 'src/app/components/refactor/service/data-sharing.service';
+import { ConfirmationDialogService } from 'src/app/components/refactor/service/mat-dialog-modal.service';
+import { UtilsService } from 'src/app/components/refactor/service/utils.service';
+import { MoneyService } from 'src/app/components/refactor/service/money.service';
 
 @Component({
   selector: 'app-currency-form',

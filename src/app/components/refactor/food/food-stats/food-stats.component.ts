@@ -15,7 +15,7 @@ import { Subject, throttleTime } from 'rxjs';
 
 import { Chart } from 'chart.js';
 
-import { FoodService } from 'src/app/services/food.service';
+import { FoodService } from 'src/app/components/refactor/service/food.service';
 import {
   WEIGHT_CHART_SETTINGS,
   KCALS_CHART_SETTINGS,
