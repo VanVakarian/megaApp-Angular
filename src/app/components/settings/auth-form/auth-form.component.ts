@@ -10,12 +10,12 @@ import { AuthService } from 'src/app/services/auth.service';
 import { UserCreds } from 'src/app/shared/interfaces';
 
 @Component({
-  selector: 'app-auth',
+  selector: 'app-auth-form',
   standalone: true,
   imports: [NgIf, ReactiveFormsModule, RouterModule, MatInputModule, MatButtonModule, MatFormFieldModule],
-  templateUrl: './auth.component.html',
+  templateUrl: './auth-form.component.html',
 })
-export class AuthComponent implements OnInit {
+export class AuthFormComponent implements OnInit {
   authForm: FormGroup;
   submitted = false;
   isLoginMode: boolean = true;

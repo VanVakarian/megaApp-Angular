@@ -1,0 +1,31 @@
+<div class="m-4 flex flex-col gap-4 text-lg" [formGroup]="settingsForm">
+  <div class="flex gap-4">
+    <div class="font-bold leading-[30px]">Тёмная тема:</div>
+    <div>
+      <mat-slide-toggle formControlName="darkTheme" color="primary" (change)="onFormChange()"></mat-slide-toggle>
+    </div>
+  </div>
+
+  <div>
+    <div class="font-bold">Выбор разделов:</div>
+    <div class="ml-5">
+      <mat-chip-listbox class="mat-mdc-chip-set-stacked w-64">
+        <mat-chip-option
+          (click)="toggleChapterSelection('selectedChapterFood')"
+          [selected]="settingsForm.get('selectedChapterFood')?.value"
+        >
+          <span class="text-lg"> Дневник питания </span>
+        </mat-chip-option>
+      </mat-chip-listbox>
+
+      <mat-chip-listbox class="mat-mdc-chip-set-stacked w-64">
+        <mat-chip-option
+          (click)="toggleChapterSelection('selectedChapterMoney')"
+          [selected]="settingsForm.get('selectedChapterMoney')?.value"
+        >
+          <span class="text-lg"> Дневник финансов </span>
+        </mat-chip-option>
+      </mat-chip-listbox>
+    </div>
+  </div>
+</div>

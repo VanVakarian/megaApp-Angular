@@ -1,6 +1,6 @@
-<div class="m-auto my-6 max-w-[300px]">
+<div class="m-auto my-2 max-w-[300px]">
   @if (!auth.checkIfAuthenticated) {
-    <form class="flex flex-col gap-2" [formGroup]="authForm" (ngSubmit)="submit()">
+    <form class="mt-6 flex flex-col gap-2" [formGroup]="authForm" (ngSubmit)="submit()">
       @if (!isLoginMode && justRegistered) {
         <div class="w-full font-bold text-green-800">
           Регистрация прошла успешно! Теперь вы можете войти со своими логином и паролем:
@@ -46,7 +46,7 @@
       </button>
     </form>
 
-    <div class="mt-8 flex justify-end gap-2 text-right">
+    <div class="mb-6 mt-6 flex justify-end gap-2 text-right">
       <div class="mt-2">{{ isLoginMode ? "Нет аккаунта?" : "Уже есть аккаунт?" }}</div>
       <button mat-raised-button (click)="toggleMode()">{{ isLoginMode ? "Зарегистрироваться" : "Войти" }}</button>
     </div>

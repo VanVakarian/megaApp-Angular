@@ -1,0 +1,6 @@
+<div class="mx-auto mt-2 flex w-full max-w-[400px] flex-col gap-4">
+  @if (authService.checkIfAuthenticated) {
+    <mat-card> <app-settings-form /> </mat-card>
+  }
+  <mat-card> <app-auth-form /> </mat-card>
+</div>

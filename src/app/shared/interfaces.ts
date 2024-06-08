@@ -23,6 +23,20 @@ export interface ServerResponse {
   value?: string;
 }
 
+// SETTINGS ////////////////////////////////////////////////////////////////////
+
+export type SettingsResponse = {
+  dark_theme: boolean;
+  selected_chapter_food: boolean;
+  selected_chapter_money: boolean;
+};
+
+export type Settings = {
+  darkTheme: boolean;
+  selectedChapterFood: boolean;
+  selectedChapterMoney: boolean;
+};
+
 // FOOD ////////////////////////////////////////////////////////////////////////
 
 export interface HistoryEntry {
