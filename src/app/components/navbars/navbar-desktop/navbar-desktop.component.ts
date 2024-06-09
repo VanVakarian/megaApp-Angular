@@ -1,14 +1,16 @@
-import { NgFor } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
+import { NgFor } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
+import { MatButtonModule } from '@angular/material/button';
+
 import { AuthService } from 'src/app/services/auth.service';
+import { DarkSwitchComponent } from 'src/app/components/settings/dark-switch/dark-switch.component';
 
 @Component({
   selector: 'app-navbar-desktop',
   standalone: true,
-  imports: [NgFor, RouterLink, MatButtonModule],
+  imports: [NgFor, RouterLink, MatButtonModule, DarkSwitchComponent],
   templateUrl: './navbar-desktop.component.html',
 })
 export class NavbarDesktopComponent implements OnInit {

@@ -1,51 +1,52 @@
 import { NgFor, NgIf } from '@angular/common';
 import { Component, OnInit, effect } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, FormGroup, FormControl } from '@angular/forms';
-
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
+import { FormsModule } from '@angular/forms';
 
 import { SettingsService } from 'src/app/services/settings.service';
 
 @Component({
   selector: 'app-settings-form',
   standalone: true,
-  imports: [NgIf, NgFor, ReactiveFormsModule, MatSlideToggleModule, MatChipsModule],
+  imports: [NgIf, NgFor, FormsModule, MatSlideToggleModule, MatChipsModule],
   templateUrl: './settings-form.component.html',
 })
 export class SettingsFormComponent implements OnInit {
-  public settingsForm!: FormGroup;
+  public darkTheme: boolean = false;
+  public selectedChapterFood: boolean = false;
+  public selectedChapterMoney: boolean = false;
 
-  constructor(
-    private fb: FormBuilder,
-    private settingsService: SettingsService,
-  ) {
+  constructor(private settingsService: SettingsService) {
     effect(() => {
-      this.settingsForm.patchValue({
-        darkTheme: this.settingsService.settings$$().darkTheme,
-        selectedChapterFood: this.settingsService.settings$$().selectedChapterFood,
-        selectedChapterMoney: this.settingsService.settings$$().selectedChapterMoney,
-      });
+      this.darkTheme = settingsService.settings$$().darkTheme;
+      this.selectedChapterFood = settingsService.settings$$().selectedChapterFood;
+      this.selectedChapterMoney = settingsService.settings$$().selectedChapterMoney;
     });
   }
 
-  ngOnInit(): void {
-    this.settingsForm = this.fb.group({
-      darkTheme: new FormControl(this.settingsService.settings$$().darkTheme),
-      selectedChapterFood: new FormControl(this.settingsService.settings$$().selectedChapterFood),
-      selectedChapterMoney: new FormControl(this.settingsService.settings$$().selectedChapterMoney),
-    });
+  ngOnInit(): void {}
 
-    this.settingsService.getSettings().subscribe();
+  toggleDarkMode(): void {
+    this.settingsService.settings$$.update((settings) => ({
+      ...settings,
+      darkTheme: this.darkTheme,
+    }));
+    this.settingsService.saveSettings();
   }
 
   toggleChapterSelection(chapter: string): void {
-    const currentValue = this.settingsForm.get(chapter)?.value;
-    this.settingsForm.patchValue({ [chapter]: !currentValue });
-    this.onFormChange();
-  }
-
-  onFormChange(): void {
-    this.settingsService.postSettings(this.settingsForm.value).subscribe();
+    if (chapter === 'selectedChapterFood') {
+      this.settingsService.settings$$.update((settings) => ({
+        ...settings,
+        selectedChapterFood: !this.selectedChapterFood,
+      }));
+    } else if (chapter === 'selectedChapterMoney') {
+      this.settingsService.settings$$.update((settings) => ({
+        ...settings,
+        selectedChapterMoney: !this.selectedChapterMoney,
+      }));
+    }
+    this.settingsService.saveSettings();
   }
 }

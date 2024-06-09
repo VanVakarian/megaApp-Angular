@@ -25,17 +25,13 @@ export interface ServerResponse {
 
 // SETTINGS ////////////////////////////////////////////////////////////////////
 
-export type SettingsResponse = {
-  dark_theme: boolean;
-  selected_chapter_food: boolean;
-  selected_chapter_money: boolean;
-};
-
 export type Settings = {
   darkTheme: boolean;
   selectedChapterFood: boolean;
   selectedChapterMoney: boolean;
 };
+
+export type LocalStorageSettings = Settings | null;
 
 // FOOD ////////////////////////////////////////////////////////////////////////
 

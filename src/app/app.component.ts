@@ -1,11 +1,14 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+
 import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
+
 import { Subscription, debounceTime, fromEvent, merge, throttleTime } from 'rxjs';
 
-import { NavbarMobileComponent } from './components/navbars/navbar-mobile/navbar-mobile.component';
-import { NavbarDesktopComponent } from './components/navbars/navbar-desktop/navbar-desktop.component';
+import { NavbarMobileComponent } from 'src/app/components/navbars/navbar-mobile/navbar-mobile.component';
+import { NavbarDesktopComponent } from 'src/app/components/navbars/navbar-desktop/navbar-desktop.component';
 import { AuthService } from 'src/app/services/auth.service';
+import { SettingsService } from 'src/app/services/settings.service';
 
 @Component({
   selector: 'app-root',
@@ -22,6 +25,7 @@ export class MainAppComponent implements OnInit, OnDestroy {
   constructor(
     private dateAdapter: DateAdapter<Date>,
     private auth: AuthService,
+    private settingsService: SettingsService,
   ) {
     this.auth.initCheckToken();
   }
@@ -30,7 +34,9 @@ export class MainAppComponent implements OnInit, OnDestroy {
     this.dateAdapter.setLocale('ru-RU');
     this.dateAdapter.getFirstDayOfWeek = () => 1;
 
-    // Totally overkill method to detect when to put shadow on fixed navbar, but that shadow looks too nice...
+    this.settingsService.getSettings().subscribe();
+
+    // Totally overkill method to detect when to put shadow on fixed navbar, but that shadow looks sooo nice...
     const scroll$ = fromEvent(window, 'scroll');
     const throttledScroll$ = scroll$.pipe(throttleTime(200));
     const debouncedScroll$ = scroll$.pipe(debounceTime(10));

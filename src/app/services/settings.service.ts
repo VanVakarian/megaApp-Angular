@@ -1,27 +1,35 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Injectable, Signal, WritableSignal, effect, signal } from '@angular/core';
+import { Injectable, Signal, WritableSignal, signal } from '@angular/core';
 
 import { Observable, tap } from 'rxjs';
 
-import { Settings, SettingsResponse } from 'src/app/shared/interfaces';
+import { LocalStorageSettings, Settings } from 'src/app/shared/interfaces';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SettingsService {
-  public requestInProgress$$: Signal<boolean> = signal(false);
-  public settings$$: WritableSignal<Settings> = signal({
+  private defaultSettings: Settings = {
     darkTheme: false,
     selectedChapterFood: false,
     selectedChapterMoney: false,
-  });
+  };
+  private settingsLocalStorageKey = 'settings';
+  private lastServerUpdateTs = 0;
+  private updateTimeout: any;
+  private serverUpdateLimitMs = 1000;
 
-  constructor(private readonly http: HttpClient) {}
+  public requestInProgress$$: Signal<boolean> = signal(false);
+  public settings$$: WritableSignal<Settings> = signal(this.loadSettingsFromLocalStorage() || this.defaultSettings);
+
+  constructor(private readonly http: HttpClient) {
+    // effect(() => { console.log('settings', this.settings$$()) }); // prettier-ignore
+  }
 
   getSettings(): Observable<any> {
-    return this.http.get<SettingsResponse>('/api/settings/').pipe(
-      tap((response: SettingsResponse) => {
-        this.setSettings(response);
+    return this.http.get<Settings>('/api/settings/').pipe(
+      tap((response: Settings) => {
+        this.compareLocalAndServerData(response);
       }),
     );
   }
@@ -38,11 +46,51 @@ export class SettingsService {
     );
   }
 
-  setSettings(response: SettingsResponse) {
-    this.settings$$.update(() => ({
-      darkTheme: response.dark_theme,
-      selectedChapterFood: response.selected_chapter_food,
-      selectedChapterMoney: response.selected_chapter_money,
-    }));
+  compareLocalAndServerData(serverSettings: Settings) {
+    const localSettings: LocalStorageSettings = this.loadSettingsFromLocalStorage();
+    if (localSettings === null) {
+      this.settings$$.set(serverSettings);
+      this.saveSettingsToLocalStorage(serverSettings);
+      return;
+    }
+
+    const areEqual = Object.keys(localSettings).every(
+      (key) => localSettings[key as keyof Settings] === serverSettings[key as keyof Settings],
+    );
+    if (areEqual) {
+      return;
+    } else {
+      this.postSettings(localSettings).subscribe();
+    }
+  }
+
+  public saveSettings() {
+    this.saveSettingsToLocalStorage(this.settings$$());
+    this.scheduleServerUpdate();
+  }
+
+  private loadSettingsFromLocalStorage(): Settings {
+    const settings = localStorage.getItem(this.settingsLocalStorageKey);
+    return settings ? JSON.parse(settings) : null;
+  }
+
+  private saveSettingsToLocalStorage(settings: Settings) {
+    localStorage.setItem(this.settingsLocalStorageKey, JSON.stringify(settings));
+  }
+
+  private scheduleServerUpdate() {
+    const timeSinceLastUpdate = Date.now() - this.lastServerUpdateTs;
+
+    if (timeSinceLastUpdate >= this.serverUpdateLimitMs) {
+      this.sendSettings();
+    } else {
+      clearTimeout(this.updateTimeout);
+      this.updateTimeout = setTimeout(() => this.sendSettings(), this.serverUpdateLimitMs - timeSinceLastUpdate);
+    }
+  }
+
+  private sendSettings() {
+    this.lastServerUpdateTs = Date.now();
+    this.postSettings(this.settings$$()).subscribe();
   }
 }
