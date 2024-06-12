@@ -5,13 +5,11 @@
         <button
           class="side-menu-button pointer-events-auto overflow-hidden"
           mat-raised-button
+          color="primary"
           [routerLink]="button.link"
           (click)="closeMenu()"
         >
-          <div
-            class="menu-btn-bg absolute bottom-[-16px] right-[-2px] h-full w-full"
-            [ngClass]="[button.bgClass]"
-          ></div>
+          <div class="menu-btn-bg absolute bottom-[-16px] right-[-2px] h-full w-full" [ngClass]="[button.bgClass]"></div>
 
           <div class="flex w-full gap-1">
             <div class="mr-2 mt-[2px]">

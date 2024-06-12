@@ -1,4 +1,5 @@
 @use 'redefine';
+@use 'tw-colors';
 
 // Angular material themes
 @use '@angular/material' as mat;
@@ -65,4 +66,27 @@ body {
 body {
   padding: 0;
   margin: 0;
+}
+
+// scrollbar styling
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 2px;
+  background-color: var(--slate-200);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 2px;
+  background-color: var(--slate-400);
+}
+
+.dark ::-webkit-scrollbar-track {
+  background-color: var(--slate-800);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: var(--slate-600);
 }
