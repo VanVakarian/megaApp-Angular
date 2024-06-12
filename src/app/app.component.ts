@@ -1,4 +1,5 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { NgIf } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 
 import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
@@ -13,9 +14,8 @@ import { SettingsService } from 'src/app/services/settings.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [NavbarDesktopComponent, NavbarMobileComponent, RouterOutlet, MatNativeDateModule],
+  imports: [NgIf, NavbarDesktopComponent, NavbarMobileComponent, RouterOutlet, MatNativeDateModule],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss',
 })
 export class MainAppComponent implements OnInit, OnDestroy {
   title = 'megaApp';
@@ -24,10 +24,10 @@ export class MainAppComponent implements OnInit, OnDestroy {
 
   constructor(
     private dateAdapter: DateAdapter<Date>,
-    private auth: AuthService,
+    public authService: AuthService,
     private settingsService: SettingsService,
   ) {
-    this.auth.initCheckToken();
+    this.authService.initCheckToken();
   }
 
   ngOnInit(): void {

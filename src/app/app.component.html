@@ -1,5 +1,5 @@
 <header #header class="tw-bg-color fixed hidden w-full lg:block">
-  <app-navbar-desktop class="flex justify-center" />
+  <app-navbar-desktop *ngIf="authService.checkIfAuthenticated" class="flex justify-center" />
 </header>
 
 <main class="flex flex-col">

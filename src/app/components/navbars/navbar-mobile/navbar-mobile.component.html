@@ -1,7 +1,11 @@
-<div [@menuSlide]="menuOpened ? 'open' : 'closed'" class="pointer-events-none fixed right-0 top-0 z-40 h-dvh lg:hidden">
+<div
+  *ngIf="authService.checkIfAuthenticated"
+  [@menuSlide]="menuOpened ? 'open' : 'closed'"
+  class="pointer-events-none fixed right-0 top-0 z-40 h-dvh lg:hidden"
+>
   <div class="pointer-events-none mx-4 flex h-full flex-col justify-end gap-4">
     @for (button of buttons; track $index) {
-      @if ((auth.checkIfAuthenticated && button.requiresAuth) || (!auth.checkIfAuthenticated && !button.requiresAuth)) {
+      @if (isButtonVisible(button)) {
         <button
           class="side-menu-button pointer-events-auto overflow-hidden"
           mat-raised-button
@@ -28,6 +32,7 @@
 </div>
 
 <div
+  *ngIf="authService.checkIfAuthenticated"
   #fader
   [@fadeInOut]="menuOpened ? 'fadeIn' : 'fadeOut'"
   class="fixed left-0 top-0 z-30 hidden h-dvh w-dvw bg-black lg:hidden"
@@ -36,7 +41,7 @@
   <!-- Fading background for side menu -->
 </div>
 
-<div class="fixed bottom-0 right-0 z-50 mb-4 mr-4 block lg:hidden">
+<div *ngIf="authService.checkIfAuthenticated" class="fixed bottom-0 right-0 z-50 mb-4 mr-4 block lg:hidden">
   <button class="scale-100" mat-fab color="primary" (click)="toggleMenu()">
     <mat-icon class="scale-150">{{ menuOpened ? "close" : "menu" }}</mat-icon>
   </button>

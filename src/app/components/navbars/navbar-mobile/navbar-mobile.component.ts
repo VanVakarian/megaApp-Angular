@@ -1,12 +1,22 @@
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { NgClass, NgFor, NgIf } from '@angular/common';
-import { Component, ElementRef, OnInit, ViewChild, computed, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 import { AuthService } from 'src/app/services/auth.service';
-import { RouterLink } from '@angular/router';
+import { SettingsService } from 'src/app/services/settings.service';
+import { Settings } from 'src/app/shared/interfaces';
+
+type MobileMenuButton = {
+  label: string;
+  link: string | string[];
+  chapterSettingName?: string;
+  iconName: string;
+  bgClass: string;
+};
 
 @Component({
   selector: 'app-navbar-mobile',
@@ -31,21 +41,30 @@ export class NavbarMobileComponent implements OnInit {
   public menuOpened: boolean = false;
   @ViewChild('fader') fader!: ElementRef;
 
-  public buttons = [
-    { label: 'Дневник питания', link: ['/food', 'diary'], requiresAuth: true, iconName: 'restaurant', bgClass: 'food-bg' }, // prettier-ignore
-    { label: 'Статистика', link: ['/food', 'stats'], requiresAuth: true, iconName: 'insights', bgClass: 'food-bg' }, // prettier-ignore
-    { label: 'Каталог еды', link: ['/food', 'catalogue'], requiresAuth: true, iconName: 'menu_book', bgClass: 'food-bg' }, // prettier-ignore
-    { label: 'Дневник финансов', link: '/money', requiresAuth: true, iconName: 'remove_red_eye', bgClass: 'money-bg' }, // prettier-ignore
+  public buttons: MobileMenuButton[] = [
+    { label: 'Дневник питания', link: ['/food', 'diary'], chapterSettingName: 'selectedChapterFood', iconName: 'restaurant', bgClass: 'food-bg' }, // prettier-ignore
+    { label: 'Статистика', link: ['/food', 'stats'], chapterSettingName: 'selectedChapterFood', iconName: 'insights', bgClass: 'food-bg' }, // prettier-ignore
+    { label: 'Каталог еды', link: ['/food', 'catalogue'], chapterSettingName: 'selectedChapterFood', iconName: 'menu_book', bgClass: 'food-bg' }, // prettier-ignore
+    { label: 'Дневник финансов', link: '/money', chapterSettingName: 'selectedChapterMoney', iconName: 'remove_red_eye', bgClass: 'money-bg' }, // prettier-ignore
+    { label: 'Настройки', link: '/settings', iconName: 'settings', bgClass: 'settings-bg' }, // prettier-ignore
+    // { label: 'Обзор', link: '/money-dashboard', requiresAuth: true, iconName: 'remove_red_eye', bgClass: 'money-bg' }, // prettier-ignore
+    // { label: 'Дневник операций', link: '/money-transactions', requiresAuth: true, iconName: 'receipt_long', bgClass: 'money-bg' }, // prettier-ignore
+    // { label: 'Управление', link: '/money-manage', requiresAuth: true, iconName: 'account_balance', bgClass: 'money-bg' }, // prettier-ignore
+    // { label: 'Войти', link: '/login', requiresAuth: false, iconName: 'login', bgClass: 'login-bg' }, // prettier-ignore
+    // { label: 'Зарегистрироваться', link: '/register', requiresAuth: false, iconName: 'person_add', bgClass: 'register-bg' }, // prettier-ignore
   ];
 
-  constructor(public auth: AuthService) {}
+  constructor(
+    public authService: AuthService,
+    private settingsService: SettingsService,
+  ) {}
 
-  closeMenu() {
+  public closeMenu(): void {
     this.menuOpened = false;
     this.fader.nativeElement.classList.add('hidden');
   }
 
-  toggleMenu(): void {
+  public toggleMenu(): void {
     this.menuOpened = !this.menuOpened;
     if (this.menuOpened) {
       this.fader.nativeElement.classList.remove('hidden');
@@ -57,4 +76,10 @@ export class NavbarMobileComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  public isButtonVisible(button: MobileMenuButton): boolean {
+    const chapterName: keyof Settings | undefined = button.chapterSettingName as keyof Settings;
+    const chapterSelected = chapterName ? this.settingsService.settings$$()[chapterName] : true; // showing button if it doesn't have chapterSettingName
+    return chapterSelected;
+  }
 }
