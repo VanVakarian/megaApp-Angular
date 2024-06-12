@@ -91,6 +91,21 @@
   font-size: 16px;
 }
 
+// if main menu's button's route is not active - setting bg color to page's bg color
+.main-menu-button.mat-mdc-unelevated-button:not(:disabled) {
+  background-color: initial !important;
+}
+
+// darkTheme switch buttom is too wide
+.main-menu-button-darkTheme.mat-mdc-outlined-button {
+  padding: 0px !important;
+}
+
+// darkTheme switch buttom is too wide
+.main-menu-button-darkTheme.mdc-button {
+  min-width: auto !important;
+}
+
 .side-menu-button {
   height: 48px !important;
   padding: 0px !important;
@@ -126,4 +141,10 @@
 // Style to fix the weird border within material input with outline appearance caused by tailwind
 .mdc-notched-outline__notch {
   border-right: none !important;
+}
+
+// more neutral background color for mat card in dark theme
+.dark .mat-mdc-card {
+  // background-color: rgb(30, 41, 59); // slate-800
+  background-color: rgb(51, 65, 85); // slate-700
 }

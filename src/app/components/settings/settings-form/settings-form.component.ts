@@ -1,8 +1,9 @@
-import { NgFor, NgIf } from '@angular/common';
 import { Component, OnInit, effect } from '@angular/core';
+import { NgFor, NgIf } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
-import { FormsModule } from '@angular/forms';
 
 import { SettingsService } from 'src/app/services/settings.service';
 
@@ -32,6 +33,7 @@ export class SettingsFormComponent implements OnInit {
       ...settings,
       darkTheme: this.darkTheme,
     }));
+    this.settingsService.applyTheme();
     this.settingsService.saveSettings();
   }
 

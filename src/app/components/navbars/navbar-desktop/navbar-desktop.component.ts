@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { NgFor } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { NgClass, NgFor } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
 
@@ -10,7 +10,7 @@ import { DarkSwitchComponent } from 'src/app/components/settings/dark-switch/dar
 @Component({
   selector: 'app-navbar-desktop',
   standalone: true,
-  imports: [NgFor, RouterLink, MatButtonModule, DarkSwitchComponent],
+  imports: [NgClass, NgFor, RouterLink, MatButtonModule, DarkSwitchComponent],
   templateUrl: './navbar-desktop.component.html',
 })
 export class NavbarDesktopComponent implements OnInit {
@@ -31,7 +31,24 @@ export class NavbarDesktopComponent implements OnInit {
   //   { label: 'Зарегистрироваться', link: '/register', requiresAuth: false, iconName: 'person_add', bgClass: 'register-bg' }, // prettier-ignore
   // ];
 
-  constructor(public auth: AuthService) {}
+  constructor(
+    public authService: AuthService,
+    public router: Router,
+  ) {}
 
   ngOnInit(): void {}
+
+  isButtonVisible(buttonRequiresAuth: boolean): boolean {
+    return (
+      (this.authService.checkIfAuthenticated && buttonRequiresAuth) ||
+      (!this.authService.checkIfAuthenticated && !buttonRequiresAuth)
+    );
+  }
+
+  isRouteActive(link: string | string[]): boolean {
+    const currentUrl = this.router.url;
+    const buttonUrl = Array.isArray(link) ? link[0] : link;
+    const cleanedButtonUrl = buttonUrl.startsWith('/') ? buttonUrl.substring(1) : buttonUrl; // Убираем начальный слэш, если он есть
+    return currentUrl.includes(cleanedButtonUrl);
+  }
 }

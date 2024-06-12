@@ -1,14 +1,16 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { MainAppComponent } from 'src/app/app.component';
-import { routes } from 'src/app/app-routes';
+import { importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { LocationStrategy, HashLocationStrategy } from '@angular/common';
-import { importProvidersFrom } from '@angular/core';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
+import { routes } from 'src/app/app-routes';
+import { MainAppComponent } from 'src/app/app.component';
 import { AuthInterceptor } from 'src/app/services/auth.interceptor';
-import { JwtModule } from '@auth0/angular-jwt';
 import { tokenGetter } from 'src/app/services/auth.service';
+
+import { JwtModule } from '@auth0/angular-jwt';
 
 bootstrapApplication(MainAppComponent, {
   providers: [

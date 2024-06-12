@@ -1,17 +1,27 @@
 <div class="flex w-full max-w-[1200px] gap-2 py-2">
   @for (button of buttons; track $index) {
-    @if ((auth.checkIfAuthenticated && button.requiresAuth) || (!auth.checkIfAuthenticated && !button.requiresAuth)) {
-      <button class="main-menu-button" mat-raised-button [routerLink]="button.link">{{ button.label }}</button>
+    @if (isButtonVisible(button.requiresAuth)) {
+      @if (isRouteActive(button.link)) {
+        <button class="main-menu-button" mat-raised-button color="primary" [routerLink]="button.link">{{ button.label }}</button>
+      } @else {
+        <button class="main-menu-button" mat-flat-button [routerLink]="button.link">{{ button.label }}</button>
+      }
     }
   }
 
   <div class="grow"></div>
 
-  <app-dark-switch />
+  @if (authService.checkIfAuthenticated) {
+    <app-dark-switch />
+  }
 
-  @if (auth.checkIfAuthenticated) {
-    <button class="main-menu-button" [routerLink]="buttonSettings.link" mat-raised-button>
-      {{ buttonSettings.label }}
-    </button>
+  @if (authService.checkIfAuthenticated) {
+    @if (isRouteActive(buttonSettings.link)) {
+      <button class="main-menu-button" mat-raised-button color="primary" [routerLink]="buttonSettings.link">
+        {{ buttonSettings.label }}
+      </button>
+    } @else {
+      <button class="main-menu-button" mat-flat-button [routerLink]="buttonSettings.link">{{ buttonSettings.label }}</button>
+    }
   }
 </div>

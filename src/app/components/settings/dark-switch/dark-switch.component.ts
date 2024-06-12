@@ -1,10 +1,11 @@
-import { NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { NgIf } from '@angular/common';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 import { SettingsService } from 'src/app/services/settings.service';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-dark-switch',
@@ -13,10 +14,13 @@ import { SettingsService } from 'src/app/services/settings.service';
   templateUrl: './dark-switch.component.html',
 })
 export class DarkSwitchComponent implements OnInit {
-  constructor(public settingsService: SettingsService) {}
+  constructor(
+    public settingsService: SettingsService,
+    public authService: AuthService,
+  ) {}
 
   ngOnInit(): void {
-    this.applyTheme();
+    this.settingsService.applyTheme();
   }
 
   public switchTheme(): void {
@@ -24,15 +28,7 @@ export class DarkSwitchComponent implements OnInit {
       ...settings,
       darkTheme: !this.settingsService.settings$$().darkTheme,
     }));
-    this.applyTheme();
+    this.settingsService.applyTheme();
     this.settingsService.saveSettings();
-  }
-
-  private applyTheme(): void {
-    if (this.settingsService.settings$$().darkTheme) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
   }
 }

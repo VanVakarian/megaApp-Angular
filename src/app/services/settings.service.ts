@@ -1,5 +1,5 @@
-import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable, Signal, WritableSignal, signal } from '@angular/core';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 
 import { Observable, tap } from 'rxjs';
 
@@ -92,5 +92,13 @@ export class SettingsService {
   private sendSettings() {
     this.lastServerUpdateTs = Date.now();
     this.postSettings(this.settings$$()).subscribe();
+  }
+
+  public applyTheme(): void {
+    if (this.settings$$().darkTheme) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }
 }
