@@ -4,28 +4,26 @@
   class="pointer-events-none fixed right-0 top-0 z-40 h-dvh lg:hidden"
 >
   <div class="pointer-events-none mx-4 flex h-full flex-col justify-end gap-4">
-    @for (button of buttons; track $index) {
-      @if (isButtonVisible(button)) {
-        <button
-          class="side-menu-button pointer-events-auto overflow-hidden"
-          mat-raised-button
-          color="primary"
-          [routerLink]="button.link"
-          (click)="closeMenu()"
-        >
-          <div class="menu-btn-bg absolute bottom-[-16px] right-[-2px] h-full w-full" [ngClass]="[button.bgClass]"></div>
+    @for (button of mobileButtons; track $index) {
+      <button
+        class="side-menu-button pointer-events-auto overflow-hidden"
+        mat-raised-button
+        color="primary"
+        [routerLink]="button.link"
+        (click)="closeMenu()"
+      >
+        <div class="menu-btn-bg absolute bottom-[-16px] right-[-2px] h-full w-full" [ngClass]="[button.bgClass]"></div>
 
-          <div class="flex w-full gap-1">
-            <div class="mr-2 mt-[2px]">
-              <mat-icon>{{ button.iconName }}</mat-icon>
-            </div>
-
-            <div>
-              {{ button.label }}
-            </div>
+        <div class="flex w-full gap-1">
+          <div class="mr-2 mt-[2px]">
+            <mat-icon>{{ button.iconName }}</mat-icon>
           </div>
-        </button>
-      }
+
+          <div>
+            {{ button.label }}
+          </div>
+        </div>
+      </button>
     }
     <div class="h-20"></div>
   </div>
