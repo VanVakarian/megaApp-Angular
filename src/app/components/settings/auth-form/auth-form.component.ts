@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { AuthService } from 'src/app/services/auth.service';
+import { SettingsService } from 'src/app/services/settings.service';
 import { UserCreds } from 'src/app/shared/interfaces';
 
 @Component({
@@ -22,8 +23,9 @@ export class AuthFormComponent implements OnInit {
   justRegistered: boolean = false;
 
   constructor(
-    public auth: AuthService,
+    public authService: AuthService,
     private router: Router,
+    public settingsService: SettingsService,
   ) {
     this.authForm = new FormGroup({
       username: new FormControl(null, [Validators.required]),
@@ -51,7 +53,7 @@ export class AuthFormComponent implements OnInit {
     };
 
     if (this.isLoginMode) {
-      this.auth.login(user).subscribe({
+      this.authService.login(user).subscribe({
         next: () => {
           this.authForm.reset();
           this.router.navigate(['']);
@@ -63,7 +65,7 @@ export class AuthFormComponent implements OnInit {
         },
       });
     } else {
-      this.auth.register(user).subscribe({
+      this.authService.register(user).subscribe({
         next: () => {
           this.authForm.reset();
           this.isLoginMode = true; // Switching to login mode after successful registration

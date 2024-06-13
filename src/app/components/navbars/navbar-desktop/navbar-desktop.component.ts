@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from 'src/app/services/auth.service';
 import { SettingsService } from 'src/app/services/settings.service';
 import { DarkSwitchComponent } from 'src/app/components/settings/dark-switch/dark-switch.component';
-import { Settings } from 'src/app/shared/interfaces';
+import { SelectedChapterNames } from 'src/app/shared/interfaces';
 
 type DesktopMenuButton = {
   label: string;
@@ -37,8 +37,8 @@ export class NavbarDesktopComponent implements OnInit {
   ngOnInit(): void {}
 
   isButtonVisible(button: DesktopMenuButton): boolean {
-    const chapterName: keyof Settings = button.chapterSettingName as keyof Settings;
-    const chapterSelected = this.settingsService.settings$$()[chapterName];
+    const chapterName: SelectedChapterNames = button.chapterSettingName as SelectedChapterNames;
+    const chapterSelected = chapterName ? this.settingsService.settings$$()[chapterName] : true; // showing button if settings$$() doesn't control it's visibility
     return chapterSelected;
   }
 

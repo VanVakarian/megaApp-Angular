@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { AuthService } from 'src/app/services/auth.service';
 import { SettingsService } from 'src/app/services/settings.service';
-import { Settings } from 'src/app/shared/interfaces';
+import { SelectedChapterNames } from 'src/app/shared/interfaces';
 
 type MobileMenuButton = {
   label: string;
@@ -46,7 +46,7 @@ export class NavbarMobileComponent implements OnInit {
     { label: 'Статистика', link: ['/food', 'stats'], chapterSettingName: 'selectedChapterFood', iconName: 'insights', bgClass: 'food-bg' }, // prettier-ignore
     { label: 'Каталог еды', link: ['/food', 'catalogue'], chapterSettingName: 'selectedChapterFood', iconName: 'menu_book', bgClass: 'food-bg' }, // prettier-ignore
     { label: 'Дневник финансов', link: '/money', chapterSettingName: 'selectedChapterMoney', iconName: 'remove_red_eye', bgClass: 'money-bg' }, // prettier-ignore
-    { label: 'Настройки', link: '/settings', iconName: 'settings', bgClass: 'settings-bg' }, // prettier-ignore
+    { label: 'Настройки', link: '/settings', chapterSettingName: '', iconName: 'settings', bgClass: 'settings-bg' }, // prettier-ignore
     // { label: 'Обзор', link: '/money-dashboard', requiresAuth: true, iconName: 'remove_red_eye', bgClass: 'money-bg' }, // prettier-ignore
     // { label: 'Дневник операций', link: '/money-transactions', requiresAuth: true, iconName: 'receipt_long', bgClass: 'money-bg' }, // prettier-ignore
     // { label: 'Управление', link: '/money-manage', requiresAuth: true, iconName: 'account_balance', bgClass: 'money-bg' }, // prettier-ignore
@@ -78,8 +78,8 @@ export class NavbarMobileComponent implements OnInit {
   ngOnInit(): void {}
 
   public isButtonVisible(button: MobileMenuButton): boolean {
-    const chapterName: keyof Settings | undefined = button.chapterSettingName as keyof Settings;
-    const chapterSelected = chapterName ? this.settingsService.settings$$()[chapterName] : true; // showing button if it doesn't have chapterSettingName
+    const chapterName: SelectedChapterNames = button.chapterSettingName as SelectedChapterNames;
+    const chapterSelected = chapterName ? this.settingsService.settings$$()[chapterName] : true; // showing button if settings$$() doesn't control it's visibility
     return chapterSelected;
   }
 }

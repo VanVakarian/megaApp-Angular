@@ -1,4 +1,4 @@
-import { Injectable, Signal, WritableSignal, signal } from '@angular/core';
+import { Injectable, Signal, WritableSignal, effect, signal } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 
 import { Observable, tap } from 'rxjs';
@@ -10,6 +10,7 @@ import { LocalStorageSettings, Settings } from 'src/app/shared/interfaces';
 })
 export class SettingsService {
   private defaultSettings: Settings = {
+    userName: '',
     darkTheme: false,
     selectedChapterFood: false,
     selectedChapterMoney: false,

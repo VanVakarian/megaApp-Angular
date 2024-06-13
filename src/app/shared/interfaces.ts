@@ -26,10 +26,13 @@ export interface ServerResponse {
 // SETTINGS ////////////////////////////////////////////////////////////////////
 
 export type Settings = {
+  userName?: string;
   darkTheme: boolean;
   selectedChapterFood: boolean;
   selectedChapterMoney: boolean;
 };
+
+export type SelectedChapterNames = 'selectedChapterFood' | 'selectedChapterMoney' | '';
 
 export type LocalStorageSettings = Settings | null;
 
