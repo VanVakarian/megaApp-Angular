@@ -30,7 +30,20 @@
   --mdc-outlined-text-field-label-text-font: var(--fonts-sans) !important;
   --mdc-typography-button-font-family: var(--fonts-sans) !important;
   --mdc-typography-font-family: var(--fonts-sans) !important;
+
+  // --gradient-color: #bfdbfe; // blue-200
+  --gradient-color: #C7D2FE; // indigo-200
+  // --gradient-color: #cbd5e1; //slate-300
+  --gradient-bg: #ffffff00;
 }
+
+.dark {
+  --gradient-color: #475569; // slate-600
+  // --gradient-color: #172554; // blue-950
+  --gradient-bg: #00000000;
+}
+
+
 
 .mat-mdc-dialog-content {
   padding: 10px !important;
@@ -64,6 +77,25 @@
 .sub-expansion-panel-38px-50px {
   --mat-expansion-header-collapsed-state-height: 38px;
   --mat-expansion-header-expanded-state-height: 50px;
+
+  // setting bodyweight expansion panel to all rounded corners
+  // corners are all messed up, since it is detached from other panels.
+  &.expansion-panel-rounded {
+    border-radius: 4px !important;
+  }
+
+  // likewise making rounded corners in first panel on the group
+  &.first-in-group {
+    border-top-left-radius: 4px !important;
+    border-top-right-radius: 4px !important;
+  }
+
+  // ...and in the last one too 
+  &.last-in-group {
+    border-bottom-left-radius: 4px !important;
+    border-bottom-right-radius: 4px !important;
+  }
+
 }
 
 .expansion-panel-2-row {
@@ -98,14 +130,15 @@
   background-color: initial !important;
 }
 
-// darkTheme switch buttom is too wide
-.main-menu-button-darkTheme.mat-mdc-outlined-button {
-  padding: 0px !important;
-}
+// without this fix darkTheme switch button is too wide
+.main-menu-button-darkTheme {
+  &.mat-mdc-outlined-button {
+    padding: 0px !important;
+  }
 
-// darkTheme switch buttom is too wide
-.main-menu-button-darkTheme.mdc-button {
-  min-width: auto !important;
+  &.mdc-button {
+    min-width: auto !important;
+  }
 }
 
 .side-menu-button {
@@ -148,4 +181,43 @@
 // more neutral background color for mat card in dark theme
 .dark .mat-mdc-card {
   background-color: var(--slate-700)
+}
+
+// without this fix buttons that switch days in diary on desktop are too wide
+.diary-day-switch-button {
+  &.mat-mdc-outlined-button {
+    padding: 0px !important;
+  }
+
+  &.mdc-button {
+    min-width: auto !important;
+  }
+}
+
+.diary-day-switch-button-icon {
+  margin-left: -9px !important;
+  margin-right: -9px !important;
+}
+
+.dark .mat-expansion-panel {
+  background: var(--slate-700) !important;
+}
+
+// without this property expansion panel header in dark mode becames gray after collapsing. And only in mobile view.
+@media (hover: none) {
+  .dark .mat-expansion-panel:not(.mat-expanded) .mat-expansion-panel-header:not([aria-disabled=true]):hover {
+    background-color: var(--slate-700) !important;
+  }
+}
+
+.dark .mdc-fab.food-diary-entry-history-btn {
+  background-color: #607d8b !important; // standart material button primary color in dark theme
+}
+
+.food-diary-entry-history-btn .mat-icon {
+  color: black;
+}
+
+.dark .food-diary-entry-history-btn .mat-icon {
+  color: white;
 }

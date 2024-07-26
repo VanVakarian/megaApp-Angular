@@ -1,6 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, EMPTY, Subscription, interval, of, timer } from 'rxjs';
+
+import { BehaviorSubject, EMPTY, Observable, Subscription, interval, of, timer } from 'rxjs';
 import { catchError, retry, switchMap } from 'rxjs/operators';
 import { WebSocketSubject, webSocket } from 'rxjs/webSocket';
 

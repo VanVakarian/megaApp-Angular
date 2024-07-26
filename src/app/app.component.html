@@ -1,8 +1,8 @@
-<header #header class="tw-bg-color fixed hidden w-full lg:block">
-  <app-navbar-desktop *ngIf="authService.checkIfAuthenticated" class="flex justify-center" />
+<header #header class="tw-bg-color fixed hidden w-full lg:block lg:pl-2">
+  <app-navbar-desktop *ngIf="authService.isAuthenticated" class="flex" />
 </header>
 
-<main class="flex flex-col">
+<main class="flex flex-col lg:pl-2">
   <section class="hidden h-[52px] lg:block">
     <!-- Desktop navbar offset here... -->
   </section>

@@ -20,7 +20,7 @@ export class AuthService {
     private router: Router,
   ) {}
 
-  get checkIfAuthenticated() {
+  get isAuthenticated() {
     return this.authenticationStatus$$();
   }
 

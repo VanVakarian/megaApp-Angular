@@ -1,17 +1,16 @@
 import { Component, OnInit } from '@angular/core';
+import { NgIf } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
-import { FoodStatsComponent } from './stats/food-stats.component';
-import { FoodDiaryComponent } from './diary/food-diary.component';
-import { FoodCatalogueComponent } from './catalogue/food-catalogue.component';
-import { NgIf } from '@angular/common';
+import { FoodStatsComponent } from 'src/app/components/food/stats/food-stats.component';
+import { FoodDiaryComponent } from 'src/app/components/food/diary/food-diary.component';
+import { FoodCatalogueComponent } from 'src/app/components/food/catalogue/food-catalogue.component';
 
 @Component({
   selector: 'app-food-screen',
   standalone: true,
   imports: [NgIf, FoodStatsComponent, FoodDiaryComponent, FoodCatalogueComponent],
   templateUrl: './food-screen.component.html',
-  styleUrls: ['./food-screen.component.scss'],
 })
 export class FoodScreenComponent implements OnInit {
   section: string;
@@ -37,7 +36,7 @@ export class FoodScreenComponent implements OnInit {
     this.mediaQueryList.removeEventListener('change', this.updateScreenSize.bind(this));
   }
 
-  private updateScreenSize = (event?: MediaQueryListEvent) => {
+  private updateScreenSize(event?: MediaQueryListEvent) {
     this.largeScreen = event ? event.matches : this.mediaQueryList.matches;
-  };
+  }
 }

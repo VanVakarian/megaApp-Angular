@@ -1,13 +1,13 @@
-<div class="mx-auto flex w-full max-w-[1200px] items-stretch justify-center gap-x-2">
-  <section *ngIf="largeScreen || section === 'stats'" class="max-w-[400px] flex-1 border-2 border-green-700">
+<div class="mx-auto flex w-full max-w-[1198px] items-stretch justify-center gap-x-2">
+  <section *ngIf="largeScreen || section === 'stats'" class="w-full max-w-[394px] flex-1 border-0 border-green-700">
     <app-food-stats />
   </section>
 
-  <section *ngIf="largeScreen || section === 'diary'" class="max-w-[400px] flex-1 border-2 border-red-700">
+  <section *ngIf="largeScreen || section === 'diary'" class="w-full max-w-[394px] flex-1 border-0 border-red-700">
     <app-food-diary />
   </section>
 
-  <section *ngIf="largeScreen || section === 'catalogue'" class="max-w-[400px] flex-1 border-2 border-blue-700">
+  <section *ngIf="largeScreen || section === 'catalogue'" class="w-full max-w-[394px] flex-1 border-0 border-blue-700">
     <app-food-catalogue />
   </section>
 </div>

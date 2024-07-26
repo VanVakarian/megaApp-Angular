@@ -1,5 +1,9 @@
 import { FETCH_DAYS_RANGE_OFFSET } from 'src/app/shared/const';
 
+export function getTodayIsoNoTimeNoTZ(): string {
+  return dateToIsoNoTimeNoTZ(new Date().getTime());
+}
+
 export function dateToIsoNoTimeNoTZ(milliseconds: number): string {
   // There was a more neat way (date.toISOString().slice(0,10)), but there were problems with TZs
   const date = new Date(milliseconds);

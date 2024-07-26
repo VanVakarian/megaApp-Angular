@@ -1,86 +1,138 @@
-<div class="overflow-y-auto">
-  <div>LOL FOOD 01</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
-  <div>LOL FOOD DIARY</div>
+<div class="flex flex-col gap-2 overflow-y-auto p-1">
+  <div class="">
+    <mat-accordion>
+      <div class="flex gap-2">
+        <div class="mb-2 w-full">
+          <app-diary-nav-buttons></app-diary-nav-buttons>
+        </div>
+      </div>
+
+      <mat-expansion-panel color="primary" class="sub-expansion-panel-38px-50px expansion-panel-rounded">
+        <mat-expansion-panel-header
+          class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
+          [ngStyle]="setBackgroundStyle(todaysKcalsPercent)"
+        >
+          <div class="overflow-hidden whitespace-nowrap text-center">
+            Съедено {{ todaysKcalsEaten }} ккал. от нормы
+            {{ todaysTargetKcals }}
+            ({{ formatSelectedDaysEatenPercent }}%)
+          </div>
+        </mat-expansion-panel-header>
+        <!--
+          <app-body-weight-form
+            *ngIf="foodService.diaryFormatted$$()?.[selectedDateISO]"
+            [selectedDateISO]="selectedDateISO"
+          />
+
+          <app-bmi [selectedDateISO]="selectedDateISO" />
+          -->
+      </mat-expansion-panel>
+
+      <div class="mb-1"></div>
+
+      <div #foodCont class="tw-bg-color flex w-full gap-1 overflow-hidden whitespace-nowrap text-base font-normal">
+        <div #foodName class="tw-card-food-entry grow overflow-hidden whitespace-nowrap text-center">Блюдо:</div>
+        <div #foodWeight class="text-center">г.</div>
+        <div #foodKcals class="text-center">kcal</div>
+        <div #foodPercent class="text-center">%</div>
+      </div>
+
+      @for (food of todaysFood | keyvalue; track food.value.id; let first = $first; let last = $last) {
+        <mat-expansion-panel
+          #diaryEntry
+          class="sub-expansion-panel-38px-50px"
+          [class.first-in-group]="first"
+          [class.last-in-group]="last"
+          (opened)="diaryEntryExpanded(diaryEntry, food.value.id)"
+        >
+          <mat-expansion-panel-header
+            class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
+            [ngStyle]="setBackgroundStyle(food.value.foodKcalPercentageOfDaysNorm)"
+          >
+            <mat-panel-title class="mat-panel-title-margin-remove">
+              <div #foodCont class="flex w-full gap-1 overflow-hidden whitespace-nowrap text-base font-normal">
+                <div #foodName class="tw-card-food-entry grow overflow-hidden whitespace-nowrap">
+                  {{ food.value.foodName }}
+                </div>
+                <div #foodWeight class="text-right">{{ food.value.foodWeight }}<span class="text-xs"> Г.</span></div>
+                <div #foodKcals class="text-right">
+                  {{ food.value.foodKcals }}
+                </div>
+                <div #foodPercent class="text-right">{{ food.value.foodPercent }}<span class="text-xs">%</span></div>
+              </div>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <app-diary-entry-edit-form [diaryEntry]="food.value" />
+        </mat-expansion-panel>
+      }
+
+      <div class="mb-2"></div>
+
+      <mat-expansion-panel color="primary" class="sub-expansion-panel-38px-50px expansion-panel-rounded">
+        <mat-expansion-panel-header
+          class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease add-panel-header"
+        >
+          <!-- TODO: Think of a way to put text here upon panel expending -->
+          <div class="add-icon-container w-fit">
+            <!-- <div class="mb-4 text-center text-xl font-medium">Добавление записи</div> -->
+            <mat-icon class="add-icon relative top-[2px] scale-150">add</mat-icon>
+          </div>
+        </mat-expansion-panel-header>
+
+        <app-diary-entry-new-form />
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+
+  <div class="h-[50vh]"></div>
+
+  <!-- @for (item of [].constructor(99); track $index) {
+    <div>Food entry {{ $index + 1 }}</div>
+  } -->
 </div>
+
+<!--
+<div class="h-[40vh]"></div>
+-->
+
+<!-- Floating window for a 'new diary entry' form -->
+
+<!--
+<div
+  class="fixed bottom-6 left-6"
+  style="z-index: 10"
+>
+  <button
+    mat-mini-fab
+    class="scale-125"
+    color="primary"
+    (click)="showFloatingWindow = true"
+  >
+    <mat-icon class="scale-150">add</mat-icon>
+  </button>
+</div>
+-->
+
+<!--
+<div
+  *ngIf="showFloatingWindow"
+  class="fixed left-0 top-0 flex h-full flex-col bg-gray-700 bg-opacity-50 px-8 pt-2"
+  style="z-index: 90"
+  (click)="showFloatingWindow = false"
+>
+  <div (click)="$event.stopPropagation()">
+    <mat-card
+      class="h-full w-full p-4"
+      [@flyInOut]
+    >
+      <div class="mb-4 text-center text-xl font-medium">Добавление записи</div>
+
+      <app-new-diary-entry-form
+        [selectedDateISO]="selectedDateISO"
+        (closeEvent)="onCloseEvent()"
+      />
+    </mat-card>
+  </div>
+</div>
+-->

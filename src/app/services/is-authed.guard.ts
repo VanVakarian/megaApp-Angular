@@ -5,7 +5,7 @@ import { AuthService } from 'src/app/services/auth.service';
 
 export const isAuthed: CanActivateFn = () => {
   const authService = inject(AuthService);
-  if (!authService.checkIfAuthenticated) {
+  if (!authService.isAuthenticated) {
     const router = inject(Router);
     router.navigate(['/settings']);
     return false;

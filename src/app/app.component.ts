@@ -10,6 +10,8 @@ import { NavbarMobileComponent } from 'src/app/components/main-menu/navbar-mobil
 import { NavbarDesktopComponent } from 'src/app/components/main-menu/navbar-desktop/navbar-desktop.component';
 import { AuthService } from 'src/app/services/auth.service';
 import { SettingsService } from 'src/app/services/settings.service';
+import { NetworkMonitor } from 'src/app/services/network-monitor.service';
+// import { ActionService } from 'src/app/services/action.service';
 
 @Component({
   selector: 'app-root',
@@ -26,8 +28,12 @@ export class MainAppComponent implements OnInit, OnDestroy {
     private dateAdapter: DateAdapter<Date>,
     public authService: AuthService,
     private settingsService: SettingsService,
+    public networkMonitorService: NetworkMonitor,
+    // public actionService: ActionService,
   ) {
     this.authService.initCheckToken();
+    this.networkMonitorService.initNetworkEvents();
+    // this.actionService.initService();
   }
 
   ngOnInit(): void {
