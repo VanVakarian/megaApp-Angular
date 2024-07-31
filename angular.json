@@ -15,7 +15,7 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-builders/custom-webpack:browser",
           "options": {
             "outputPath": "../back-node/public",
             "index": "src/index.html",
@@ -33,7 +33,11 @@
               "src/styles.scss"
             ],
             "allowedCommonJsDependencies": [],
-            "scripts": []
+            "scripts": [],
+            "customWebpackConfig": {
+              "path": "./extra-webpack.config.js",
+              "replaceDuplicatePlugins": true
+            }
           },
           "configurations": {
             "production": {
@@ -64,6 +68,11 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "buildTarget": "megaapp:build:development",
+            "proxyConfig": "proxy.conf.json",
+            "liveReload": true
+          },
           "configurations": {
             "production": {
               "buildTarget": "megaapp:build:production"
@@ -72,11 +81,7 @@
               "buildTarget": "megaapp:build:development"
             }
           },
-          "defaultConfiguration": "development",
-          "options": {
-            "proxyConfig": "proxy.conf.json",
-            "buildTarget": "your-application-name:build"
-          }
+          "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
