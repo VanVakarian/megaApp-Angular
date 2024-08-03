@@ -13,7 +13,7 @@ import { KeyValuePipe, NgFor, NgIf, NgStyle } from '@angular/common';
 import { FormControl } from '@angular/forms';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 
-import { MatExpansionPanel } from '@angular/material/expansion';
+import { MatAccordion, MatExpansionPanel } from '@angular/material/expansion';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -53,6 +53,7 @@ import { FETCH_DAYS_RANGE_OFFSET } from 'src/app/shared/const';
   ],
 })
 export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild(MatAccordion) foodAccordion!: MatAccordion;
   @ViewChild('foodCont') contDiv!: ElementRef;
   @ViewChildren('foodName') nameDivs!: QueryList<ElementRef>;
   @ViewChildren('foodWeight') weightsDivs!: QueryList<ElementRef>;
@@ -84,6 +85,7 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   get todaysFood() {
     const today = this.foodService.selectedDayIso$$();
     const todaysFood = this.foodService.diaryFormatted$$()?.[today]?.food;
+    // console.log('lolkek01, todaysFood:', todaysFood);
     return todaysFood;
   }
   get selectedDateIso() {
@@ -107,8 +109,7 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
     };
   }
   // DIARY
-  diaryEntryExpanded(diaryEntry: MatExpansionPanel, diaryEntryId: number) {
-    console.log('lolkek');
+  diaryEntryExpanded(diaryEntry: MatExpansionPanel, diaryEntryId: string) {
     this.foodService.diaryEntryClickedFocus$.next(diaryEntryId);
     this.foodService.diaryEntryClickedScroll$.next(diaryEntry._body);
   }
@@ -158,8 +159,12 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  protected accordionCollapse() {
+    this.foodAccordion.closeAll();
+  }
+
   ngOnInit(): void {
-    this.foodService.getFoodDiary(undefined, 2).subscribe();
+    this.foodService.getFoodDiaryFullUpdateRange(undefined, 2).subscribe();
     // setTimeout(() => {
     //   this.foodService.getFoodDiary('2024-06-20', 2).subscribe();
     // }, 3333);

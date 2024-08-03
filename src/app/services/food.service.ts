@@ -3,7 +3,15 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 
 import { Observable, Subject, tap } from 'rxjs';
 
-import { Catalogue, CatalogueEntry, Diary, FormattedDiary } from 'src/app/shared/interfaces';
+import {
+  Catalogue,
+  CatalogueEntry,
+  Diary,
+  DiaryEntry,
+  FormattedDiary,
+  DiaryEntryEdit,
+  ServerResponse,
+} from 'src/app/shared/interfaces';
 import { getTodayIsoNoTimeNoTZ } from 'src/app/shared/utils';
 
 type CatalogueIds = number[];
@@ -12,10 +20,11 @@ type CatalogueIds = number[];
   providedIn: 'root',
 })
 export class FoodService {
-  public selectedDayIso$$: WritableSignal<string> = signal(getTodayIsoNoTimeNoTZ());
   // public selectedDayIso$$: WritableSignal<string> = signal('2024-06-29');
   public diary$$: WritableSignal<Diary> = signal({});
   public diaryFormatted$$: Signal<FormattedDiary> = computed(() => this.prepDiary());
+
+  public selectedDayIso$$: WritableSignal<string> = signal(getTodayIsoNoTimeNoTZ());
   public days$$: Signal<string[]> = computed(() => Object.keys(this.diary$$()));
 
   public catalogue$$: WritableSignal<Catalogue> = signal({});
@@ -24,15 +33,17 @@ export class FoodService {
   public catalogueSortedListSelected$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(true)); // prettier-ignore
   public catalogueSortedListLeftOut$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(false)); // prettier-ignore
 
-  diaryEntryClickedFocus$ = new Subject<number>();
+  diaryEntryClickedFocus$ = new Subject<string>();
   diaryEntryClickedScroll$ = new Subject<ElementRef>();
 
+  postRequestResult$ = new Subject<ServerResponse>();
+
   constructor(private http: HttpClient) {
-    effect(() => { console.log('DAYS have been updated:', this.days$$()) }); // prettier-ignore
-    effect(() => { console.log('SELECTED DAY has been updated:', this.selectedDayIso$$()) }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE have been updated:', this.catalogue$$()) }); // prettier-ignore
     effect(() => { console.log('DIARY has been updated:', this.diary$$()) }); // prettier-ignore
     effect(() => { console.log('FORMATTED DIARY has been updated:', this.diaryFormatted$$()) }); // prettier-ignore
+    effect(() => { console.log('SELECTED DAY has been updated:', this.selectedDayIso$$()) }); // prettier-ignore
+    effect(() => { console.log('DAYS have been updated:', this.days$$()) }); // prettier-ignore
+    effect(() => { console.log('CATALOGUE have been updated:', this.catalogue$$()) }); // prettier-ignore
   }
 
   private prepDiary(): FormattedDiary {
@@ -43,10 +54,10 @@ export class FoodService {
       // console.log('date', dateIso);
       formattedDiary[dateIso] = {
         food: {},
-        // bodyWeight: this.diary$$()[date].bodyWeight,
-        bodyWeight: 0,
-        // targetKcals: this.diary$$()[date].targetKcals,
-        targetKcals: 0,
+        bodyWeight: this.diary$$()[dateIso].bodyWeight,
+        // bodyWeight: 0,
+        targetKcals: this.diary$$()[dateIso].targetKcals,
+        // targetKcals: 0,
         kcalsEaten: 0,
         kcalsPercent: 0,
       };
@@ -87,14 +98,47 @@ export class FoodService {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  getFoodDiary(dateIso?: string, offset?: number): Observable<Diary> {
+  getFoodDiaryFullUpdateRange(dateIso?: string, offset?: number): Observable<Diary> {
     // this.extendDates(dateIso, offset);
     const paramsStr = `date=${dateIso ?? getTodayIsoNoTimeNoTZ()}&offset=${offset ?? 7}`;
-    return this.http.get<Diary>(`/api/food/diary?${paramsStr}`).pipe(
+    return this.http.get<Diary>(`/api/food/diary-full-update?${paramsStr}`).pipe(
       tap((response: Diary) => {
         this.diary$$.set(response);
       }),
     );
+  }
+
+  editDiaryEntry(diaryEntry: DiaryEntryEdit): Observable<ServerResponse> {
+    return this.http.put<ServerResponse>(`/api/food/diary`, diaryEntry).pipe(
+      tap((response: ServerResponse) => {
+        if (response.result && response.value) {
+          const diaryEntryId: string = response.value;
+          this.updateDiaryEntryAfterSucsessfullPut(diaryEntryId, diaryEntry);
+        } else {
+          // console.error('Ошибка при обновлении записи в дневнике питания');
+        }
+      }),
+    );
+  }
+
+  private updateDiaryEntryAfterSucsessfullPut(diaryEntryId: string, diaryEntry: DiaryEntryEdit) {
+    this.diary$$.update((diary) => {
+      const selectedDay = this.selectedDayIso$$();
+      const updatedDiary = { ...diary };
+      const updatedDay = { ...updatedDiary[selectedDay] };
+      const updatedFood = { ...updatedDay.food };
+      const updatedEntry = {
+        ...updatedFood[diaryEntryId],
+        foodWeight: diaryEntry.foodWeight,
+        history: [...updatedFood[diaryEntryId].history, diaryEntry.history[0]],
+      };
+
+      updatedFood[diaryEntryId] = updatedEntry;
+      updatedDay.food = updatedFood;
+      updatedDiary[selectedDay] = updatedDay;
+
+      return updatedDiary;
+    });
   }
 
   // extendDates(middleDateIso: string, daysOffset: number): void {

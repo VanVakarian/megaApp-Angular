@@ -46,9 +46,15 @@ export interface HistoryEntry {
 }
 
 export interface DiaryEntry {
-  id: number;
+  id: string;
   date: string;
   foodCatalogueId: number;
+  foodWeight: number;
+  history: HistoryEntry[];
+}
+
+export interface DiaryEntryEdit {
+  id: string;
   foodWeight: number;
   history: HistoryEntry[];
 }
@@ -56,7 +62,7 @@ export interface DiaryEntry {
 export interface Diary {
   [date: string]: {
     ['food']: {
-      [id: number]: DiaryEntry;
+      [id: string]: DiaryEntry;
     };
     ['bodyWeight']: number | null;
     ['targetKcals']: number;
@@ -64,7 +70,7 @@ export interface Diary {
 }
 
 export interface FormattedDiaryEntry {
-  id: number;
+  id: string;
   date: string;
   foodCatalogueId: number;
   foodWeight: number;
@@ -78,7 +84,7 @@ export interface FormattedDiaryEntry {
 export interface FormattedDiary {
   [date: string]: {
     ['food']: {
-      [id: number]: FormattedDiaryEntry;
+      [id: string]: FormattedDiaryEntry;
     };
     ['bodyWeight']: number | null;
     ['targetKcals']: number;

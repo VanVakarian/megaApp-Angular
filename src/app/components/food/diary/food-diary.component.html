@@ -63,7 +63,10 @@
             </mat-panel-title>
           </mat-expansion-panel-header>
 
-          <app-diary-entry-edit-form [diaryEntry]="food.value" />
+          <app-diary-entry-edit-form
+            [diaryEntry]="food.value"
+            (onServerSuccessfullEditResponse)="accordionCollapse()"
+          ></app-diary-entry-edit-form>
         </mat-expansion-panel>
       }
 

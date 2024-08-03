@@ -1,4 +1,14 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  EventEmitter,
+  ViewChild,
+} from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -14,7 +24,7 @@ import { Subscription, delay, filter, take } from 'rxjs';
 // import { ConfirmationDialogService } from 'src/app/components/refactor/service/mat-dialog-modal.service';
 import { FoodService } from 'src/app/services/food.service';
 import { KeyboardService } from 'src/app/services/keyboard.service';
-import { DiaryEntry, HistoryEntry, ServerResponse } from 'src/app/shared/interfaces';
+import { DiaryEntry, HistoryEntry, DiaryEntryEdit, ServerResponse } from 'src/app/shared/interfaces';
 
 @Component({
   selector: 'app-diary-entry-edit-form',
@@ -34,6 +44,7 @@ import { DiaryEntry, HistoryEntry, ServerResponse } from 'src/app/shared/interfa
 })
 export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy {
   @Input() diaryEntry!: DiaryEntry;
+  @Output() onServerSuccessfullEditResponse = new EventEmitter<void>();
 
   @ViewChild('foodWeightChangeElem') foodWeightChangeElem!: ElementRef;
 
@@ -42,7 +53,7 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
   errorMessageShow: boolean = false;
 
   showHistory: boolean = false;
-  //   private historyAction: 'set' | 'add' | 'subtract' = 'set';
+  private historyAction: 'set' | 'add' | 'subtract' = 'set';
 
   private newWeightPattern = /^(?!0+$)\d+$/; // Digits only, but not zero
   private editWeightPattern = /^[-+]?\d+$/; // Digits only with or without a plus or a minus
@@ -130,35 +141,26 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
   }
 
   onSubmit(): void {
-    //     const weightChange = this.diaryEntryForm.value.foodWeightChange;
-    //     this.historyAction = weightChange ? (weightChange.includes('-') ? 'subtract' : 'add') : 'set';
-    //     const value = weightChange || this.diaryEntryForm.value.foodWeightFinal;
-    //     const history = { action: this.historyAction, value: Math.abs(parseInt(value)) };
-    //     this.diaryEntryForm.disable();
-    //     this.foodService.postRequestResult$.pipe(take(1)).subscribe((response: ServerResponse) => {
-    //       if (response.result) {
-    //         if (response.value) {
-    //           const diaryEntryId: number = parseInt(response.value);
-    //           this.foodService.diary$$.update((diary) => {
-    //             diary[this.diaryEntryForm.value.date]['food'][diaryEntryId]['foodWeight'] =
-    //               this.diaryEntryForm.value.foodWeightFinal;
-    //             diary[this.diaryEntryForm.value.date]['food'][diaryEntryId]['history'].push(history);
-    //             return diary;
-    //           });
-    //         }
-    //         this.diaryEntryForm.enable();
-    //       } else {
-    //         this.diaryEntryForm.enable();
-    //       }
-    //     });
-    //     const preppedFormValues: DiaryEntry = {
-    //       id: this.diaryEntryForm.value.id,
-    //       date: this.diaryEntryForm.value.date,
-    //       foodCatalogueId: this.diaryEntryForm.value.foodCatalogueId,
-    //       foodWeight: this.diaryEntryForm.value.foodWeightFinal,
-    //       history: [history],
-    //     };
-    //     this.foodService.putDiaryEntry(preppedFormValues);
+    const weightChange = this.diaryEntryForm.value.foodWeightChange;
+    // console.log('tempdel01, weightChange:', weightChange);
+    this.historyAction = weightChange ? (String(weightChange).includes('-') ? 'subtract' : 'add') : 'set';
+    const value = weightChange || this.diaryEntryForm.value.foodWeightFinal;
+    const history = { action: this.historyAction, value: Math.abs(parseInt(value)) };
+    this.diaryEntryForm.disable();
+    const preppedFormValues: DiaryEntryEdit = {
+      id: this.diaryEntryForm.value.id,
+      foodWeight: this.diaryEntryForm.value.foodWeightFinal,
+      history: [history],
+    };
+    // console.log('tempdel02, preppedFormValues:', preppedFormValues);
+    this.foodService.editDiaryEntry(preppedFormValues).subscribe({
+      next: () => {
+        this.diaryEntryForm.enable();
+        this.diaryEntryForm.reset();
+        this.onServerSuccessfullEditResponse.emit();
+      },
+      error: () => this.diaryEntryForm.enable(),
+    });
   }
 
   openConfirmationModal(actionQuestion: string): void {
