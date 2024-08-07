@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { FoodStatsComponent } from 'src/app/components/food/stats/food-stats.component';
 import { FoodDiaryComponent } from 'src/app/components/food/diary/food-diary.component';
 import { FoodCatalogueComponent } from 'src/app/components/food/catalogue/food-catalogue.component';
+import { FoodService } from 'src/app/services/food.service';
 
 @Component({
   selector: 'app-food-screen',
@@ -17,13 +18,20 @@ export class FoodScreenComponent implements OnInit {
   largeScreen: boolean;
   private mediaQueryList: MediaQueryList;
 
-  constructor(private route: ActivatedRoute) {
+  constructor(
+    private route: ActivatedRoute,
+    private foodService: FoodService,
+  ) {
     this.section = '';
     this.largeScreen = false;
     this.mediaQueryList = window.matchMedia('(min-width: 1024px)');
   }
 
   ngOnInit() {
+    this.foodService.getFoodDiaryFullUpdateRange(undefined, 2).subscribe();
+    this.foodService.getCatalogueEntries().subscribe();
+    this.foodService.getMyCatalogueEntries().subscribe();
+
     this.updateScreenSize();
     this.mediaQueryList.addEventListener('change', this.updateScreenSize.bind(this));
 

@@ -37,34 +37,34 @@
         <div #foodPercent class="text-center">%</div>
       </div>
 
-      @for (food of todaysFood | keyvalue; track food.value.id; let first = $first; let last = $last) {
+      @for (food of todaysFood; track food.id; let first = $first; let last = $last) {
         <mat-expansion-panel
           #diaryEntry
           class="sub-expansion-panel-38px-50px"
           [class.first-in-group]="first"
           [class.last-in-group]="last"
-          (opened)="diaryEntryExpanded(diaryEntry, food.value.id)"
+          (opened)="diaryEntryExpanded(diaryEntry, food.id)"
         >
           <mat-expansion-panel-header
             class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
-            [ngStyle]="setBackgroundStyle(food.value.foodKcalPercentageOfDaysNorm)"
+            [ngStyle]="setBackgroundStyle(food.foodKcalPercentageOfDaysNorm)"
           >
             <mat-panel-title class="mat-panel-title-margin-remove">
               <div #foodCont class="flex w-full gap-1 overflow-hidden whitespace-nowrap text-base font-normal">
                 <div #foodName class="tw-card-food-entry grow overflow-hidden whitespace-nowrap">
-                  {{ food.value.foodName }}
+                  {{ food.foodName }}
                 </div>
-                <div #foodWeight class="text-right">{{ food.value.foodWeight }}<span class="text-xs"> Г.</span></div>
+                <div #foodWeight class="text-right">{{ food.foodWeight }}<span class="text-xs"> Г.</span></div>
                 <div #foodKcals class="text-right">
-                  {{ food.value.foodKcals }}
+                  {{ food.foodKcals }}
                 </div>
-                <div #foodPercent class="text-right">{{ food.value.foodPercent }}<span class="text-xs">%</span></div>
+                <div #foodPercent class="text-right">{{ food.foodPercent }}<span class="text-xs">%</span></div>
               </div>
             </mat-panel-title>
           </mat-expansion-panel-header>
 
           <app-diary-entry-edit-form
-            [diaryEntry]="food.value"
+            [diaryEntry]="food"
             (onServerSuccessfullEditResponse)="accordionCollapse()"
           ></app-diary-entry-edit-form>
         </mat-expansion-panel>

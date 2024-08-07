@@ -14,7 +14,7 @@ import {
 } from 'src/app/shared/interfaces';
 import { getTodayIsoNoTimeNoTZ } from 'src/app/shared/utils';
 
-type CatalogueIds = number[];
+type CatalogueIds = string[];
 
 @Injectable({
   providedIn: 'root',
@@ -28,15 +28,17 @@ export class FoodService {
   public days$$: Signal<string[]> = computed(() => Object.keys(this.diary$$()));
 
   public catalogue$$: WritableSignal<Catalogue> = signal({});
-  public catalogueSelectedIds$$: WritableSignal<CatalogueIds> = signal([]);
-
+  public catalogueMyIds$$: WritableSignal<CatalogueIds> = signal([]);
   public catalogueSortedListSelected$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(true)); // prettier-ignore
   public catalogueSortedListLeftOut$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(false)); // prettier-ignore
+  public usersSearchQuery$$: WritableSignal<string> = signal('');
+  public catalogueFilteredListSelected$$: Signal<CatalogueEntry[]> = computed(() => this.filterSelectedCatalogue()); // prettier-ignore
+  public catalogueFilteredListLeftOut$$: Signal<CatalogueEntry[]> = computed(() => this.filterLeftOutCatalogue()); // prettier-ignore
 
-  diaryEntryClickedFocus$ = new Subject<string>();
-  diaryEntryClickedScroll$ = new Subject<ElementRef>();
+  public diaryEntryClickedFocus$ = new Subject<string>();
+  public diaryEntryClickedScroll$ = new Subject<ElementRef>();
 
-  postRequestResult$ = new Subject<ServerResponse>();
+  public postRequestResult$ = new Subject<ServerResponse>();
 
   constructor(private http: HttpClient) {
     effect(() => { console.log('DIARY has been updated:', this.diary$$()) }); // prettier-ignore
@@ -44,6 +46,11 @@ export class FoodService {
     effect(() => { console.log('SELECTED DAY has been updated:', this.selectedDayIso$$()) }); // prettier-ignore
     effect(() => { console.log('DAYS have been updated:', this.days$$()) }); // prettier-ignore
     effect(() => { console.log('CATALOGUE have been updated:', this.catalogue$$()) }); // prettier-ignore
+    effect(() => { console.log('CATALOGUE MY IDS have been updated:', this.catalogueMyIds$$()) }); // prettier-ignore
+    effect(() => { console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()) }); // prettier-ignore
+    effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()) }); // prettier-ignore
+    effect(() => { console.log('CATALOGUE FILTERED LIST SELECTED have been updated:', this.catalogueFilteredListSelected$$()) }); // prettier-ignore
+    effect(() => { console.log('CATALOGUE FILTERED LIST LEFT OUT have been updated:', this.catalogueFilteredListLeftOut$$()) }); // prettier-ignore
   }
 
   private prepDiary(): FormattedDiary {
@@ -93,9 +100,34 @@ export class FoodService {
   prepCatalogueSortedListSeparate(selected: boolean): CatalogueEntry[] {
     return Object.values(this.catalogue$$())
       .filter((item) =>
-        selected ? this.catalogueSelectedIds$$().includes(item.id) : !this.catalogueSelectedIds$$().includes(item.id),
+        selected ? this.catalogueMyIds$$().includes(item.id) : !this.catalogueMyIds$$().includes(item.id),
       )
       .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  filterSelectedCatalogue(): CatalogueEntry[] {
+    const query = this.usersSearchQuery$$()
+      .toLowerCase()
+      .split(' ')
+      .filter((word) => word.length > 0);
+    return this.catalogueSortedListSelected$$().filter((entry) =>
+      query.every((word) => entry.name.toLowerCase().includes(word)),
+    );
+  }
+
+  // filterLeftOutCatalogue(): CatalogueEntry[] {
+  //   const query = this.usersSearchQuery$$().toLowerCase();
+  //   return this.catalogueSortedListLeftOut$$().filter((entry) => entry.name.toLowerCase().includes(query));
+  // }
+
+  filterLeftOutCatalogue(): CatalogueEntry[] {
+    const query = this.usersSearchQuery$$()
+      .toLowerCase()
+      .split(' ')
+      .filter((word) => word.length > 0);
+    return this.catalogueSortedListLeftOut$$().filter((entry) =>
+      query.every((word) => entry.name.toLowerCase().includes(word)),
+    );
   }
 
   getFoodDiaryFullUpdateRange(dateIso?: string, offset?: number): Observable<Diary> {
@@ -162,6 +194,15 @@ export class FoodService {
     return this.http.get<Catalogue>('/api/food/catalogue').pipe(
       tap((response: Catalogue) => {
         this.catalogue$$.set(response);
+      }),
+    );
+  }
+
+  getMyCatalogueEntries(): Observable<CatalogueIds> {
+    // console.log('Getting catalogue');
+    return this.http.get<CatalogueIds>('/api/food/my-catalogue').pipe(
+      tap((response: CatalogueIds) => {
+        this.catalogueMyIds$$.set(response);
       }),
     );
   }

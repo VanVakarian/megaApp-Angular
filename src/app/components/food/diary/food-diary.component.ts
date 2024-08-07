@@ -13,12 +13,12 @@ import { KeyValuePipe, NgFor, NgIf, NgStyle } from '@angular/common';
 import { FormControl } from '@angular/forms';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 
+import { Subscription, combineLatest } from 'rxjs';
+
 import { MatAccordion, MatExpansionPanel } from '@angular/material/expansion';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-
-import { Subscription, combineLatest } from 'rxjs';
 
 import { DiaryNavButtonsComponent } from 'src/app/components/food/diary/diary-nav/diary-nav-buttons.component';
 import { DiaryEntryEditFormComponent } from 'src/app/components/food/diary/diary-entry-edit-form/diary-entry-edit-form.component';
@@ -26,6 +26,7 @@ import { DiaryEntryNewFormComponent } from 'src/app/components/food/diary/diary-
 import { FoodService } from 'src/app/services/food.service';
 import { dateToIsoNoTimeNoTZ, generateDatesList } from 'src/app/shared/utils';
 import { FETCH_DAYS_RANGE_OFFSET } from 'src/app/shared/const';
+import { DiaryEntry, FormattedDiaryEntry } from 'src/app/shared/interfaces';
 
 @Component({
   selector: 'app-food-diary',
@@ -82,12 +83,22 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   get todaysKcalsPercent() {
     return this.foodService.diaryFormatted$$()?.[this.selectedDateIso]?.['kcalsPercent'] ?? 0;
   }
+
   get todaysFood() {
-    const today = this.foodService.selectedDayIso$$();
-    const todaysFood = this.foodService.diaryFormatted$$()?.[today]?.food;
-    // console.log('lolkek01, todaysFood:', todaysFood);
-    return todaysFood;
+    const selectedDay = this.foodService.selectedDayIso$$();
+    // console.log('selectedDay:', selectedDay);
+    const todaysFood = this.foodService.diaryFormatted$$()?.[selectedDay]?.food;
+
+    if (todaysFood) {
+      const foodArray = Object.values(todaysFood);
+      foodArray.sort((a: FormattedDiaryEntry, b: FormattedDiaryEntry) => a.date - b.date);
+      // console.log('Sorted todaysFood:', foodArray);
+      return foodArray;
+    }
+
+    return [];
   }
+
   get selectedDateIso() {
     return this.foodService.selectedDayIso$$();
   }
@@ -164,12 +175,10 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.foodService.getFoodDiaryFullUpdateRange(undefined, 2).subscribe();
     // setTimeout(() => {
     //   this.foodService.getFoodDiary('2024-06-20', 2).subscribe();
     // }, 3333);
     //   this.daysList = generateDatesList(this.selectedDateISO);
-    this.foodService.getCatalogueEntries().subscribe();
   }
 
   ngAfterViewInit(): void {

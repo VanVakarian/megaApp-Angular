@@ -47,8 +47,8 @@ export interface HistoryEntry {
 
 export interface DiaryEntry {
   id: string;
-  date: string;
-  foodCatalogueId: number;
+  date: number;
+  foodCatalogueId: string;
   foodWeight: number;
   history: HistoryEntry[];
 }
@@ -71,8 +71,8 @@ export interface Diary {
 
 export interface FormattedDiaryEntry {
   id: string;
-  date: string;
-  foodCatalogueId: number;
+  date: number;
+  foodCatalogueId: string;
   foodWeight: number;
   history: HistoryEntry[];
   foodName: string;
@@ -94,13 +94,12 @@ export interface FormattedDiary {
 }
 
 export interface CatalogueEntry {
-  id: number;
+  id: string;
   name: string;
   kcals: number;
 }
 
 export interface Catalogue {
-  // [id: string | number]: CatalogueEntry;
   [id: string]: CatalogueEntry;
 }
 
