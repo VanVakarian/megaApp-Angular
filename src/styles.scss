@@ -47,6 +47,10 @@ $dark-theme: mat.define-dark-theme((color: (primary: $dark-primary, accent: $dar
     @apply bg-blue-500 text-white hover:bg-blue-600 text-xl w-full rounded-md h-10 mt-4;
   }
 
+  .tw-bg-color-80 {
+    @apply bg-slate-100/90 dark:bg-slate-900/90
+  }
+
   .tw-bg-color {
     @apply bg-slate-100 dark:bg-slate-900
   }

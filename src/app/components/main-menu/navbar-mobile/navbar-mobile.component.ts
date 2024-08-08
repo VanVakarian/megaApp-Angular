@@ -1,5 +1,5 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { NgClass, NgFor, NgIf } from '@angular/common';
+import { Component, ElementRef, ViewChild } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 
@@ -12,7 +12,7 @@ import { MainMenuService } from 'src/app/services/main-menu.service';
 @Component({
   selector: 'app-navbar-mobile',
   standalone: true,
-  imports: [NgIf, NgFor, RouterLink, NgClass, MatIconModule, MatButtonModule],
+  imports: [RouterLink, NgClass, MatIconModule, MatButtonModule],
   templateUrl: './navbar-mobile.component.html',
   styleUrl: './navbar-mobile.component.scss',
   animations: [
@@ -28,7 +28,7 @@ import { MainMenuService } from 'src/app/services/main-menu.service';
     ]),
   ],
 })
-export class NavbarMobileComponent implements OnInit {
+export class NavbarMobileComponent {
   @ViewChild('fader') fader!: ElementRef;
   public menuOpened: boolean = false;
 
@@ -52,8 +52,6 @@ export class NavbarMobileComponent implements OnInit {
       }, 250); // Waiting for the fadeOut animation to complete before hiding fader background
     }
   }
-
-  ngOnInit(): void {}
 
   get mobileButtons() {
     return this.mainMenuService.prepButtons('mobile');

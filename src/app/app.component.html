@@ -1,17 +1,12 @@
-<header #header class="tw-bg-color fixed hidden w-full lg:block lg:pl-2">
-  <app-navbar-desktop *ngIf="authService.isAuthenticated" class="flex" />
-</header>
+<app-navbar-desktop />
+<app-navbar-mobile />
 
 <main class="flex flex-col lg:pl-2">
-  <section class="hidden h-[52px] lg:block">
-    <!-- Desktop navbar offset here... -->
-  </section>
+  <div class="hidden h-[52px] lg:block">
+    <!-- Desktop navbar offset... -->
+  </div>
 
-  <section>
+  <div>
     <router-outlet />
-  </section>
+  </div>
 </main>
-
-<section>
-  <app-navbar-mobile />
-</section>

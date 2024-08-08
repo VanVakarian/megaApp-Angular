@@ -1,15 +1,21 @@
-<div class="mx-auto flex w-full max-w-[1198px] gap-2 py-2">
-  @for (button of desktopButtons; track $index) {
-    @if (button.label !== "DarkThemeSwitch") {
-      @if (button.selected) {
-        <button class="main-menu-button" mat-raised-button color="primary" [routerLink]="button.link">{{ button.label }}</button>
-      } @else {
-        <button class="main-menu-button" mat-flat-button [routerLink]="button.link">{{ button.label }}</button>
+@if (authService.isAuthenticated) {
+  <header #header class="tw-bg-color-80 fixed z-10 hidden w-full lg:block lg:pl-2">
+    <div class="mx-auto flex w-full max-w-[1198px] gap-2 py-2">
+      @for (button of desktopButtons; track $index) {
+        @if (button.label !== "DarkThemeSwitch") {
+          @if (button.selected) {
+            <button class="main-menu-button" mat-raised-button color="primary" [routerLink]="button.link">
+              {{ button.label }}
+            </button>
+          } @else {
+            <button class="main-menu-button" mat-flat-button [routerLink]="button.link">{{ button.label }}</button>
+          }
+        } @else {
+          <div class="grow">
+            <div class="ml-auto w-min"><app-dark-switch /></div>
+          </div>
+        }
       }
-    } @else {
-      <div class="grow">
-        <div class="ml-auto w-min"><app-dark-switch /></div>
-      </div>
-    }
-  }
-</div>
+    </div>
+  </header>
+}

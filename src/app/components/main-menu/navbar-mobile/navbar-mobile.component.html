@@ -1,46 +1,49 @@
-<div
-  *ngIf="authService.isAuthenticated"
-  [@menuSlide]="menuOpened ? 'open' : 'closed'"
-  class="pointer-events-none fixed right-0 top-0 z-40 h-dvh lg:hidden"
->
-  <div class="pointer-events-none mx-4 flex h-full flex-col justify-end gap-4">
-    @for (button of mobileButtons; track $index) {
-      <button
-        class="side-menu-button pointer-events-auto overflow-hidden"
-        mat-raised-button
-        color="primary"
-        [routerLink]="button.link"
-        (click)="closeMenu()"
-      >
-        <div class="menu-btn-bg absolute bottom-[-16px] right-[-2px] h-full w-full" [ngClass]="[button.bgClass]"></div>
+@if (authService.isAuthenticated) {
+  <div
+    [@menuSlide]="menuOpened ? 'open' : 'closed'"
+    class="pointer-events-none fixed right-0 top-0 z-40 h-dvh lg:hidden"
+  >
+    <div class="pointer-events-none mx-4 flex h-full flex-col justify-end gap-4">
+      @for (button of mobileButtons; track $index) {
+        <button
+          class="side-menu-button pointer-events-auto overflow-hidden"
+          mat-raised-button
+          color="primary"
+          [routerLink]="button.link"
+          (click)="closeMenu()"
+        >
+          <div
+            class="menu-btn-bg absolute bottom-[-16px] right-[-2px] h-full w-full"
+            [ngClass]="[button.bgClass]"
+          ></div>
 
-        <div class="flex w-full gap-1">
-          <div class="mr-2 mt-[2px]">
-            <mat-icon>{{ button.iconName }}</mat-icon>
-          </div>
+          <div class="flex w-full gap-1">
+            <div class="mr-2 mt-[2px]">
+              <mat-icon>{{ button.iconName }}</mat-icon>
+            </div>
 
-          <div>
-            {{ button.label }}
+            <div>
+              {{ button.label }}
+            </div>
           </div>
-        </div>
-      </button>
-    }
-    <div class="h-20"></div>
+        </button>
+      }
+      <div class="h-20"></div>
+    </div>
   </div>
-</div>
 
-<div
-  *ngIf="authService.isAuthenticated"
-  #fader
-  [@fadeInOut]="menuOpened ? 'fadeIn' : 'fadeOut'"
-  class="fixed left-0 top-0 z-30 hidden h-dvh w-dvw bg-black lg:hidden"
-  (click)="closeMenu()"
->
-  <!-- Fading background for side menu -->
-</div>
+  <div
+    #fader
+    [@fadeInOut]="menuOpened ? 'fadeIn' : 'fadeOut'"
+    class="fixed left-0 top-0 z-30 hidden h-dvh w-dvw bg-black lg:hidden"
+    (click)="closeMenu()"
+  >
+    <!-- Fading background for side menu -->
+  </div>
 
-<div *ngIf="authService.isAuthenticated" class="fixed bottom-0 right-0 z-50 mb-4 mr-4 block lg:hidden">
-  <button class="scale-100" mat-fab color="primary" (click)="toggleMenu()">
-    <mat-icon class="scale-150">{{ menuOpened ? "close" : "menu" }}</mat-icon>
-  </button>
-</div>
+  <div class="fixed bottom-0 right-0 z-50 mb-4 mr-4 block lg:hidden">
+    <button class="scale-100" mat-fab color="primary" (click)="toggleMenu()">
+      <mat-icon class="scale-150">{{ menuOpened ? "close" : "menu" }}</mat-icon>
+    </button>
+  </div>
+}
