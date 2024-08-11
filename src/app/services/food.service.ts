@@ -31,9 +31,6 @@ export class FoodService {
   public catalogueMyIds$$: WritableSignal<CatalogueIds> = signal([]);
   public catalogueSortedListSelected$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(true)); // prettier-ignore
   public catalogueSortedListLeftOut$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(false)); // prettier-ignore
-  public usersSearchQuery$$: WritableSignal<string> = signal('');
-  public catalogueFilteredListSelected$$: Signal<CatalogueEntry[]> = computed(() => this.filterSelectedCatalogue()); // prettier-ignore
-  public catalogueFilteredListLeftOut$$: Signal<CatalogueEntry[]> = computed(() => this.filterLeftOutCatalogue()); // prettier-ignore
 
   public diaryEntryClickedFocus$ = new Subject<string>();
   public diaryEntryClickedScroll$ = new Subject<ElementRef>();
@@ -49,8 +46,6 @@ export class FoodService {
     effect(() => { console.log('CATALOGUE MY IDS have been updated:', this.catalogueMyIds$$()) }); // prettier-ignore
     effect(() => { console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()) }); // prettier-ignore
     effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()) }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE FILTERED LIST SELECTED have been updated:', this.catalogueFilteredListSelected$$()) }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE FILTERED LIST LEFT OUT have been updated:', this.catalogueFilteredListLeftOut$$()) }); // prettier-ignore
   }
 
   private prepDiary(): FormattedDiary {
@@ -103,31 +98,6 @@ export class FoodService {
         selected ? this.catalogueMyIds$$().includes(item.id) : !this.catalogueMyIds$$().includes(item.id),
       )
       .sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  filterSelectedCatalogue(): CatalogueEntry[] {
-    const query = this.usersSearchQuery$$()
-      .toLowerCase()
-      .split(' ')
-      .filter((word) => word.length > 0);
-    return this.catalogueSortedListSelected$$().filter((entry) =>
-      query.every((word) => entry.name.toLowerCase().includes(word)),
-    );
-  }
-
-  // filterLeftOutCatalogue(): CatalogueEntry[] {
-  //   const query = this.usersSearchQuery$$().toLowerCase();
-  //   return this.catalogueSortedListLeftOut$$().filter((entry) => entry.name.toLowerCase().includes(query));
-  // }
-
-  filterLeftOutCatalogue(): CatalogueEntry[] {
-    const query = this.usersSearchQuery$$()
-      .toLowerCase()
-      .split(' ')
-      .filter((word) => word.length > 0);
-    return this.catalogueSortedListLeftOut$$().filter((entry) =>
-      query.every((word) => entry.name.toLowerCase().includes(word)),
-    );
   }
 
   getFoodDiaryFullUpdateRange(dateIso?: string, offset?: number): Observable<Diary> {

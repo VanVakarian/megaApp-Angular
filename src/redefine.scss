@@ -49,6 +49,15 @@
   padding: 10px !important;
 }
 
+.mat-mdc-paginator {
+  background-color: #ffffff00 !important;
+}
+
+// making pagination bar fit on small mobile screens
+.mat-mdc-paginator-range-label {
+  margin-left: 0rem !important;
+  margin-right: 1rem !important;
+}
 
 // FOOD ////////////////////////////////////////////////////////////////////////
 
