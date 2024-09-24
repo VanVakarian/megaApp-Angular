@@ -6,6 +6,7 @@ import { FoodStatsComponent } from 'src/app/components/food/stats/food-stats.com
 import { FoodDiaryComponent } from 'src/app/components/food/diary/food-diary.component';
 import { FoodCatalogueComponent } from 'src/app/components/food/catalogue/food-catalogue.component';
 import { FoodService } from 'src/app/services/food.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-food-screen',
@@ -28,9 +29,9 @@ export class FoodScreenComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.foodService.getFoodDiaryFullUpdateRange(undefined, 2).subscribe();
-    this.foodService.getCatalogueEntries().subscribe();
-    this.foodService.getMyCatalogueEntries().subscribe();
+    firstValueFrom(this.foodService.getFoodDiaryFullUpdateRange(undefined, 2));
+    firstValueFrom(this.foodService.getCatalogueEntries());
+    firstValueFrom(this.foodService.getMyCatalogueEntries());
 
     this.updateScreenSize();
     this.mediaQueryList.addEventListener('change', this.updateScreenSize.bind(this));

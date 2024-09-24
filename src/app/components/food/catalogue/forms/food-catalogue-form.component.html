@@ -1,43 +1,74 @@
-<form [formGroup]="foodForm" (submit)="onSubmit()">
-  <mat-form-field class="w-full" appearance="outline">
+<form
+  [formGroup]="foodForm"
+  (submit)="onSubmit()"
+>
+  <mat-form-field
+    class="w-full"
+    appearance="outline"
+  >
     <mat-label>Название:</mat-label>
 
-    <input matInput formControlName="name" />
+    <input
+      matInput
+      formControlName="name"
+    />
+
+    <mat-error *ngIf="foodForm.get('name')?.hasError('required')"> Введите название. </mat-error>
+
+    <mat-error *ngIf="foodForm.get('name')?.hasError('duplicateName')"> Такое название уже есть. </mat-error>
   </mat-form-field>
 
-  <mat-form-field class="w-full" appearance="outline">
-    <mat-label>Число ккал на 100 г.:</mat-label>
-
-    <input matInput class="text-right" formControlName="kcals" />
-
-    <span matSuffix class="mx-2"> ккал </span>
-
-    <mat-hint>целое число</mat-hint>
-  </mat-form-field>
-
-  <div class="flex w-full flex-row-reverse py-2">
-    <button
-      mat-raised-button
-      *ngIf="formRole == 'edit'"
-      type="button"
-      color="primary"
-      class="mat-button-enlarged-45-px text-lg"
-      [disabled]="changeOwnershipButtonDisabled"
-      (click)="switchOwnership()"
+  @if (isAdmin) {
+    <mat-form-field
+      class="w-full"
+      appearance="outline"
     >
-      {{ checkOwnership() ? "Убрать моего списка" : "Забрать к себе" }}
-    </button>
-  </div>
+      <mat-label>Число ккал на 100 г.:</mat-label>
 
-  <div class="flex w-full flex-row-reverse py-2">
-    <button
-      mat-raised-button
-      type="submit"
-      color="primary"
-      class="mat-button-enlarged-45-px text-lg"
-      [disabled]="!isFormValid()"
-    >
-      {{ formRole === "edit" ? "Сохранить" : "Добавить" }}
-    </button>
+      <input
+        matInput
+        class="text-right"
+        formControlName="kcals"
+      />
+
+      <span
+        matSuffix
+        class="mx-2"
+      >
+        ккал
+      </span>
+
+      <mat-error *ngIf="foodForm.get('kcals')?.hasError('required')"> Введите кол-во калорий на 100 г. </mat-error>
+
+      <mat-error *ngIf="foodForm.get('kcals')?.hasError('pattern')"> Можно ввести только целое число. </mat-error>
+    </mat-form-field>
+  }
+
+  <div class="flex gap-2">
+    <div class="flex grow flex-row-reverse py-2">
+      <button
+        *ngIf="formRole == 'edit'"
+        mat-raised-button
+        type="button"
+        color="primary"
+        class="mat-button-enlarged-45-px text-lg"
+        [disabled]="queryPending"
+        (click)="switchOwnership()"
+      >
+        {{ isCatalogueEntryPicked ? "Убрать" : "Забрать к себе" }}
+      </button>
+    </div>
+
+    <div class="flex flex-row-reverse py-2">
+      <button
+        mat-raised-button
+        type="submit"
+        color="primary"
+        class="mat-button-enlarged-45-px text-lg"
+        [disabled]="!isFormValid()"
+      >
+        {{ formRole === "edit" ? "Сохранить" : "Добавить" }}
+      </button>
+    </div>
   </div>
 </form>

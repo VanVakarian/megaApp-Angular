@@ -27,7 +27,7 @@ export class SettingsService {
     // effect(() => { console.log('settings', this.settings$$()) }); // prettier-ignore
   }
 
-  getSettings(): Observable<any> {
+  public getSettings(): Observable<any> {
     return this.http.get<Settings>('/api/settings/').pipe(
       tap((response: Settings) => {
         this.compareLocalAndServerData(response);
@@ -35,7 +35,7 @@ export class SettingsService {
     );
   }
 
-  postSettings(settings: Settings): Observable<any> {
+  private postSettings(settings: Settings): Observable<any> {
     return this.http.post('/api/settings', settings, { observe: 'response' }).pipe(
       tap((response: HttpResponse<any>) => {
         if (response.status === 200) {
@@ -47,7 +47,7 @@ export class SettingsService {
     );
   }
 
-  compareLocalAndServerData(serverSettings: Settings) {
+  private compareLocalAndServerData(serverSettings: Settings) {
     const localSettings: LocalStorageSettings = this.loadSettingsFromLocalStorage();
     if (localSettings === null) {
       this.settings$$.set(serverSettings);

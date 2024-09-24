@@ -9,6 +9,7 @@
   class="catalogue-filter-input-hint-remove catalogue-filter-input-text-size-increase mb-4 w-full"
 >
   <mat-label>Поиск</mat-label>
+
   <input
     matInput
     class="text-center"
@@ -16,8 +17,14 @@
     (ngModelChange)="onSearchInput($event)"
     placeholder="Введите название"
   />
+
   @if (usersInput !== "") {
-    <button matSuffix mat-icon-button aria-label="Очистить" (click)="onSearchInput('')">
+    <button
+      mat-icon-button
+      matSuffix
+      aria-label="Очистить"
+      (click)="onSearchInput('')"
+    >
       <mat-icon class="absolute bottom-[-8px] right-[12px] scale-100">close</mat-icon>
     </button>
   }
@@ -47,6 +54,7 @@
             >
               {{ food.name }}
             </div>
+
             <div class="whitespace-nowrap">{{ food.kcals }} ккал.</div>
           </div>
         </mat-panel-title>
@@ -58,8 +66,8 @@
       <app-food-catalogue-form
         [formRole]="'edit'"
         [categoryEntry]="food"
-        (ownershipChanged)="onOwnershipChanged($event)"
       />
+      <!-- (ownershipChanged)="onOwnershipChanged($event)" -->
       <!-- } @placeholder {
         <p>Загрузка формы...</p>
       } -->
@@ -75,8 +83,7 @@
     (page)="onPageChange($event, 'selected')"
     hidePageSize
     showFirstLastButtons
-  >
-  </mat-paginator>
+  />
 
   <div class="h-4"></div>
 
@@ -104,6 +111,7 @@
             >
               {{ food.name }}
             </div>
+
             <div class="whitespace-nowrap">{{ food.kcals }} ккал.</div>
           </div>
         </mat-panel-title>
@@ -115,8 +123,8 @@
       <app-food-catalogue-form
         [formRole]="'edit'"
         [categoryEntry]="food"
-        (ownershipChanged)="onOwnershipChanged($event)"
       />
+      <!-- (ownershipChanged)="onOwnershipChanged($event)" -->
       <!-- } @placeholder {
         <p>Загрузка формы...</p>
       } -->
@@ -131,8 +139,7 @@
     (page)="onPageChange($event, 'leftOut')"
     hidePageSize
     showFirstLastButtons
-  >
-  </mat-paginator>
+  />
 
   <div class="h-4"></div>
 
@@ -140,6 +147,7 @@
     <mat-expansion-panel-header>
       <mat-panel-title>
         <mat-icon>add</mat-icon>
+
         <div class="ml-1 overflow-hidden whitespace-nowrap text-base font-normal">Добавить новую еду</div>
       </mat-panel-title>
     </mat-expansion-panel-header>

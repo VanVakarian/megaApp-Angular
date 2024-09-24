@@ -20,13 +20,27 @@ export type IncomingMessage = {
 
 export interface ServerResponse {
   result: boolean;
-  value?: string;
+}
+
+export interface ServerResponseWithMessage extends ServerResponse {
+  message?: string;
+}
+
+export interface ServerResponseWithDiaryId extends ServerResponse {
+  diaryId?: number;
+}
+
+export interface ServerResponseWithCatalogueEntry extends ServerResponse {
+  id?: number;
+  name?: string;
+  kcals?: number;
 }
 
 // SETTINGS ////////////////////////////////////////////////////////////////////
 
 export type Settings = {
-  userName?: string;
+  userName: string;
+  isUserAdmin?: boolean;
   darkTheme: boolean;
   selectedChapterFood: boolean;
   selectedChapterMoney: boolean;
@@ -46,15 +60,15 @@ export interface HistoryEntry {
 }
 
 export interface DiaryEntry {
-  id: string;
+  id: number;
   date: number;
-  foodCatalogueId: string;
+  foodCatalogueId: number;
   foodWeight: number;
   history: HistoryEntry[];
 }
 
 export interface DiaryEntryEdit {
-  id: string;
+  id: number;
   foodWeight: number;
   history: HistoryEntry[];
 }
@@ -62,7 +76,7 @@ export interface DiaryEntryEdit {
 export interface Diary {
   [date: string]: {
     ['food']: {
-      [id: string]: DiaryEntry;
+      [id: number]: DiaryEntry;
     };
     ['bodyWeight']: number | null;
     ['targetKcals']: number;
@@ -70,9 +84,9 @@ export interface Diary {
 }
 
 export interface FormattedDiaryEntry {
-  id: string;
+  id: number;
   date: number;
-  foodCatalogueId: string;
+  foodCatalogueId: number;
   foodWeight: number;
   history: HistoryEntry[];
   foodName: string;
@@ -93,14 +107,18 @@ export interface FormattedDiary {
   };
 }
 
+export type CatalogueId = number
+
+export type CatalogueIds = CatalogueId[];
+
 export interface CatalogueEntry {
-  id: string;
+  id: number;
   name: string;
   kcals: number;
 }
 
 export interface Catalogue {
-  [id: string]: CatalogueEntry;
+  [id: number]: CatalogueEntry;
 }
 
 // export interface Coefficients {

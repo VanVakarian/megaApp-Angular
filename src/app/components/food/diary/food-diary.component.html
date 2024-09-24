@@ -13,7 +13,10 @@
         </div>
       </div>
 
-      <mat-expansion-panel color="primary" class="sub-expansion-panel-38px-50px expansion-panel-rounded">
+      <mat-expansion-panel
+        color="primary"
+        class="sub-expansion-panel-38px-50px expansion-panel-rounded"
+      >
         <mat-expansion-panel-header
           class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
           [ngStyle]="setBackgroundStyle(todaysKcalsPercent)"
@@ -36,11 +39,37 @@
 
       <div class="mb-1"></div>
 
-      <div #foodCont class="tw-bg-color flex w-full gap-1 overflow-hidden whitespace-nowrap text-base font-normal">
-        <div #foodName class="tw-card-food-entry grow overflow-hidden whitespace-nowrap text-center">Блюдо:</div>
-        <div #foodWeight class="text-center">г.</div>
-        <div #foodKcals class="text-center">kcal</div>
-        <div #foodPercent class="text-center">%</div>
+      <div
+        #foodCont
+        class="tw-bg-color flex w-full gap-1 overflow-hidden whitespace-nowrap text-base font-normal"
+      >
+        <div
+          #foodName
+          class="tw-card-food-entry grow overflow-hidden whitespace-nowrap text-center"
+        >
+          Блюдо:
+        </div>
+
+        <div
+          #foodWeight
+          class="text-center"
+        >
+          г.
+        </div>
+
+        <div
+          #foodKcals
+          class="text-center"
+        >
+          kcal
+        </div>
+
+        <div
+          #foodPercent
+          class="text-center"
+        >
+          %
+        </div>
       </div>
 
       @for (food of todaysFood; track food.id; let first = $first; let last = $last) {
@@ -56,15 +85,37 @@
             [ngStyle]="setBackgroundStyle(food.foodKcalPercentageOfDaysNorm)"
           >
             <mat-panel-title class="mat-panel-title-margin-remove">
-              <div #foodCont class="flex w-full gap-1 overflow-hidden whitespace-nowrap text-base font-normal">
-                <div #foodName class="tw-card-food-entry grow overflow-hidden whitespace-nowrap">
+              <div
+                #foodCont
+                class="flex w-full gap-1 overflow-hidden whitespace-nowrap text-base font-normal"
+              >
+                <div
+                  #foodName
+                  class="tw-card-food-entry grow overflow-hidden whitespace-nowrap"
+                >
                   {{ food.foodName }}
                 </div>
-                <div #foodWeight class="text-right">{{ food.foodWeight }}<span class="text-xs"> Г.</span></div>
-                <div #foodKcals class="text-right">
+
+                <div
+                  #foodWeight
+                  class="text-right"
+                >
+                  {{ food.foodWeight }}<span class="text-xs"> Г.</span>
+                </div>
+
+                <div
+                  #foodKcals
+                  class="text-right"
+                >
                   {{ food.foodKcals }}
                 </div>
-                <div #foodPercent class="text-right">{{ food.foodPercent }}<span class="text-xs">%</span></div>
+
+                <div
+                  #foodPercent
+                  class="text-right"
+                >
+                  {{ food.foodPercent }}<span class="text-xs">%</span>
+                </div>
               </div>
             </mat-panel-title>
           </mat-expansion-panel-header>
@@ -78,7 +129,10 @@
 
       <div class="mb-2"></div>
 
-      <mat-expansion-panel color="primary" class="sub-expansion-panel-38px-50px expansion-panel-rounded">
+      <mat-expansion-panel
+        color="primary"
+        class="sub-expansion-panel-38px-50px expansion-panel-rounded"
+      >
         <mat-expansion-panel-header
           class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease add-panel-header"
         >

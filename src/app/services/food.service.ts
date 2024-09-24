@@ -1,20 +1,21 @@
 import { ElementRef, Injectable, Signal, WritableSignal, computed, effect, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
-import { Observable, Subject, tap } from 'rxjs';
+import { catchError, map, Observable, of, Subject, tap } from 'rxjs';
 
 import {
   Catalogue,
   CatalogueEntry,
   Diary,
-  DiaryEntry,
   FormattedDiary,
   DiaryEntryEdit,
   ServerResponse,
+  CatalogueIds,
+  CatalogueId,
+  ServerResponseWithDiaryId,
+  ServerResponseWithCatalogueEntry,
 } from 'src/app/shared/interfaces';
 import { getTodayIsoNoTimeNoTZ } from 'src/app/shared/utils';
-
-type CatalogueIds = string[];
 
 @Injectable({
   providedIn: 'root',
@@ -32,20 +33,20 @@ export class FoodService {
   public catalogueSortedListSelected$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(true)); // prettier-ignore
   public catalogueSortedListLeftOut$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(false)); // prettier-ignore
 
-  public diaryEntryClickedFocus$ = new Subject<string>();
+  public diaryEntryClickedFocus$ = new Subject<number>();
   public diaryEntryClickedScroll$ = new Subject<ElementRef>();
 
   public postRequestResult$ = new Subject<ServerResponse>();
 
   constructor(private http: HttpClient) {
-    effect(() => { console.log('DIARY has been updated:', this.diary$$()) }); // prettier-ignore
-    effect(() => { console.log('FORMATTED DIARY has been updated:', this.diaryFormatted$$()) }); // prettier-ignore
-    effect(() => { console.log('SELECTED DAY has been updated:', this.selectedDayIso$$()) }); // prettier-ignore
-    effect(() => { console.log('DAYS have been updated:', this.days$$()) }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE have been updated:', this.catalogue$$()) }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE MY IDS have been updated:', this.catalogueMyIds$$()) }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()) }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()) }); // prettier-ignore
+    // effect(() => { console.log('DIARY has been updated:', this.diary$$()) }); // prettier-ignore
+    // effect(() => { console.log('FORMATTED DIARY has been updated:', this.diaryFormatted$$()) }); // prettier-ignore
+    // effect(() => { console.log('SELECTED DAY has been updated:', this.selectedDayIso$$()) }); // prettier-ignore
+    // effect(() => { console.log('DAYS have been updated:', this.days$$()) }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE have been updated:', this.catalogue$$()) }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE MY IDS have been updated:', this.catalogueMyIds$$()) }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()) }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()) }); // prettier-ignore
   }
 
   private prepDiary(): FormattedDiary {
@@ -110,11 +111,11 @@ export class FoodService {
     );
   }
 
-  editDiaryEntry(diaryEntry: DiaryEntryEdit): Observable<ServerResponse> {
-    return this.http.put<ServerResponse>(`/api/food/diary`, diaryEntry).pipe(
-      tap((response: ServerResponse) => {
-        if (response.result && response.value) {
-          const diaryEntryId: string = response.value;
+  editDiaryEntry(diaryEntry: DiaryEntryEdit): Observable<ServerResponseWithDiaryId> {
+    return this.http.put<ServerResponseWithDiaryId>(`/api/food/diary`, diaryEntry).pipe(
+      tap((response: ServerResponseWithDiaryId) => {
+        if (response?.result && response?.diaryId) {
+          const diaryEntryId: number = response.diaryId;
           this.updateDiaryEntryAfterSucsessfullPut(diaryEntryId, diaryEntry);
         } else {
           // console.error('Ошибка при обновлении записи в дневнике питания');
@@ -123,7 +124,7 @@ export class FoodService {
     );
   }
 
-  private updateDiaryEntryAfterSucsessfullPut(diaryEntryId: string, diaryEntry: DiaryEntryEdit) {
+  private updateDiaryEntryAfterSucsessfullPut(diaryEntryId: number, diaryEntry: DiaryEntryEdit) {
     this.diary$$.update((diary) => {
       const selectedDay = this.selectedDayIso$$();
       const updatedDiary = { ...diary };
@@ -159,8 +160,7 @@ export class FoodService {
     return Object.keys(this.diary$$());
   }
 
-  getCatalogueEntries(): Observable<Catalogue> {
-    // console.log('Getting catalogue');
+  public getCatalogueEntries(): Observable<Catalogue> {
     return this.http.get<Catalogue>('/api/food/catalogue').pipe(
       tap((response: Catalogue) => {
         this.catalogue$$.set(response);
@@ -168,12 +168,102 @@ export class FoodService {
     );
   }
 
+  public createNewCatalogueEntry(foodName: string, foodKcals: number): Observable<number | null> {
+    return this.http.post<ServerResponseWithCatalogueEntry>('/api/food/catalogue/', { foodName, foodKcals }).pipe(
+      map((response) => {
+        if (response.result && response.id) {
+          this.addFoodEntryToCatalogue(foodName, foodKcals, response.id);
+          this.addFoodIdToUserCatalogue(response.id);
+          return response.id;
+        }
+        return null;
+      }),
+      catchError((error) => {
+        console.warn('Error adding user food item:', error);
+        return of(null);
+      }),
+    );
+  }
+
+  private addFoodEntryToCatalogue(foodName: string, foodKcals: number, newId: number): void {
+    this.catalogue$$.update((catalogue) => {
+      const newCatalogueEntry: CatalogueEntry = {
+        id: newId,
+        name: foodName,
+        kcals: foodKcals,
+      };
+      return { ...catalogue, [newId]: newCatalogueEntry };
+    });
+  }
+
+  public editCatalogueEntry(foodId: number, foodName: string, foodKcals: number): Observable<boolean> {
+    return this.http
+      .put<ServerResponseWithCatalogueEntry>('/api/food/catalogue/', { foodId, foodName, foodKcals })
+      .pipe(
+        map((response) => {
+          if (response.result) {
+            this.catalogue$$.update((catalogue) => {
+              return {
+                ...catalogue,
+                [foodId]: {
+                  id: foodId,
+                  name: foodName,
+                  kcals: foodKcals,
+                },
+              };
+            });
+          }
+          return response.result;
+        }),
+        catchError((error) => {
+          console.warn('Error updating user food item:', error);
+          return of(false);
+        }),
+      );
+  }
+
   getMyCatalogueEntries(): Observable<CatalogueIds> {
-    // console.log('Getting catalogue');
-    return this.http.get<CatalogueIds>('/api/food/my-catalogue').pipe(
+    return this.http.get<CatalogueIds>('/api/food/user-catalogue').pipe(
       tap((response: CatalogueIds) => {
         this.catalogueMyIds$$.set(response);
       }),
     );
   }
+
+  public pickUserFoodId(foodId: number): Observable<boolean> {
+    return this.http.put<ServerResponse>('/api/food/user-catalogue/pick/', { foodId: foodId }).pipe(
+      map((response) => {
+        if (response.result) this.addFoodIdToUserCatalogue(foodId);
+        return response.result;
+      }),
+      catchError((error) => {
+        console.warn('Error deleting user food id:', error);
+        return of(false);
+      }),
+    );
+  }
+
+  private addFoodIdToUserCatalogue(foodId: number): void {
+    this.catalogueMyIds$$.update((foodIds) => {
+      return [...foodIds, foodId];
+    });
+  }
+
+  public dismissUserFoodId(foodId: number): Observable<boolean> {
+    return this.http.put<ServerResponse>('/api/food/user-catalogue/dismiss/', { foodId: foodId }).pipe(
+      map((response) => {
+        if (response.result) this.removeFoodIdFromCatalogue(foodId);
+        return response.result;
+      }),
+      catchError((error) => {
+        console.warn('Error deleting user food id:', error);
+        return of(false);
+      }),
+    );
+  }
+
+  private removeFoodIdFromCatalogue(foodId: number): void {
+    this.catalogueMyIds$$.update((foodIds) => foodIds.filter((id) => id !== foodId));
+  }
+
 }

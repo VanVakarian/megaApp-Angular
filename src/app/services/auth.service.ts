@@ -24,7 +24,7 @@ export class AuthService {
     return this.authenticationStatus$$();
   }
 
-  login(user: UserCreds): Observable<any> {
+  public login(user: UserCreds): Observable<any> {
     return this.http.post<AuthResponse>('/api/auth/login', user, { observe: 'response' }).pipe(
       tap((response: HttpResponse<AuthResponse>) => {
         if (response.body?.accessToken && response.body?.refreshToken) {
@@ -37,7 +37,7 @@ export class AuthService {
     );
   }
 
-  register(user: UserCreds): Observable<any> {
+  public register(user: UserCreds): Observable<any> {
     return this.http.post('/api/auth/register', user, { observe: 'response' }).pipe(
       tap((response: HttpResponse<any>) => {
         if (response.status === 201) {
@@ -49,12 +49,12 @@ export class AuthService {
     );
   }
 
-  logout() {
+  public logout() {
     this.removeTokens();
     this.authenticationStatus$$.set(false);
   }
 
-  refreshToken(): Observable<any> {
+  public refreshToken(): Observable<any> {
     const refreshToken = localStorage.getItem(this.REFRESH_TOKEN_KEY);
     return this.http.post<AuthResponse>('/api/auth/refresh', { refreshToken }).pipe(
       tap((response: AuthResponse) => {

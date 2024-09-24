@@ -11,16 +11,19 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+
 import { FoodService } from 'src/app/services/food.service';
-import { FoodCatalogueFormComponent } from './forms/food-form.component';
+import { FoodCatalogueFormComponent } from 'src/app/components/food/catalogue/forms/food-catalogue-form.component';
 import { CatalogueEntry } from 'src/app/shared/interfaces';
 import { enRuTranslation } from 'src/app/shared/const';
+import { SettingsService } from 'src/app/services/settings.service';
 
 @Component({
   selector: 'app-food-catalogue',
@@ -50,12 +53,20 @@ export class FoodCatalogueComponent {
   public pageIndexSelected: number = 0;
   public pageIndexLeftOut: number = 0;
 
-  constructor(public foodService: FoodService) {
+  constructor(
+    private foodService: FoodService,
+    private settingsService: SettingsService,
+  ) {
     // effect(() => { console.log('CATALOGUE FILTERED LIST SELECTED have been updated:', this.catalogueFilteredListSelected$$()) });
     // effect(() => { console.log('CATALOGUE FILTERED LIST LEFT OUT have been updated:', this.catalogueFilteredListLeftOut$$()) });
   }
 
-  filterCatalogue(selected: boolean): CatalogueEntry[] {
+  public get isAdmin(): boolean {
+    const isAdmin = this.settingsService.settings$$()?.isUserAdmin;
+    return isAdmin ? true : false;
+  }
+
+  private filterCatalogue(selected: boolean): CatalogueEntry[] {
     const query = this.usersSearchQuery$$()
       .split(' ')
       .filter((word) => word.length > 0);
@@ -72,42 +83,42 @@ export class FoodCatalogueComponent {
       .join('');
   }
 
-  get usersInput(): string {
+  public get usersInput(): string {
     return this.usersSearchQuery$$();
   }
 
-  get filteredSelectedCatalogueLength(): number {
+  public get filteredSelectedCatalogueLength(): number {
     return this.catalogueFilteredListSelected$$().length;
   }
 
-  get filteredLeftOutCatalogueLength(): number {
+  public get filteredLeftOutCatalogueLength(): number {
     return this.catalogueFilteredListLeftOut$$().length;
   }
 
-  get paginatedSelectedCatalogue(): CatalogueEntry[] {
+  public get paginatedSelectedCatalogue(): CatalogueEntry[] {
     const startIndex = this.pageIndexSelected * this.pageSize;
     return this.catalogueFilteredListSelected$$().slice(startIndex, startIndex + this.pageSize);
   }
 
-  get paginatedLeftOutCatalogue(): CatalogueEntry[] {
+  public get paginatedLeftOutCatalogue(): CatalogueEntry[] {
     const startIndex = this.pageIndexLeftOut * this.pageSize;
     return this.catalogueFilteredListLeftOut$$().slice(startIndex, startIndex + this.pageSize);
   }
 
-  onSearchInput(value: string): void {
+  public onSearchInput(value: string): void {
     const translatedValue = this.translateToRussian(value);
     this.usersSearchQuery$$.set(translatedValue.toLowerCase());
     this.pageIndexSelected = 0;
     this.pageIndexLeftOut = 0;
   }
 
-  onOwnershipChanged(foodId: string): void {
-    this.findPanelByFoodId(foodId).then((element) => {
-      element?.nativeElement.scrollIntoView({ behavior: 'smooth' });
-    });
-  }
+  // public onOwnershipChanged(foodId: number): void {
+  //   this.findPanelByFoodId(foodId).then((element) => {
+  //     if (element) element.nativeElement.scrollIntoView({ behavior: 'smooth' });
+  //   });
+  // }
 
-  onPageChange(event: PageEvent, type: 'selected' | 'leftOut'): void {
+  public onPageChange(event: PageEvent, type: 'selected' | 'leftOut'): void {
     this.pageSize = event.pageSize;
     if (type === 'selected') {
       this.pageIndexSelected = event.pageIndex;
@@ -116,7 +127,7 @@ export class FoodCatalogueComponent {
     }
   }
 
-  private findPanelByFoodId(foodId: string): Promise<ElementRef | undefined> {
+  private findPanelByFoodId(foodId: number): Promise<ElementRef | undefined> {
     return new Promise((resolve) => {
       setTimeout(() => {
         const element = this.domElements.find((el) => el.nativeElement.getAttribute('data-food-id') === foodId);

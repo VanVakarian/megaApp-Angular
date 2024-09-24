@@ -120,7 +120,7 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
     };
   }
   // DIARY
-  diaryEntryExpanded(diaryEntry: MatExpansionPanel, diaryEntryId: string) {
+  diaryEntryExpanded(diaryEntry: MatExpansionPanel, diaryEntryId: number) {
     this.foodService.diaryEntryClickedFocus$.next(diaryEntryId);
     this.foodService.diaryEntryClickedScroll$.next(diaryEntry._body);
   }

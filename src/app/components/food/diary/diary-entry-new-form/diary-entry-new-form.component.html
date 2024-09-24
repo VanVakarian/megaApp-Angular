@@ -1,34 +1,58 @@
-<form [formGroup]="diaryEntryForm" (submit)="onSubmit()">
+<form
+  [formGroup]="diaryEntryForm"
+  (submit)="onSubmit()"
+>
   <mat-form-field appearance="outline">
     <mat-label>Еда:</mat-label>
 
-    <input #foodInputElem type="text" matInput [formControl]="food_name" required [matAutocomplete]="autoGroup" />
+    <input
+      #foodInputElem
+      type="text"
+      matInput
+      formControlName="foodName"
+      required
+      [matAutocomplete]="autoGroup"
+    />
 
     <button
-      type="button"
-      matSuffix
+      *ngIf="isFormValid()"
       mat-icon-button
-      *ngIf="food_name.value !== ''"
-      aria-label="Очистить"
-      (click)="food_name.reset()"
+      matSuffix
+      type="button"
+      (click)="onFoodSelect()"
     >
       <mat-icon>close</mat-icon>
     </button>
 
-    <mat-autocomplete #autoGroup="matAutocomplete" (optionSelected)="onFoodSelected($event)">
-      <mat-option *ngFor="let food of filteredCatalogue | async" [value]="food.name">
+    <mat-autocomplete
+      #autoGroup="matAutocomplete"
+      (optionSelected)="onFoodSelected($event)"
+    >
+      <mat-option
+        *ngFor="let food of filteredCatalogue$ | async"
+        [value]="food.name"
+      >
         {{ food.name }}
       </mat-option>
     </mat-autocomplete>
   </mat-form-field>
 
-  <!--
   <mat-form-field appearance="outline">
     <mat-label>Вес в граммах:</mat-label>
 
-    <input #weightInputElem matInput class="text-right" formControlName="food_weight" />
+    <input
+      #weightInputElem
+      matInput
+      class="text-right"
+      formControlName="food_weight"
+    />
 
-    <span matSuffix class="mx-2"> г. </span>
+    <span
+      matSuffix
+      class="mx-2"
+    >
+      г.
+    </span>
   </mat-form-field>
 
   <div class="flex w-full flex-row-reverse">
@@ -42,5 +66,4 @@
       Добавить
     </button>
   </div>
-  -->
 </form>
