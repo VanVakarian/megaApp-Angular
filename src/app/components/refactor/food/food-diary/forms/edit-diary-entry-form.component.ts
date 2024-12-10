@@ -3,7 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subscription, delay, filter, take } from 'rxjs';
 
 import { FoodService } from 'src/app/components/refactor/service/food.service';
-import { ConfirmationDialogService } from 'src/app/components/refactor/service/mat-dialog-modal.service';
+import { ConfirmationDialogModalService } from 'src/app/shared/dialog-modal/mat-dialog-modal.service';
 import { DiaryEntry, HistoryEntry, ServerResponse } from 'src/app/shared/interfaces';
 
 @Component({
@@ -26,7 +26,7 @@ export class EditDiaryEntryFormComponent implements OnChanges, OnDestroy {
   private editWeightPattern = /^[-+]?\d+$/; // Digits only with or without a plus or a minus
   private diaryEntryClickedSubscription: Subscription;
 
-  constructor(public foodService: FoodService, private confirmModal: ConfirmationDialogService) {
+  constructor(public foodService: FoodService, private confirmModal: ConfirmationDialogModalService) {
     this.diaryEntryClickedSubscription = this.foodService.diaryEntryClickedFocus$
       .pipe(
         filter((diaryEntryId) => this.diaryEntryForm.value.id === diaryEntryId),

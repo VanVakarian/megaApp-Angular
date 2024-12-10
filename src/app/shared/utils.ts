@@ -1,13 +1,33 @@
-import { FETCH_DAYS_RANGE_OFFSET } from 'src/app/shared/const';
+import { FETCH_DAYS_RANGE_OFFSET, USER_PREFERRED_MIDNIGHT_OFFSET_HOURS } from 'src/app/shared/const';
 
 export function getTodayIsoNoTimeNoTZ(): string {
   return dateToIsoNoTimeNoTZ(new Date().getTime());
 }
 
+// export function getTodayIsoNoTimeNoTZ(): string {
+//   const userPreferredMidnightOffsetHours = 5;
+//   const now = new Date();
+//   const offsetMilliseconds = userPreferredMidnightOffsetHours * 60 * 60 * 1000;
+//   const adjustedDate = new Date(now.getTime() - offsetMilliseconds);
+//   return dateToIsoNoTimeNoTZ(adjustedDate.getTime());
+// }
+
 export function dateToIsoNoTimeNoTZ(milliseconds: number): string {
-  // There was a more neat way (date.toISOString().slice(0,10)), but there were problems with TZs
   const date = new Date(milliseconds);
+  date.setHours(date.getHours() - USER_PREFERRED_MIDNIGHT_OFFSET_HOURS);
   return date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
+}
+
+// export function dateToIsoNoTimeNoTZ(milliseconds: number): string {
+//   // There was a more neat way (date.toISOString().slice(0,10)), but there were problems with TZs
+//   const date = new Date(milliseconds);
+//   return date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
+// }
+
+export function getAdjustedDate(date: Date): Date {
+  const adjustedDate = new Date(date.getTime());
+  adjustedDate.setHours(adjustedDate.getHours() - USER_PREFERRED_MIDNIGHT_OFFSET_HOURS);
+  return adjustedDate;
 }
 
 export function generateDatesList(inputDateIso: string): string[] {

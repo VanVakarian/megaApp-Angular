@@ -21,10 +21,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 
-// import { ConfirmationDialogService } from 'src/app/components/refactor/service/mat-dialog-modal.service';
 import { FoodService } from 'src/app/services/food.service';
 import { KeyboardService } from 'src/app/services/keyboard.service';
 import { DiaryEntry, HistoryEntry, DiaryEntryEdit, ServerResponse } from 'src/app/shared/interfaces';
+import { ConfirmationDialogModalService } from 'src/app/shared/dialog-modal/mat-dialog-modal.service';
 
 @Component({
   selector: 'app-diary-entry-edit-form',
@@ -48,20 +48,31 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
 
   @ViewChild('foodWeightChangeElem') foodWeightChangeElem!: ElementRef;
 
-  oldWeightDescriptionString: string = '';
-  errorMessageText: string = '';
-  errorMessageShow: boolean = false;
+  public oldWeightDescriptionString: string = '';
+  public errorMessageText: string = '';
+  public errorMessageShow: boolean = false;
 
-  showHistory: boolean = false;
+  public showHistory: boolean = false;
   private historyAction: 'set' | 'add' | 'subtract' = 'set';
 
   private newWeightPattern = /^(?!0+$)\d+$/; // Digits only, but not zero
   private editWeightPattern = /^[-+]?\d+$/; // Digits only with or without a plus or a minus
   private diaryEntryClickedSubscription: Subscription;
 
+  public diaryEntryForm: FormGroup = new FormGroup({
+    id: new FormControl(0),
+    date: new FormControl(''),
+    foodCatalogueId: new FormControl(0),
+    foodWeight: new FormControl(null),
+    foodWeightInitial: new FormControl(0),
+    foodWeightNew: new FormControl(null, [Validators.pattern(this.newWeightPattern)]),
+    foodWeightChange: new FormControl(null, [Validators.pattern(this.editWeightPattern)]),
+    foodWeightFinal: new FormControl(0),
+  });
+
   constructor(
     public foodService: FoodService,
-    // private confirmModal: ConfirmationDialogService,
+    private confirmModal: ConfirmationDialogModalService,
     private keyboardService: KeyboardService,
   ) {
     this.diaryEntryClickedSubscription = this.foodService.diaryEntryClickedFocus$
@@ -73,18 +84,22 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
         this.foodWeightChangeElem.nativeElement.focus();
       });
   }
-  diaryEntryForm: FormGroup = new FormGroup({
-    id: new FormControl(0),
-    date: new FormControl(''),
-    foodCatalogueId: new FormControl(0),
-    foodWeight: new FormControl(null),
-    foodWeightInitial: new FormControl(0),
-    foodWeightNew: new FormControl(null, [Validators.pattern(this.newWeightPattern)]),
-    foodWeightChange: new FormControl(null, [Validators.pattern(this.editWeightPattern)]),
-    foodWeightFinal: new FormControl(0),
-  });
 
-  isFormValid(): boolean {
+  public ngOnInit(): void { }
+
+  public ngOnChanges(): void {
+    if (this.diaryEntry) {
+      this.diaryEntryForm.patchValue(this.diaryEntry);
+      this.diaryEntryForm.get('foodWeightInitial')?.setValue(this.diaryEntry.foodWeight);
+      this.oldWeightDescriptionString = `${this.diaryEntry.foodWeight} г.`;
+    }
+  }
+
+  public ngOnDestroy(): void {
+    this.diaryEntryClickedSubscription.unsubscribe();
+  }
+
+  public isFormValid(): boolean {
     return (
       this.diaryEntryForm.valid &&
       this.diaryEntryForm.value.foodWeightInitial !== this.diaryEntryForm.value.foodWeightNew &&
@@ -92,11 +107,11 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
     );
   }
 
-  get toDoIHaveNoIdeaHowToNameThis01() {
+  public get toDoIHaveNoIdeaHowToNameThis01() {
     return this.foodService.catalogue$$()?.[this.diaryEntryForm.get('foodCatalogueId')?.value]?.name;
   }
 
-  onNewWeightInput() {
+  public onNewWeightInput() {
     this.diaryEntryForm.get('foodWeightChange')?.setValue(null);
     const newWeight = this.diaryEntryForm.value.foodWeightNew;
     if (this.newWeightPattern.test(newWeight)) {
@@ -110,7 +125,7 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
     }
   }
 
-  onChangeWeightInput() {
+  public onChangeWeightInput() {
     this.diaryEntryForm.get('foodWeightNew')?.setValue(null);
     const foorWeightChangeStr = this.diaryEntryForm.value.foodWeightChange;
     const foodWeightChangeInt = parseInt(foorWeightChangeStr);
@@ -140,7 +155,7 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
     }
   }
 
-  onSubmit(): void {
+  public onSubmit(): void {
     const weightChange = this.diaryEntryForm.value.foodWeightChange;
     // console.log('tempdel01, weightChange:', weightChange);
     this.historyAction = weightChange ? (String(weightChange).includes('-') ? 'subtract' : 'add') : 'set';
@@ -153,53 +168,53 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
       history: [history],
     };
     // console.log('tempdel02, preppedFormValues:', preppedFormValues);
-    this.foodService.editDiaryEntry(preppedFormValues).subscribe({
-      next: () => {
-        this.diaryEntryForm.enable();
-        this.diaryEntryForm.reset();
-        this.onServerSuccessfullEditResponse.emit();
-      },
-      error: () => this.diaryEntryForm.enable(),
-    });
+    // this.foodService.editDiaryEntry(preppedFormValues).subscribe({
+    //   next: () => {
+    //     this.diaryEntryForm.enable();
+    //     this.diaryEntryForm.reset();
+    //     this.onServerSuccessfullEditResponse.emit();
+    //   },
+    //   error: () => this.diaryEntryForm.enable(),
+    // });
   }
 
-  openConfirmationModal(actionQuestion: string): void {
-    // this.confirmModal
-    //   .openModal(actionQuestion)
-    //   .pipe(take(1))
-    //   .subscribe((result) => {
-    //     if (result) {
-    //       this.onDelete();
+  public openConfirmationModal(actionQuestion: string): void {
+    this.confirmModal
+      .openModal(actionQuestion)
+      .pipe(take(1))
+      .subscribe((result) => {
+        if (result) {
+          this.onDelete();
+        }
+      });
+  }
+
+  public onDelete(): void {
+    this.diaryEntryForm.disable();
+    // this.foodService.postRequestResult$.pipe(take(1)).subscribe((response) => {
+    //   if (response.result) {
+    //     if (response.value) {
+    //       const diaryEntryId: number = parseInt(response.value);
+    //       this.foodService.diary$$.update((diary) => {
+    //         delete diary[this.diaryEntryForm.value.date]['food'][diaryEntryId];
+    //         return diary;
+    //       });
     //     }
-    //   });
+    //     this.diaryEntryForm.enable();
+    //   } else {
+    //     this.diaryEntryForm.enable();
+    //   }
+    // });
+
+    // this.foodService.deleteDiaryEntry(this.diaryEntryForm.value.id as number);
   }
-
-  //   onDelete(): void {
-  //     this.diaryEntryForm.disable();
-  //     this.foodService.postRequestResult$.pipe(take(1)).subscribe((response) => {
-  //       if (response.result) {
-  //         if (response.value) {
-  //           const diaryEntryId: number = parseInt(response.value);
-  //           this.foodService.diary$$.update((diary) => {
-  //             delete diary[this.diaryEntryForm.value.date]['food'][diaryEntryId];
-  //             return diary;
-  //           });
-  //         }
-  //         this.diaryEntryForm.enable();
-  //       } else {
-  //         this.diaryEntryForm.enable();
-  //       }
-  //     });
-
-  //     this.foodService.deleteDiaryEntry(this.diaryEntryForm.value.id as number);
-  //   }
 
   // HISTORY
-  toggleHistory() {
+  public toggleHistory() {
     this.showHistory = !this.showHistory;
   }
 
-  formHistoryEntry(historyEntry: HistoryEntry) {
+  public formHistoryEntry(historyEntry: HistoryEntry) {
     switch (historyEntry.action) {
       case 'init':
         return `Запись создана с весом ${historyEntry.value} г.`;
@@ -212,7 +227,7 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
     }
   }
 
-  chooseIconForHistoryEntry(historyEntry: HistoryEntry) {
+  public chooseIconForHistoryEntry(historyEntry: HistoryEntry) {
     switch (historyEntry.action) {
       case 'init':
         return 'grade';
@@ -225,26 +240,11 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
     }
   }
 
-  onFocus() {
+  public onFocus() {
     this.keyboardService.setInputFocus(true); // turning off keyboard operation
   }
 
-  onBlur() {
+  public onBlur() {
     this.keyboardService.setInputFocus(false); // turning keyboard operation back on
-  }
-
-  // LIFECYCLE HOOKS
-  ngOnInit(): void {}
-
-  ngOnChanges(): void {
-    if (this.diaryEntry) {
-      this.diaryEntryForm.patchValue(this.diaryEntry);
-      this.diaryEntryForm.get('foodWeightInitial')?.setValue(this.diaryEntry.foodWeight);
-      this.oldWeightDescriptionString = `${this.diaryEntry.foodWeight} г.`;
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.diaryEntryClickedSubscription.unsubscribe();
   }
 }

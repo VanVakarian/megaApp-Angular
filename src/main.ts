@@ -1,9 +1,11 @@
-import { bootstrapApplication } from '@angular/platform-browser';
+import { HashLocationStrategy, LocationStrategy } from '@angular/common';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { importProvidersFrom } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { LocationStrategy, HashLocationStrategy } from '@angular/common';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { bootstrapApplication } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { provideRouter } from '@angular/router';
+
+import { MatDialogModule } from '@angular/material/dialog';
 
 import { routes } from 'src/app/app-routes';
 import { MainAppComponent } from 'src/app/app.component';
@@ -30,6 +32,7 @@ bootstrapApplication(MainAppComponent, {
           ],
         },
       }),
+      MatDialogModule,
     ),
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
   ],

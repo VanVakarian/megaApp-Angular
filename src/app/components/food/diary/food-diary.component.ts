@@ -45,13 +45,13 @@ import { DiaryEntry, FormattedDiaryEntry } from 'src/app/shared/interfaces';
   ],
   templateUrl: './food-diary.component.html',
   styleUrl: './food-diary.component.scss',
-  animations: [
-    trigger('rotateIcon', [
-      state('closed', style({ transform: 'rotate(0deg)' })),
-      state('open', style({ transform: 'rotate(45deg)' })),
-      transition('closed <=> open', animate('300ms ease-out')),
-    ]),
-  ],
+  // animations: [
+  //   trigger('rotateIcon', [
+  //     state('closed', style({ transform: 'rotate(0deg)' })),
+  //     state('open', style({ transform: 'rotate(45deg)' })),
+  //     transition('closed <=> open', animate('300ms ease-out')),
+  //   ]),
+  // ],
 })
 export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatAccordion) foodAccordion!: MatAccordion;
@@ -78,20 +78,37 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
     public foodService: FoodService,
     // private cdRef: ChangeDetectorRef,
     private ngZone: NgZone,
-  ) {}
+  ) { }
 
-  get todaysKcalsPercent() {
+  public ngOnInit(): void {
+    // setTimeout(() => {
+    //   this.foodService.getFoodDiary('2024-06-20', 2).subscribe();
+    // }, 3333);
+    //   this.daysList = generateDatesList(this.selectedDateISO);
+  }
+
+  public ngAfterViewInit(): void {
+    // setting columns width
+    combineLatest([this.weightsDivs.changes, this.kcalsDivs.changes, this.percentsDivs.changes]).subscribe(() =>
+      this.adjustWidths(),
+    );
+    setTimeout(() => this.adjustWidths(), 100);
+  }
+
+  public ngOnDestroy(): void { }
+
+  public get todaysKcalsPercent() {
     return this.foodService.diaryFormatted$$()?.[this.selectedDateIso]?.['kcalsPercent'] ?? 0;
   }
 
-  get todaysFood() {
+  public get todaysFood() {
     const selectedDay = this.foodService.selectedDayIso$$();
     // console.log('selectedDay:', selectedDay);
     const todaysFood = this.foodService.diaryFormatted$$()?.[selectedDay]?.food;
 
     if (todaysFood) {
       const foodArray = Object.values(todaysFood);
-      foodArray.sort((a: FormattedDiaryEntry, b: FormattedDiaryEntry) => a.date - b.date);
+      // foodArray.sort((a: FormattedDiaryEntry, b: FormattedDiaryEntry) => a.dateISO - b.dateISO);
       // console.log('Sorted todaysFood:', foodArray);
       return foodArray;
     }
@@ -99,20 +116,20 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
     return [];
   }
 
-  get selectedDateIso() {
+  private get selectedDateIso() {
     return this.foodService.selectedDayIso$$();
   }
-  get todaysKcalsEaten() {
+  public get todaysKcalsEaten() {
     return this.foodService.diaryFormatted$$()?.[this.selectedDateIso]?.['kcalsEaten'];
   }
-  get todaysTargetKcals() {
+  public get todaysTargetKcals() {
     return this.foodService.diary$$()?.[this.selectedDateIso]?.['targetKcals'];
   }
-  get formatSelectedDaysEatenPercent(): number {
+  public get formatSelectedDaysEatenPercent(): number {
     return Math.round(this.foodService.diaryFormatted$$()?.[this.selectedDateIso]?.['kcalsPercent'] * 10) / 10;
   }
 
-  // // VIEW FNs
+  // VIEW FNs
   public setBackgroundStyle(percent: number) {
     const percentCapped = percent <= 100 ? percent : 100;
     return {
@@ -120,7 +137,7 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
     };
   }
   // DIARY
-  diaryEntryExpanded(diaryEntry: MatExpansionPanel, diaryEntryId: number) {
+  public diaryEntryExpanded(diaryEntry: MatExpansionPanel, diaryEntryId: number) {
     this.foodService.diaryEntryClickedFocus$.next(diaryEntryId);
     this.foodService.diaryEntryClickedScroll$.next(diaryEntry._body);
   }
@@ -174,20 +191,4 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
     this.foodAccordion.closeAll();
   }
 
-  ngOnInit(): void {
-    // setTimeout(() => {
-    //   this.foodService.getFoodDiary('2024-06-20', 2).subscribe();
-    // }, 3333);
-    //   this.daysList = generateDatesList(this.selectedDateISO);
-  }
-
-  ngAfterViewInit(): void {
-    // setting columns width
-    combineLatest([this.weightsDivs.changes, this.kcalsDivs.changes, this.percentsDivs.changes]).subscribe(() =>
-      this.adjustWidths(),
-    );
-    setTimeout(() => this.adjustWidths(), 100);
-  }
-
-  ngOnDestroy(): void {}
 }

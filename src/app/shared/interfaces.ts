@@ -27,7 +27,7 @@ export interface ServerResponseWithMessage extends ServerResponse {
 }
 
 export interface ServerResponseWithDiaryId extends ServerResponse {
-  diaryId?: number;
+  diaryId: number;
 }
 
 export interface ServerResponseWithCatalogueEntry extends ServerResponse {
@@ -54,14 +54,9 @@ export type LocalStorageSettings = Settings | null;
 
 // FOOD ////////////////////////////////////////////////////////////////////////
 
-export interface HistoryEntry {
-  action: 'init' | 'set' | 'add' | 'subtract';
-  value: number;
-}
-
 export interface DiaryEntry {
   id: number;
-  date: number;
+  dateISO: string;
   foodCatalogueId: number;
   foodWeight: number;
   history: HistoryEntry[];
@@ -74,7 +69,7 @@ export interface DiaryEntryEdit {
 }
 
 export interface Diary {
-  [date: string]: {
+  [dateISO: string]: {
     ['food']: {
       [id: number]: DiaryEntry;
     };
@@ -85,7 +80,7 @@ export interface Diary {
 
 export interface FormattedDiaryEntry {
   id: number;
-  date: number;
+  dateISO: string;
   foodCatalogueId: number;
   foodWeight: number;
   history: HistoryEntry[];
@@ -95,10 +90,15 @@ export interface FormattedDiaryEntry {
   foodKcalPercentageOfDaysNorm: number;
 }
 
+export interface HistoryEntry {
+  action: 'init' | 'set' | 'add' | 'subtract';
+  value: number;
+}
+
 export interface FormattedDiary {
   [date: string]: {
     ['food']: {
-      [id: string]: FormattedDiaryEntry;
+      [id: number]: FormattedDiaryEntry;
     };
     ['bodyWeight']: number | null;
     ['targetKcals']: number;

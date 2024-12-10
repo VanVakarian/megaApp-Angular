@@ -156,7 +156,7 @@ export const yearsDeclentions: Declentions = {
   10: 'лет',
 };
 
-export const enRuTranslation: { [key: string]: string } = {
+export const enRuTranslation: { [key: string]: string; } = {
   '`': 'ё',
   'q': 'й',
   'w': 'ц',
@@ -190,4 +190,6 @@ export const enRuTranslation: { [key: string]: string } = {
   'm': 'ь',
   ',': 'б',
   '.': 'ю',
-}
+};
+
+export const USER_PREFERRED_MIDNIGHT_OFFSET_HOURS = 5;

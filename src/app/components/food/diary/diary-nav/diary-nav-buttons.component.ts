@@ -13,7 +13,7 @@ import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { FoodService } from 'src/app/services/food.service';
 import { KeyboardService } from 'src/app/services/keyboard.service';
-import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
+import { dateToIsoNoTimeNoTZ, getAdjustedDate } from 'src/app/shared/utils';
 
 @Component({
   selector: 'app-diary-nav-buttons',
@@ -31,13 +31,13 @@ import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
   styleUrl: './diary-nav-buttons.component.scss',
 })
 export class DiaryNavButtonsComponent implements OnInit, OnDestroy {
-  today: Date = new Date();
-  todayDate: number = this.today.setHours(0, 0, 0, 0);
-  selectedDateMs: number = this.todayDate;
 
-  calendarSelectedDay: FormControl = new FormControl(new Date());
-
+  public today: Date = getAdjustedDate(new Date());
+  private todayDate: number = this.today.getTime();
+  private selectedDateMs: number = this.todayDate;
+  public calendarSelectedDay: FormControl = new FormControl(this.today);
   private keyboardSubscription!: Subscription;
+
 
   constructor(
     private keyboardService: KeyboardService,
@@ -53,62 +53,59 @@ export class DiaryNavButtonsComponent implements OnInit, OnDestroy {
     });
   }
 
-  get isAuthenticated() {
+  public ngOnInit(): void { }
+
+  public ngOnDestroy(): void {
+    this.keyboardSubscription.unsubscribe();
+  }
+
+
+  public get isAuthenticated() {
     return this.authService.isAuthenticated;
   }
 
-  get selectedDateIso() {
+  public get selectedDateIso() {
     return this.foodService.selectedDayIso$$();
   }
 
-  formatDate(dateIso: string): string {
+  public formatDate(dateIso: string): string {
     const date = new Date(dateIso);
     const result = date.toLocaleDateString('ru-RU', { weekday: 'long', month: 'long', day: 'numeric' });
     return result[0].toUpperCase() + result.slice(1);
   }
 
-  previousDay() {
+  public previousDay() {
     this.switchCurrentDay(-1);
   }
 
-  nextDay() {
+  public nextDay() {
     if (!this.isLastDay()) {
       this.switchCurrentDay(1);
     }
   }
 
-  switchCurrentDay(shift: number) {
-    const newDay = new Date(this.selectedDateMs);
-    newDay.setDate(newDay.getDate() + shift);
-    this.selectedDateMs = newDay.getTime();
-    this.foodService.selectedDayIso$$.set(dateToIsoNoTimeNoTZ(this.selectedDateMs));
-    this.calendarSelectedDay.setValue(new Date(this.selectedDateMs));
-
+  private switchCurrentDay(shift: number) {
+    const newDate = new Date(this.selectedDateMs);
+    newDate.setDate(newDate.getDate() + shift);
+    this.selectedDateMs = newDate.getTime();
+    const newDateIso = dateToIsoNoTimeNoTZ(this.selectedDateMs);
+    this.foodService.selectedDayIso$$.set(newDateIso);
+    this.calendarSelectedDay.setValue(getAdjustedDate(newDate));
     // this.regenerateDaysList();
   }
 
-  ngOnInit(): void {}
-
-  ngOnDestroy(): void {
-    this.keyboardSubscription.unsubscribe();
-  }
-
-  onDatePicked(event: MatDatepickerInputEvent<Date>) {
+  public onDatePicked(event: MatDatepickerInputEvent<Date>) {
     if (!event.value) {
       return;
     }
-
-    const newDateMs = event.value.getTime();
-
-    // this.cdRef.detectChanges();
-    this.selectedDateMs = newDateMs;
-    this.foodService.selectedDayIso$$.set(dateToIsoNoTimeNoTZ(newDateMs));
-    // this.selectedDateISO = dateToIsoNoTimeNoTZ(newDateMs);
-
+    this.selectedDateMs = event.value.getTime();
+    const newDateIso = dateToIsoNoTimeNoTZ(this.selectedDateMs);
+    this.foodService.selectedDayIso$$.set(newDateIso);
     // this.regenerateDaysList();
   }
 
-  isLastDay(): boolean {
+
+  public isLastDay(): boolean {
     return this.today.getTime() === this.selectedDateMs;
   }
 }

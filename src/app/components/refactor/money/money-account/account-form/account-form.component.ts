@@ -5,7 +5,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Account, Bank, Currency } from 'src/app/shared/interfaces';
 import { DataSharingService } from 'src/app/components/refactor/service/data-sharing.service';
 import { UtilsService } from 'src/app/components/refactor/service/utils.service';
-import { ConfirmationDialogService } from 'src/app/components/refactor/service/mat-dialog-modal.service';
+import { ConfirmationDialogModalService } from 'src/app/shared/dialog-modal/mat-dialog-modal.service';
 import { MoneyService } from 'src/app/components/refactor/service/money.service';
 
 @Component({
@@ -38,7 +38,7 @@ export class AccountFormComponent implements OnInit, OnChanges, OnDestroy {
   constructor(
     private dataSharingService: DataSharingService,
     private utils: UtilsService,
-    private confirmModal: ConfirmationDialogService,
+    private confirmModal: ConfirmationDialogModalService,
     public moneyService: MoneyService
   ) {
     this.accountClickedSubscription = this.dataSharingService.accountClicked$.subscribe(async (accountId) => {

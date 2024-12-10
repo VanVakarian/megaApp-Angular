@@ -1,6 +1,9 @@
 <div class="flex w-full gap-2">
   <div class="hidden lg:block">
-    <button class="diary-day-switch-button w-9" mat-raised-button color="primary" (click)="previousDay()">
+    <button class="diary-day-switch-button w-9"
+            mat-raised-button
+            color="primary"
+            (click)="previousDay()">
       <mat-icon class="diary-day-switch-button-icon scale-125">chevron_left</mat-icon>
     </button>
   </div>
@@ -12,50 +15,57 @@
   </div>
 
   <div class="hidden flex-col lg:flex">
-    <button class="diary-day-switch-button w-9" mat-raised-button color="primary" (click)="pickerDesktop.open()">
+    <button class="diary-day-switch-button w-9"
+            mat-raised-button
+            color="primary"
+            (click)="pickerDesktop.open()">
       <mat-icon class="diary-day-switch-button-icon scale-125">calendar_month</mat-icon>
     </button>
 
     <mat-form-field class="h-0 w-0">
-      <input
-        matInput
-        [matDatepicker]="pickerDesktop"
-        [formControl]="calendarSelectedDay"
-        (dateChange)="onDatePicked($event)"
-        [max]="today"
-      />
+      <input matInput
+             [matDatepicker]="pickerDesktop"
+             [formControl]="calendarSelectedDay"
+             (dateChange)="onDatePicked($event)"
+             [max]="today" />
       <mat-datepicker-toggle [for]="pickerDesktop" />
       <mat-datepicker #pickerDesktop />
     </mat-form-field>
   </div>
 
   <div class="hidden lg:block">
-    <button
-      class="diary-day-switch-button w-9"
-      mat-raised-button
-      color="primary"
-      (click)="nextDay()"
-      [disabled]="isLastDay()"
-    >
+    <button class="diary-day-switch-button w-9"
+            mat-raised-button
+            color="primary"
+            (click)="nextDay()"
+            [disabled]="isLastDay()">
       <mat-icon class="diary-day-switch-button-icon scale-125">chevron_right</mat-icon>
     </button>
   </div>
 </div>
 
-<div
-  *ngIf="isAuthenticated"
-  class="fixed bottom-0 left-0 flex w-full justify-between gap-5 px-4 pb-4 lg:hidden"
-  style="z-index: 10"
->
-  <button class="scale-100" mat-fab color="primary" (click)="previousDay()">
+<div *ngIf="isAuthenticated"
+     class="fixed bottom-0 left-0 flex w-full justify-between gap-5 px-4 pb-4 lg:hidden"
+     style="z-index: 10">
+  <button class="scale-100"
+          mat-fab
+          color="primary"
+          (click)="previousDay()">
     <mat-icon class="scale-150">chevron_left</mat-icon>
   </button>
 
-  <button class="scale-100" mat-fab color="primary" (click)="pickerTouch.open()">
+  <button class="scale-100"
+          mat-fab
+          color="primary"
+          (click)="pickerTouch.open()">
     <mat-icon class="scale-150">calendar_month</mat-icon>
   </button>
 
-  <button class="scale-100" mat-fab color="primary" (click)="nextDay()" [disabled]="isLastDay()">
+  <button class="scale-100"
+          mat-fab
+          color="primary"
+          (click)="nextDay()"
+          [disabled]="isLastDay()">
     <mat-icon class="scale-150">chevron_right</mat-icon>
   </button>
 
@@ -65,13 +75,12 @@
 </div>
 
 <mat-form-field class="hide-form">
-  <input
-    matInput
-    [matDatepicker]="pickerTouch"
-    [formControl]="calendarSelectedDay"
-    (dateChange)="onDatePicked($event)"
-    [max]="today"
-  />
+  <input matInput
+         [matDatepicker]="pickerTouch"
+         [formControl]="calendarSelectedDay"
+         (dateChange)="onDatePicked($event)"
+         [max]="today" />
   <mat-datepicker-toggle [for]="pickerTouch" />
-  <mat-datepicker touchUi #pickerTouch />
+  <mat-datepicker touchUi
+                  #pickerTouch />
 </mat-form-field>

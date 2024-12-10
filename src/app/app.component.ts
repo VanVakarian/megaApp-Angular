@@ -1,23 +1,32 @@
 import { Component, OnInit } from '@angular/core';
 import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
-import { RouterOutlet } from '@angular/router';
-
 import { MatPaginatorIntl } from '@angular/material/paginator';
+import { RouterOutlet } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 
-import { NavbarMobileComponent } from 'src/app/components/main-menu/navbar-mobile/navbar-mobile.component';
 import { NavbarDesktopComponent } from 'src/app/components/main-menu/navbar-desktop/navbar-desktop.component';
+import { NavbarMobileComponent } from 'src/app/components/main-menu/navbar-mobile/navbar-mobile.component';
+import { PaginatorLocalisation } from 'src/app/paginator-localisation';
 import { AuthService } from 'src/app/services/auth.service';
-import { SettingsService } from 'src/app/services/settings.service';
 import { NetworkMonitor } from 'src/app/services/network-monitor.service';
-// import { ActionService } from 'src/app/services/action.service';
-import { PaginatorLocalisation } from './paginator-localisation';
+import { SettingsService } from 'src/app/services/settings.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [NavbarMobileComponent, NavbarDesktopComponent, RouterOutlet, MatNativeDateModule],
+  imports: [
+    NavbarMobileComponent,
+    NavbarDesktopComponent,
+    RouterOutlet,
+    MatNativeDateModule,
+  ],
   templateUrl: './app.component.html',
-  providers: [{ provide: MatPaginatorIntl, useClass: PaginatorLocalisation }],
+  providers: [
+    {
+      provide: MatPaginatorIntl,
+      useClass: PaginatorLocalisation
+    },
+  ],
 })
 export class MainAppComponent implements OnInit {
   constructor(
@@ -25,18 +34,19 @@ export class MainAppComponent implements OnInit {
     public authService: AuthService,
     private settingsService: SettingsService,
     public networkMonitorService: NetworkMonitor,
-    // public actionService: ActionService,
   ) {
     this.authService.initCheckToken();
     this.networkMonitorService.initNetworkEvents();
-    // this.actionService.initService();
   }
 
   ngOnInit(): void {
-    // making monday to be the first day of the week in a calendar
+    this.makeMondayFirstDayOfWeek();
+
+    firstValueFrom(this.settingsService.getSettings());
+  }
+
+  private makeMondayFirstDayOfWeek() {
     this.dateAdapter.setLocale('ru-RU');
     this.dateAdapter.getFirstDayOfWeek = () => 1;
-
-    this.settingsService.getSettings().subscribe();
   }
 }

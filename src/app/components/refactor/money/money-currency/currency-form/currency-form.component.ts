@@ -4,7 +4,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { Currency } from 'src/app/shared/interfaces';
 import { DataSharingService } from 'src/app/components/refactor/service/data-sharing.service';
-import { ConfirmationDialogService } from 'src/app/components/refactor/service/mat-dialog-modal.service';
+import { ConfirmationDialogModalService } from 'src/app/shared/dialog-modal/mat-dialog-modal.service';
 import { UtilsService } from 'src/app/components/refactor/service/utils.service';
 import { MoneyService } from 'src/app/components/refactor/service/money.service';
 
@@ -31,7 +31,7 @@ export class CurrencyFormComponent implements OnInit, OnDestroy {
 
   constructor(
     private dataSharingService: DataSharingService,
-    private confirmModal: ConfirmationDialogService,
+    private confirmModal: ConfirmationDialogModalService,
     private utils: UtilsService,
     public moneyService: MoneyService
   ) {

@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { ConfirmationDialogService } from 'src/app/components/refactor/service/mat-dialog-modal.service';
+import { ConfirmationDialogModalService } from 'src/app/shared/dialog-modal/mat-dialog-modal.service';
 import { MoneyService } from 'src/app/components/refactor/service/money.service';
 import { Account, Transaction } from 'src/app/shared/interfaces';
 
@@ -20,7 +20,7 @@ export class TransactionTransferForm implements OnInit, OnDestroy {
   chosenTargetAccountsCurrencySymbol = '';
   chosenTargetAccountsCurrencyPosition = '';
 
-  constructor(private confirmModal: ConfirmationDialogService, public moneyService: MoneyService) {}
+  constructor(private confirmModal: ConfirmationDialogModalService, public moneyService: MoneyService) {}
 
   transactionForm = new FormGroup({
     id: new FormControl(0),
