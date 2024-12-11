@@ -1,3 +1,4 @@
+import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -9,20 +10,19 @@ import {
   ViewChild,
   computed,
 } from '@angular/core';
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatButtonModule } from '@angular/material/button';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
 
-import { Observable, Subject, Subscription, firstValueFrom, map, startWith, take } from 'rxjs';
+import { Subject, Subscription, firstValueFrom } from 'rxjs';
 
 import { FoodService } from 'src/app/services/food.service';
-import { CatalogueEntry, DiaryEntry, DiaryEntryEdit } from 'src/app/shared/interfaces';
+import { CatalogueEntry, DiaryEntry } from 'src/app/shared/interfaces';
 
 @Component({
   selector: 'app-diary-entry-new-form',
@@ -60,7 +60,7 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
 
   // A custom validator that checks whether the value exists in the given names array.
   private customCatalogueNameValidator(names: string[]): ValidatorFn {
-    return (control: AbstractControl): { [key: string]: any } | null => {
+    return (control: AbstractControl): { [key: string]: any; } | null => {
       const forbidden = !names.includes(control.value);
       return forbidden ? { forbiddenName: { value: control.value } } : null;
     };

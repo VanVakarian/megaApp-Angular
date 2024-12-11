@@ -1,14 +1,14 @@
-<div class="mb-4 hidden lg:block">
+<div class="lg:block hidden mb-4">
   <mat-card>
-    <div class="my-2 w-full text-center text-xl font-semibold">Дневник</div>
+    <div class="w-full my-2 text-xl font-semibold text-center">Дневник</div>
   </mat-card>
 </div>
 
-<div class="flex flex-col gap-2 overflow-y-auto p-1">
+<div class="flex flex-col gap-2 p-1 overflow-y-auto">
   <div class="">
     <mat-accordion>
       <div class="flex gap-2">
-        <div class="mb-2 w-full">
+        <div class="w-full mb-2">
           <app-diary-nav-buttons></app-diary-nav-buttons>
         </div>
       </div>
@@ -17,7 +17,7 @@
                            class="sub-expansion-panel-38px-50px expansion-panel-rounded">
         <mat-expansion-panel-header class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
                                     [ngStyle]="setBackgroundStyle(todaysKcalsPercent)">
-          <div class="overflow-hidden whitespace-nowrap text-center">
+          <div class="whitespace-nowrap overflow-hidden text-center">
             Съедено {{ todaysKcalsEaten }} ккал. от нормы
             {{ todaysTargetKcals }}
             ({{ formatSelectedDaysEatenPercent }}%)
@@ -36,9 +36,9 @@
       <div class="mb-1"></div>
 
       <div #foodCont
-           class="tw-bg-color flex w-full gap-1 overflow-hidden whitespace-nowrap text-base font-normal">
+           class="tw-bg-color whitespace-nowrap flex w-full gap-1 overflow-hidden text-base font-normal">
         <div #foodName
-             class="tw-card-food-entry grow overflow-hidden whitespace-nowrap text-center">
+             class="tw-card-food-entry grow whitespace-nowrap overflow-hidden text-center">
           Блюдо:
         </div>
 
@@ -59,42 +59,42 @@
       </div>
 
       @for (food of todaysFood; track food.id; let first = $first; let last = $last) {
-      <mat-expansion-panel #diaryEntry
-                           class="sub-expansion-panel-38px-50px"
-                           [class.first-in-group]="first"
-                           [class.last-in-group]="last"
-                           (opened)="diaryEntryExpanded(diaryEntry, food.id)">
-        <mat-expansion-panel-header class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
-                                    [ngStyle]="setBackgroundStyle(food.foodKcalPercentageOfDaysNorm)">
-          <mat-panel-title class="mat-panel-title-margin-remove">
-            <div #foodCont
-                 class="flex w-full gap-1 overflow-hidden whitespace-nowrap text-base font-normal">
-              <div #foodName
-                   class="tw-card-food-entry grow overflow-hidden whitespace-nowrap">
-                {{ food.foodName }}
-              </div>
+        <mat-expansion-panel #diaryEntry
+                             class="sub-expansion-panel-38px-50px"
+                             [class.first-in-group]="first"
+                             [class.last-in-group]="last"
+                             (opened)="diaryEntryExpanded(diaryEntry, food.id)">
+          <mat-expansion-panel-header class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
+                                      [ngStyle]="setBackgroundStyle(food.foodKcalPercentageOfDaysNorm)">
+            <mat-panel-title class="mat-panel-title-margin-remove">
+              <div #foodCont
+                   class="whitespace-nowrap flex w-full gap-1 overflow-hidden text-base font-normal">
+                <div #foodName
+                     class="tw-card-food-entry grow whitespace-nowrap overflow-hidden">
+                  {{ food.foodName }}
+                </div>
 
-              <div #foodWeight
-                   class="text-right">
-                {{ food.foodWeight }}<span class="text-xs"> Г.</span>
-              </div>
+                <div #foodWeight
+                     class="text-right">
+                  {{ food.foodWeight }}<span class="text-xs"> Г.</span>
+                </div>
 
-              <div #foodKcals
-                   class="text-right">
-                {{ food.foodKcals }}
-              </div>
+                <div #foodKcals
+                     class="text-right">
+                  {{ food.foodKcals }}
+                </div>
 
-              <div #foodPercent
-                   class="text-right">
-                {{ food.foodPercent }}<span class="text-xs">%</span>
+                <div #foodPercent
+                     class="text-right">
+                  {{ food.foodPercent }}<span class="text-xs">%</span>
+                </div>
               </div>
-            </div>
-          </mat-panel-title>
-        </mat-expansion-panel-header>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
 
-        <app-diary-entry-edit-form [diaryEntry]="food"
-                                   (onServerSuccessfullEditResponse)="accordionCollapse()"></app-diary-entry-edit-form>
-      </mat-expansion-panel>
+          <app-diary-entry-edit-form [diaryEntry]="food"
+                                     (onServerSuccessfullEditResponse)="accordionCollapse()"></app-diary-entry-edit-form>
+        </mat-expansion-panel>
       }
 
       <div class="mb-2"></div>
@@ -105,7 +105,7 @@
                                     class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease add-panel-header">
           <!-- TODO: Think of a way to put text here upon panel expending -->
           <div class="add-icon-container w-fit">
-            <!-- <div class="mb-4 text-center text-xl font-medium">Добавление записи</div> -->
+            <!-- <div class="mb-4 text-xl font-medium text-center">Добавление записи</div> -->
             <mat-icon class="add-icon relative top-[2px] scale-150">add</mat-icon>
           </div>
         </mat-expansion-panel-header>
@@ -130,7 +130,7 @@
 
 <!--
 <div
-  class="fixed bottom-6 left-6"
+  class="bottom-6 left-6 fixed"
   style="z-index: 10"
 >
   <button
@@ -147,16 +147,16 @@
 <!--
 <div
   *ngIf="showFloatingWindow"
-  class="fixed left-0 top-0 flex h-full flex-col bg-gray-700 bg-opacity-50 px-8 pt-2"
+  class="fixed top-0 left-0 flex flex-col h-full px-8 pt-2 bg-gray-700 bg-opacity-50"
   style="z-index: 90"
   (click)="showFloatingWindow = false"
 >
   <div (click)="$event.stopPropagation()">
     <mat-card
-      class="h-full w-full p-4"
+      class="w-full h-full p-4"
       [@flyInOut]
     >
-      <div class="mb-4 text-center text-xl font-medium">Добавление записи</div>
+      <div class="mb-4 text-xl font-medium text-center">Добавление записи</div>
 
       <app-new-diary-entry-form
         [selectedDateISO]="selectedDateISO"

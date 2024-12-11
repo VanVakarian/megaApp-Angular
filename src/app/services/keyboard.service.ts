@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
-import { fromEvent, Subject, Observable, combineLatest } from 'rxjs';
-import { filter, map, startWith, tap } from 'rxjs/operators';
+import { combineLatest, fromEvent, Observable, Subject } from 'rxjs';
+import { filter, map, startWith } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +12,7 @@ export class KeyboardService {
 
   public inputIsInFocus$ = this.inputFocusSubject.asObservable().pipe(startWith(false));
 
-  constructor() {}
+  constructor() { }
 
   setInputFocus(isInFocus: boolean) {
     this.inputFocusSubject.next(isInFocus);

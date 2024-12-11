@@ -2,9 +2,10 @@ import { NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { MatInputModule } from '@angular/material/input';
+
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 import { AuthService } from 'src/app/services/auth.service';
 import { SettingsService } from 'src/app/services/settings.service';
@@ -33,7 +34,7 @@ export class AuthFormComponent implements OnInit {
     });
   }
 
-  ngOnInit() {}
+  ngOnInit() { }
 
   toggleMode() {
     this.isLoginMode = !this.isLoginMode;

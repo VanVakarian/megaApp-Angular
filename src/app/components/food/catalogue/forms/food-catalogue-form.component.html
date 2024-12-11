@@ -1,17 +1,11 @@
-<form
-  [formGroup]="foodForm"
-  (submit)="onSubmit()"
->
-  <mat-form-field
-    class="w-full"
-    appearance="outline"
-  >
+<form [formGroup]="foodForm"
+      (submit)="onSubmit()">
+  <mat-form-field class="w-full"
+                  appearance="outline">
     <mat-label>Название:</mat-label>
 
-    <input
-      matInput
-      formControlName="name"
-    />
+    <input matInput
+           formControlName="name" />
 
     <mat-error *ngIf="foodForm.get('name')?.hasError('required')"> Введите название. </mat-error>
 
@@ -19,22 +13,16 @@
   </mat-form-field>
 
   @if (isAdmin) {
-    <mat-form-field
-      class="w-full"
-      appearance="outline"
-    >
+    <mat-form-field class="w-full"
+                    appearance="outline">
       <mat-label>Число ккал на 100 г.:</mat-label>
 
-      <input
-        matInput
-        class="text-right"
-        formControlName="kcals"
-      />
+      <input matInput
+             class="text-right"
+             formControlName="kcals" />
 
-      <span
-        matSuffix
-        class="mx-2"
-      >
+      <span matSuffix
+            class="mx-2">
         ккал
       </span>
 
@@ -45,28 +33,24 @@
   }
 
   <div class="flex gap-2">
-    <div class="flex grow flex-row-reverse py-2">
-      <button
-        *ngIf="formRole == 'edit'"
-        mat-raised-button
-        type="button"
-        color="primary"
-        class="mat-button-enlarged-45-px text-lg"
-        [disabled]="queryPending"
-        (click)="switchOwnership()"
-      >
+    <div class="grow flex flex-row-reverse py-2">
+      <button *ngIf="formRole == 'edit'"
+              mat-raised-button
+              type="button"
+              color="primary"
+              class="mat-button-enlarged-45-px text-lg"
+              [disabled]="queryPending"
+              (click)="switchOwnership()">
         {{ isCatalogueEntryPicked ? "Убрать" : "Забрать к себе" }}
       </button>
     </div>
 
     <div class="flex flex-row-reverse py-2">
-      <button
-        mat-raised-button
-        type="submit"
-        color="primary"
-        class="mat-button-enlarged-45-px text-lg"
-        [disabled]="!isFormValid()"
-      >
+      <button mat-raised-button
+              type="submit"
+              color="primary"
+              class="mat-button-enlarged-45-px text-lg"
+              [disabled]="!isFormValid()">
         {{ formRole === "edit" ? "Сохранить" : "Добавить" }}
       </button>
     </div>

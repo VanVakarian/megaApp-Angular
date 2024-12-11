@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
 import { NgIf } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
-import { SettingsService } from 'src/app/services/settings.service';
 import { AuthService } from 'src/app/services/auth.service';
+import { SettingsService } from 'src/app/services/settings.service';
 
 @Component({
   selector: 'app-dark-switch',
@@ -17,7 +17,7 @@ export class DarkSwitchComponent implements OnInit {
   constructor(
     public settingsService: SettingsService,
     public authService: AuthService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.settingsService.applyTheme();

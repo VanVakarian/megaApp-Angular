@@ -1,9 +1,9 @@
-import { Component, OnInit, effect } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
+import { Component, OnInit, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { SettingsService } from 'src/app/services/settings.service';
 
@@ -26,7 +26,7 @@ export class SettingsFormComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   toggleDarkMode(): void {
     this.settingsService.settings$$.update((settings) => ({

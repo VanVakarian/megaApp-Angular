@@ -16,7 +16,7 @@
         <span
           matSuffix
           *ngIf="bodyWeightForm.get('bodyWeight')?.touched && bodyWeightForm.get('bodyWeight')?.value !== ''"
-          class="header-weight-input-text-size mx-2 mt-0 block"
+          class="header-weight-input-text-size block mx-2 mt-0"
         >
           кг
         </span>
@@ -24,9 +24,9 @@
         <mat-hint>ХХ.Х или ХХ</mat-hint>
       </mat-form-field>
 
-      <div [@countdown-bar] *ngIf="countdownBarIsVisible" class="countdown-bar absolute bottom-5 h-1 rounded-md"></div>
+      <div [@countdown-bar] *ngIf="countdownBarIsVisible" class="countdown-bar bottom-5 absolute h-1 rounded-md"></div>
 
-      <div *ngIf="waitBarVisible" class="wait-bar absolute bottom-5 h-1 rounded-md"></div>
+      <div *ngIf="waitBarVisible" class="wait-bar bottom-5 absolute h-1 rounded-md"></div>
     </div>
   </div>
 </form> -->

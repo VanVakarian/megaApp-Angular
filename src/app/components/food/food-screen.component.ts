@@ -1,12 +1,13 @@
-import { Component, OnInit } from '@angular/core';
 import { NgIf } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { FoodStatsComponent } from 'src/app/components/food/stats/food-stats.component';
-import { FoodDiaryComponent } from 'src/app/components/food/diary/food-diary.component';
-import { FoodCatalogueComponent } from 'src/app/components/food/catalogue/food-catalogue.component';
-import { FoodService } from 'src/app/services/food.service';
 import { firstValueFrom } from 'rxjs';
+
+import { FoodCatalogueComponent } from 'src/app/components/food/catalogue/food-catalogue.component';
+import { FoodDiaryComponent } from 'src/app/components/food/diary/food-diary.component';
+import { FoodStatsComponent } from 'src/app/components/food/stats/food-stats.component';
+import { FoodService } from 'src/app/services/food.service';
 
 @Component({
   selector: 'app-food-screen',

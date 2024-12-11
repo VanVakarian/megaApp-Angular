@@ -7,23 +7,22 @@ import {
   ViewChildren,
   WritableSignal,
   computed,
-  effect,
-  signal,
+  signal
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
-import { FoodService } from 'src/app/services/food.service';
 import { FoodCatalogueFormComponent } from 'src/app/components/food/catalogue/forms/food-catalogue-form.component';
-import { CatalogueEntry } from 'src/app/shared/interfaces';
-import { enRuTranslation } from 'src/app/shared/const';
+import { FoodService } from 'src/app/services/food.service';
 import { SettingsService } from 'src/app/services/settings.service';
+import { enRuTranslation } from 'src/app/shared/const';
+import { CatalogueEntry } from 'src/app/shared/interfaces';
 
 @Component({
   selector: 'app-food-catalogue',

@@ -1,11 +1,11 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NgIf } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerInputEvent, MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
 import { Subscription } from 'rxjs';
@@ -38,7 +38,6 @@ export class DiaryNavButtonsComponent implements OnInit, OnDestroy {
   public calendarSelectedDay: FormControl = new FormControl(this.today);
   private keyboardSubscription!: Subscription;
 
-
   constructor(
     private keyboardService: KeyboardService,
     private authService: AuthService,
@@ -58,7 +57,6 @@ export class DiaryNavButtonsComponent implements OnInit, OnDestroy {
   public ngOnDestroy(): void {
     this.keyboardSubscription.unsubscribe();
   }
-
 
   public get isAuthenticated() {
     return this.authService.isAuthenticated;

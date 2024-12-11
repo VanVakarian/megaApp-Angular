@@ -1,9 +1,10 @@
-import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
-import jwt_decode from 'jwt-decode';
+import { Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
+
+import jwt_decode from 'jwt-decode';
+import { Observable } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 
 import { AuthResponse, UserCreds } from 'src/app/shared/interfaces';
 
@@ -18,7 +19,7 @@ export class AuthService {
   constructor(
     private readonly http: HttpClient,
     private router: Router,
-  ) {}
+  ) { }
 
   get isAuthenticated() {
     return this.authenticationStatus$$();
@@ -82,7 +83,7 @@ export class AuthService {
   public initCheckToken(): void {
     const token = localStorage.getItem(this.ACCESS_TOKEN_KEY);
     if (token) {
-      const decodedToken = jwt_decode(token) as { exp: number };
+      const decodedToken = jwt_decode(token) as { exp: number; };
       const currentTime = Math.round(new Date().getTime() / 1000);
       if (decodedToken.exp > currentTime) {
         this.authenticationStatus$$.set(true);

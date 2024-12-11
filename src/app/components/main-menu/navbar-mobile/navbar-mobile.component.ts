@@ -1,7 +1,7 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
-import { NgClass } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { NgClass } from '@angular/common';
+import { Component, ElementRef, ViewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -35,7 +35,7 @@ export class NavbarMobileComponent {
   constructor(
     public authService: AuthService,
     private mainMenuService: MainMenuService,
-  ) {}
+  ) { }
 
   public closeMenu(): void {
     this.menuOpened = false;

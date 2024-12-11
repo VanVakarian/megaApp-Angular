@@ -8,5 +8,5 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./food-stats.component.scss'],
 })
 export class FoodStatsComponent implements OnInit {
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 }

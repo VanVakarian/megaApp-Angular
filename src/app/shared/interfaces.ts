@@ -107,7 +107,7 @@ export interface FormattedDiary {
   };
 }
 
-export type CatalogueId = number
+export type CatalogueId = number;
 
 export type CatalogueIds = CatalogueId[];
 

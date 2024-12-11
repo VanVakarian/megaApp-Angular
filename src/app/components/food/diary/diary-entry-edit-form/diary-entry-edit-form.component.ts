@@ -1,30 +1,30 @@
+import { NgFor, NgIf } from '@angular/common';
 import {
   Component,
   ElementRef,
+  EventEmitter,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
   Output,
-  EventEmitter,
   ViewChild,
 } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 
 import { Subscription, delay, filter, take } from 'rxjs';
 
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-
 import { FoodService } from 'src/app/services/food.service';
 import { KeyboardService } from 'src/app/services/keyboard.service';
-import { DiaryEntry, HistoryEntry, DiaryEntryEdit, ServerResponse } from 'src/app/shared/interfaces';
 import { ConfirmationDialogModalService } from 'src/app/shared/dialog-modal/mat-dialog-modal.service';
+import { DiaryEntry, DiaryEntryEdit, HistoryEntry } from 'src/app/shared/interfaces';
 
 @Component({
   selector: 'app-diary-entry-edit-form',
@@ -91,7 +91,7 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
     if (this.diaryEntry) {
       this.diaryEntryForm.patchValue(this.diaryEntry);
       this.diaryEntryForm.get('foodWeightInitial')?.setValue(this.diaryEntry.foodWeight);
-      this.oldWeightDescriptionString = `${this.diaryEntry.foodWeight} г.`;
+      this.oldWeightDescriptionString = `${ this.diaryEntry.foodWeight } г.`;
     }
   }
 
@@ -116,7 +116,7 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
     const newWeight = this.diaryEntryForm.value.foodWeightNew;
     if (this.newWeightPattern.test(newWeight)) {
       this.diaryEntryForm.get('foodWeightFinal')?.setValue(parseInt(newWeight));
-      this.oldWeightDescriptionString = `${this.diaryEntryForm.value.foodWeightInitial} г.`;
+      this.oldWeightDescriptionString = `${ this.diaryEntryForm.value.foodWeightInitial } г.`;
       this.errorMessageShow = false;
     } else {
       this.diaryEntryForm.get('foodWeightFinal')?.setValue(this.diaryEntryForm.value.foodWeightInitial);
@@ -137,9 +137,9 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
       this.diaryEntryForm
         .get('foodWeightFinal')
         ?.setValue(this.diaryEntryForm.value.foodWeightInitial + foodWeightChangeInt);
-      this.oldWeightDescriptionString = `${this.diaryEntryForm.value.foodWeightInitial} г. ${sign} ${Math.abs(
+      this.oldWeightDescriptionString = `${ this.diaryEntryForm.value.foodWeightInitial } г. ${ sign } ${ Math.abs(
         foodWeightChangeInt,
-      )} г.`;
+      ) } г.`;
       this.errorMessageShow = false;
     } else if (
       this.editWeightPattern.test(foorWeightChangeStr) &&
@@ -217,13 +217,13 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
   public formHistoryEntry(historyEntry: HistoryEntry) {
     switch (historyEntry.action) {
       case 'init':
-        return `Запись создана с весом ${historyEntry.value} г.`;
+        return `Запись создана с весом ${ historyEntry.value } г.`;
       case 'set':
-        return `Задан новый вес: ${historyEntry.value} г.`;
+        return `Задан новый вес: ${ historyEntry.value } г.`;
       case 'add':
-        return `Добавлено ${historyEntry.value} г.`;
+        return `Добавлено ${ historyEntry.value } г.`;
       case 'subtract':
-        return `Убрано ${historyEntry.value} г.`;
+        return `Убрано ${ historyEntry.value } г.`;
     }
   }
 

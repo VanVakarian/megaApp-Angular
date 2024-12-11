@@ -1,5 +1,5 @@
 <div class="relative">
-  <div class="my-3 mr-3 text-center text-xl">
+  <div class="my-3 mr-3 text-xl text-center">
     {{ toDoIHaveNoIdeaHowToNameThis01 }}
   </div>
 
@@ -15,7 +15,7 @@
 </div>
 
 <mat-expansion-panel [expanded]="showHistory">
-  <div class="mt-4 flex flex-col gap-2">
+  <div class="flex flex-col gap-2 mt-4">
     <div *ngFor="let historyEntry of diaryEntry.history"
          class="relative">
       <mat-icon class="absolute -left-[6px] -top-[2px] scale-75">{{
@@ -29,7 +29,7 @@
 
 <form [formGroup]="diaryEntryForm"
       (submit)="onSubmit()">
-  <div class="mt-2 flex w-full gap-4">
+  <div class="flex w-full gap-4 mt-2">
     <mat-form-field class="w-1/2"
                     appearance="outline">
       <mat-label>Ввести новый вес:</mat-label>
@@ -89,12 +89,12 @@
   </div>
 
   <mat-card class="mb-4">
-    <div class="py-2 text-center text-xl">Вес после сохранения:</div>
+    <div class="py-2 text-xl text-center">Вес после сохранения:</div>
   </mat-card>
 
   <mat-card *ngIf="!errorMessageShow"
-            class="mb-4 h-10 p-2">
-    <div class="overflow-hidden whitespace-nowrap text-center text-xl">
+            class="h-10 p-2 mb-4">
+    <div class="whitespace-nowrap overflow-hidden text-xl text-center">
       {{ oldWeightDescriptionString }}
       <!-- can't decide on this icon... -->
       <!-- <mat-icon class="-mb-[5px] rotate-180">keyboard_backspace</mat-icon> -->
@@ -106,16 +106,16 @@
   </mat-card>
 
   <mat-card *ngIf="errorMessageShow"
-            class="mb-4 h-10"
+            class="h-10 mb-4"
             style="background-color: orange">
-    <div class="flex h-full items-center justify-center">
+    <div class="flex items-center justify-center h-full">
       <div class="text-center">
         {{ errorMessageText }}
       </div>
     </div>
   </mat-card>
 
-  <div class="mb-2 flex w-full gap-4">
+  <div class="flex w-full gap-4 mb-2">
     <button mat-raised-button
             type="button"
             color="warn"

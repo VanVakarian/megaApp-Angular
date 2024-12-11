@@ -1,21 +1,19 @@
-import { ElementRef, Injectable, Signal, WritableSignal, computed, effect, signal } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
+import { computed, effect, ElementRef, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 
 import { catchError, map, Observable, of, Subject, tap } from 'rxjs';
 
 import {
   Catalogue,
   CatalogueEntry,
-  Diary,
-  FormattedDiary,
-  DiaryEntryEdit,
-  ServerResponse,
   CatalogueIds,
-  CatalogueId,
-  ServerResponseWithDiaryId,
-  ServerResponseWithCatalogueEntry,
+  Diary,
   DiaryEntry,
+  FormattedDiary,
   FormattedDiaryEntry,
+  ServerResponse,
+  ServerResponseWithCatalogueEntry,
+  ServerResponseWithDiaryId
 } from 'src/app/shared/interfaces';
 import { getTodayIsoNoTimeNoTZ } from 'src/app/shared/utils';
 
@@ -82,7 +80,7 @@ export class FoodService {
           history: entry.history || [],
           foodName: this.catalogue$$()[entry.foodCatalogueId]?.name || '',
           foodKcals: kcals,
-          foodPercent: `${Math.floor(percent) < 100 ? percent.toFixed(1) : Math.round(percent).toString()}`,
+          foodPercent: `${ Math.floor(percent) < 100 ? percent.toFixed(1) : Math.round(percent).toString() }`,
           foodKcalPercentageOfDaysNorm: percent,
         };
 
@@ -105,8 +103,8 @@ export class FoodService {
 
   public getFoodDiaryFullUpdateRange(dateIso?: string, offset?: number): Observable<Diary> {
     // this.extendDates(dateIso, offset);
-    const paramsStr = `date=${dateIso ?? getTodayIsoNoTimeNoTZ()}&offset=${offset ?? 7}`;
-    return this.http.get<Diary>(`/api/food/diary-full-update?${paramsStr}`).pipe(
+    const paramsStr = `date=${ dateIso ?? getTodayIsoNoTimeNoTZ() }&offset=${ offset ?? 7 }`;
+    return this.http.get<Diary>(`/api/food/diary-full-update?${ paramsStr }`).pipe(
       tap((response: Diary) => {
         this.diary$$.set(response);
       }),

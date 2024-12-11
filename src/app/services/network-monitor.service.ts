@@ -1,5 +1,4 @@
-import { Injectable, Signal, WritableSignal, effect, signal } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Injectable, WritableSignal, signal } from '@angular/core';
 
 @Injectable({
   providedIn: 'root',

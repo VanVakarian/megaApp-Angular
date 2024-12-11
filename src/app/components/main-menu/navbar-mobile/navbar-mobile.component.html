@@ -1,21 +1,15 @@
 @if (authService.isAuthenticated) {
-  <div
-    [@menuSlide]="menuOpened ? 'open' : 'closed'"
-    class="pointer-events-none fixed right-0 top-0 z-40 h-dvh lg:hidden"
-  >
-    <div class="pointer-events-none mx-4 flex h-full flex-col justify-end gap-4">
+  <div [@menuSlide]="menuOpened ? 'open' : 'closed'"
+       class="h-dvh lg:hidden fixed top-0 right-0 z-40 pointer-events-none">
+    <div class="flex flex-col justify-end h-full gap-4 mx-4 pointer-events-none">
       @for (button of mobileButtons; track $index) {
-        <button
-          class="side-menu-button pointer-events-auto overflow-hidden"
-          mat-raised-button
-          color="primary"
-          [routerLink]="button.link"
-          (click)="closeMenu()"
-        >
-          <div
-            class="menu-btn-bg absolute bottom-[-16px] right-[-2px] h-full w-full"
-            [ngClass]="[button.bgClass]"
-          ></div>
+        <button class="side-menu-button overflow-hidden pointer-events-auto"
+                mat-raised-button
+                color="primary"
+                [routerLink]="button.link"
+                (click)="closeMenu()">
+          <div class="menu-btn-bg absolute bottom-[-16px] right-[-2px] h-full w-full"
+               [ngClass]="[button.bgClass]"></div>
 
           <div class="flex w-full gap-1">
             <div class="mr-2 mt-[2px]">
@@ -32,17 +26,18 @@
     </div>
   </div>
 
-  <div
-    #fader
-    [@fadeInOut]="menuOpened ? 'fadeIn' : 'fadeOut'"
-    class="fixed left-0 top-0 z-30 hidden h-dvh w-dvw bg-black lg:hidden"
-    (click)="closeMenu()"
-  >
+  <div #fader
+       [@fadeInOut]="menuOpened ? 'fadeIn' : 'fadeOut'"
+       class="h-dvh w-dvw lg:hidden fixed top-0 left-0 z-30 hidden bg-black"
+       (click)="closeMenu()">
     <!-- Fading background for side menu -->
   </div>
 
-  <div class="fixed bottom-0 right-0 z-50 mb-4 mr-4 block lg:hidden">
-    <button class="scale-100" mat-fab color="primary" (click)="toggleMenu()">
+  <div class="lg:hidden fixed bottom-0 right-0 z-50 block mb-4 mr-4">
+    <button class="scale-100"
+            mat-fab
+            color="primary"
+            (click)="toggleMenu()">
       <mat-icon class="scale-150">{{ menuOpened ? "close" : "menu" }}</mat-icon>
     </button>
   </div>

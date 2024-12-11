@@ -1,30 +1,24 @@
-<div class="mb-4 hidden lg:block">
+<div class="lg:block hidden mb-4">
   <mat-card>
-    <div class="my-2 w-full text-center text-xl font-semibold">Каталог</div>
+    <div class="w-full my-2 text-xl font-semibold text-center">Каталог</div>
   </mat-card>
 </div>
 
-<mat-form-field
-  appearance="outline"
-  class="catalogue-filter-input-hint-remove catalogue-filter-input-text-size-increase mb-4 w-full"
->
+<mat-form-field appearance="outline"
+                class="catalogue-filter-input-hint-remove catalogue-filter-input-text-size-increase w-full mb-4">
   <mat-label>Поиск</mat-label>
 
-  <input
-    matInput
-    class="text-center"
-    [ngModel]="usersInput"
-    (ngModelChange)="onSearchInput($event)"
-    placeholder="Введите название"
-  />
+  <input matInput
+         class="text-center"
+         [ngModel]="usersInput"
+         (ngModelChange)="onSearchInput($event)"
+         placeholder="Введите название" />
 
   @if (usersInput !== "") {
-    <button
-      mat-icon-button
-      matSuffix
-      aria-label="Очистить"
-      (click)="onSearchInput('')"
-    >
+    <button mat-icon-button
+            matSuffix
+            aria-label="Очистить"
+            (click)="onSearchInput('')">
       <mat-icon class="absolute bottom-[-8px] right-[12px] scale-100">close</mat-icon>
     </button>
   }
@@ -32,26 +26,22 @@
 
 <mat-accordion>
   <mat-card class="mb-2">
-    <div class="my-1 w-full text-center text-lg font-medium">Моя еда:</div>
+    <div class="w-full my-1 text-lg font-medium text-center">Моя еда:</div>
   </mat-card>
 
   @for (food of paginatedSelectedCatalogue; track food.id; let first = $first; let last = $last) {
-    <mat-expansion-panel
-      #panel="matExpansionPanel"
-      #foodExpansionPanel
-      [attr.data-food-id]="food.id"
-      class="sub-expansion-panel-38px-50px"
-      [class.first-in-group]="first"
-      [class.last-in-group]="last"
-    >
+    <mat-expansion-panel #panel="matExpansionPanel"
+                         #foodExpansionPanel
+                         [attr.data-food-id]="food.id"
+                         class="sub-expansion-panel-38px-50px"
+                         [class.first-in-group]="first"
+                         [class.last-in-group]="last">
       <mat-expansion-panel-header
-        class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
-      >
+                                  class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease">
         <mat-panel-title class="mat-panel-title-margin-remove">
           <div class="flex w-full text-base font-normal">
             <div
-              class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-transparent bg-clip-text text-transparent"
-            >
+                 class="grow whitespace-nowrap bg-gradient-to-r from-black via-black to-transparent bg-clip-text overflow-hidden text-transparent">
               {{ food.name }}
             </div>
 
@@ -63,10 +53,8 @@
       <!-- <ng-template matExpansionPanelContent> -->
 
       <!-- @defer (when panel.expanded) { -->
-      <app-food-catalogue-form
-        [formRole]="'edit'"
-        [categoryEntry]="food"
-      />
+      <app-food-catalogue-form [formRole]="'edit'"
+                               [categoryEntry]="food" />
       <!-- (ownershipChanged)="onOwnershipChanged($event)" -->
       <!-- } @placeholder {
         <p>Загрузка формы...</p>
@@ -77,38 +65,32 @@
   }
   <!-- </mat-accordion> -->
 
-  <mat-paginator
-    [length]="filteredSelectedCatalogueLength"
-    [pageSize]="pageSize"
-    (page)="onPageChange($event, 'selected')"
-    hidePageSize
-    showFirstLastButtons
-  />
+  <mat-paginator [length]="filteredSelectedCatalogueLength"
+                 [pageSize]="pageSize"
+                 (page)="onPageChange($event, 'selected')"
+                 hidePageSize
+                 showFirstLastButtons />
 
   <div class="h-4"></div>
 
   <mat-card class="mb-2">
-    <div class="my-1 w-full text-center text-lg font-medium">Общий список:</div>
+    <div class="w-full my-1 text-lg font-medium text-center">Общий список:</div>
   </mat-card>
 
   <!-- <mat-accordion> -->
   @for (food of paginatedLeftOutCatalogue; track food.id; let first = $first; let last = $last) {
-    <mat-expansion-panel
-      #panel="matExpansionPanel"
-      #foodExpansionPanel
-      [attr.data-food-id]="food.id"
-      class="sub-expansion-panel-38px-50px"
-      [class.first-in-group]="first"
-      [class.last-in-group]="last"
-    >
+    <mat-expansion-panel #panel="matExpansionPanel"
+                         #foodExpansionPanel
+                         [attr.data-food-id]="food.id"
+                         class="sub-expansion-panel-38px-50px"
+                         [class.first-in-group]="first"
+                         [class.last-in-group]="last">
       <mat-expansion-panel-header
-        class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
-      >
+                                  class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease">
         <mat-panel-title class="mat-panel-title-margin-remove">
           <div class="flex w-full text-base font-normal">
             <div
-              class="grow overflow-hidden whitespace-nowrap bg-gradient-to-r from-black via-black to-transparent bg-clip-text text-transparent"
-            >
+                 class="grow whitespace-nowrap bg-gradient-to-r from-black via-black to-transparent bg-clip-text overflow-hidden text-transparent">
               {{ food.name }}
             </div>
 
@@ -120,10 +102,8 @@
       <!-- <ng-template matExpansionPanelContent> -->
 
       <!-- @defer (when panel.expanded) { -->
-      <app-food-catalogue-form
-        [formRole]="'edit'"
-        [categoryEntry]="food"
-      />
+      <app-food-catalogue-form [formRole]="'edit'"
+                               [categoryEntry]="food" />
       <!-- (ownershipChanged)="onOwnershipChanged($event)" -->
       <!-- } @placeholder {
         <p>Загрузка формы...</p>
@@ -133,13 +113,11 @@
     </mat-expansion-panel>
   }
 
-  <mat-paginator
-    [length]="filteredLeftOutCatalogueLength"
-    [pageSize]="pageSize"
-    (page)="onPageChange($event, 'leftOut')"
-    hidePageSize
-    showFirstLastButtons
-  />
+  <mat-paginator [length]="filteredLeftOutCatalogueLength"
+                 [pageSize]="pageSize"
+                 (page)="onPageChange($event, 'leftOut')"
+                 hidePageSize
+                 showFirstLastButtons />
 
   <div class="h-4"></div>
 
@@ -148,7 +126,7 @@
       <mat-panel-title>
         <mat-icon>add</mat-icon>
 
-        <div class="ml-1 overflow-hidden whitespace-nowrap text-base font-normal">Добавить новую еду</div>
+        <div class="whitespace-nowrap ml-1 overflow-hidden text-base font-normal">Добавить новую еду</div>
       </mat-panel-title>
     </mat-expansion-panel-header>
 
@@ -158,7 +136,7 @@
 
 <!-- <div class="fixed bottom-0 left-0 flex w-full">
   <div class="grow px-6 pb-3">
-    <div class="w-full bg-white bg-opacity-90 pt-2">
+    <div class="bg-opacity-90 w-full pt-2 bg-white">
       <mat-form-field
         appearance="outline"
         class="catalogue-filter-input-hint-remove catalogue-filter-input-text-size-increase w-full"

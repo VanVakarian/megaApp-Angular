@@ -1,19 +1,19 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angular/core';
 import { NgIf } from '@angular/common';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 
-import { catchError, finalize, firstValueFrom, of, take } from 'rxjs';
-
-import { MatFormFieldModule, MatHint } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+
+import { firstValueFrom } from 'rxjs';
 
 import { FoodService } from 'src/app/services/food.service';
-import { CatalogueEntry, ServerResponse } from 'src/app/shared/interfaces';
 import { SettingsService } from 'src/app/services/settings.service';
+import { CatalogueEntry } from 'src/app/shared/interfaces';
 
 export function uniqueCatalogueNameValidator(foodService: FoodService, isNewForm: boolean): ValidatorFn {
-  return (control: AbstractControl): { [key: string]: any } | null => {
+  return (control: AbstractControl): { [key: string]: any; } | null => {
     if (!isNewForm) return null; // Пропускаем валидацию, если это не новая форма
 
     const name = control?.value?.trim().toLowerCase();
@@ -44,7 +44,7 @@ export class FoodCatalogueFormComponent implements OnInit, OnChanges {
     public foodService: FoodService,
     private settingsService: SettingsService,
     private cd: ChangeDetectorRef,
-  ) {}
+  ) { }
 
   public ngOnInit(): void {
     this.initForm();

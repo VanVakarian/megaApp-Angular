@@ -1,5 +1,5 @@
-import { Injectable, Signal, WritableSignal, effect, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable, effect } from '@angular/core';
 
 import { firstValueFrom } from 'rxjs';
 
@@ -77,5 +77,5 @@ export class ActionService {
     return firstValueFrom(this.http.request(method, url, { body: payload }));
   }
 
-  public initService() {} // refactor later
+  public initService() { } // refactor later
 }

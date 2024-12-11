@@ -22,7 +22,7 @@ $dark-theme: mat.define-dark-theme((color: (primary: $dark-primary, accent: $dar
 
 
 
-//////////////////////////////////////////////////////////// TAILWIND SETTINGS:
+//                                                             TAILWIND SETTINGS
 
 @tailwind base;
 @tailwind components;
@@ -30,7 +30,7 @@ $dark-theme: mat.define-dark-theme((color: (primary: $dark-primary, accent: $dar
 
 @layer components {
 
-  /////////////////////////////////////////////// LOGIN AND REGISTRATION FORMS:
+  //                                                LOGIN AND REGISTRATION FORMS
   .input-field-label {
     @apply text-xl mt-2;
   }

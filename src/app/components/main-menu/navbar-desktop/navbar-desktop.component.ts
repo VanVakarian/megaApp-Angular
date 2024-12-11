@@ -1,13 +1,13 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { debounceTime, fromEvent, merge, Subscription, throttleTime } from 'rxjs';
-
 import { MatButtonModule } from '@angular/material/button';
 
-import { MainMenuService } from 'src/app/services/main-menu.service';
+import { debounceTime, fromEvent, merge, Subscription, throttleTime } from 'rxjs';
+
 import { DarkSwitchComponent } from 'src/app/components/settings/dark-switch/dark-switch.component';
 import { AuthService } from 'src/app/services/auth.service';
+import { MainMenuService } from 'src/app/services/main-menu.service';
 
 @Component({
   selector: 'app-navbar-desktop',
@@ -22,7 +22,7 @@ export class NavbarDesktopComponent implements OnInit, OnDestroy {
   constructor(
     private mainMenuService: MainMenuService,
     public authService: AuthService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initScrollListener();

@@ -1,5 +1,5 @@
 <div class="flex w-full gap-2">
-  <div class="hidden lg:block">
+  <div class="lg:block hidden">
     <button class="diary-day-switch-button w-9"
             mat-raised-button
             color="primary"
@@ -14,7 +14,7 @@
     <!-- {{ formatDate("2024-12-30") }} -->
   </div>
 
-  <div class="hidden flex-col lg:flex">
+  <div class="lg:flex flex-col hidden">
     <button class="diary-day-switch-button w-9"
             mat-raised-button
             color="primary"
@@ -22,7 +22,7 @@
       <mat-icon class="diary-day-switch-button-icon scale-125">calendar_month</mat-icon>
     </button>
 
-    <mat-form-field class="h-0 w-0">
+    <mat-form-field class="w-0 h-0">
       <input matInput
              [matDatepicker]="pickerDesktop"
              [formControl]="calendarSelectedDay"
@@ -33,7 +33,7 @@
     </mat-form-field>
   </div>
 
-  <div class="hidden lg:block">
+  <div class="lg:block hidden">
     <button class="diary-day-switch-button w-9"
             mat-raised-button
             color="primary"
@@ -45,7 +45,7 @@
 </div>
 
 <div *ngIf="isAuthenticated"
-     class="fixed bottom-0 left-0 flex w-full justify-between gap-5 px-4 pb-4 lg:hidden"
+     class="lg:hidden fixed bottom-0 left-0 flex justify-between w-full gap-5 px-4 pb-4"
      style="z-index: 10">
   <button class="scale-100"
           mat-fab

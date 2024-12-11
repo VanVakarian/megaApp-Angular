@@ -1,3 +1,4 @@
+import { KeyValuePipe, NgFor, NgIf, NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -9,24 +10,17 @@ import {
   ViewChild,
   ViewChildren,
 } from '@angular/core';
-import { KeyValuePipe, NgFor, NgIf, NgStyle } from '@angular/common';
-import { FormControl } from '@angular/forms';
-import { animate, state, style, transition, trigger } from '@angular/animations';
 
-import { Subscription, combineLatest } from 'rxjs';
-
-import { MatAccordion, MatExpansionPanel } from '@angular/material/expansion';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCardModule } from '@angular/material/card';
+import { MatAccordion, MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 
-import { DiaryNavButtonsComponent } from 'src/app/components/food/diary/diary-nav/diary-nav-buttons.component';
+import { combineLatest } from 'rxjs';
+
 import { DiaryEntryEditFormComponent } from 'src/app/components/food/diary/diary-entry-edit-form/diary-entry-edit-form.component';
 import { DiaryEntryNewFormComponent } from 'src/app/components/food/diary/diary-entry-new-form/diary-entry-new-form.component';
+import { DiaryNavButtonsComponent } from 'src/app/components/food/diary/diary-nav/diary-nav-buttons.component';
 import { FoodService } from 'src/app/services/food.service';
-import { dateToIsoNoTimeNoTZ, generateDatesList } from 'src/app/shared/utils';
-import { FETCH_DAYS_RANGE_OFFSET } from 'src/app/shared/const';
-import { DiaryEntry, FormattedDiaryEntry } from 'src/app/shared/interfaces';
 
 @Component({
   selector: 'app-food-diary',
@@ -133,7 +127,7 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   public setBackgroundStyle(percent: number) {
     const percentCapped = percent <= 100 ? percent : 100;
     return {
-      background: `linear-gradient(to right, var(--gradient-color) ${percentCapped}%, var(--gradient-bg) ${percentCapped}%)`,
+      background: `linear-gradient(to right, var(--gradient-color) ${ percentCapped }%, var(--gradient-bg) ${ percentCapped }%)`,
     };
   }
   // DIARY
@@ -183,7 +177,7 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private setWidth(elems: QueryList<ElementRef>, width?: number): void {
     elems.forEach((elem) => {
-      elem.nativeElement.style.width = width === undefined ? 'auto' : `${width}px`;
+      elem.nativeElement.style.width = width === undefined ? 'auto' : `${ width }px`;
     });
   }
 

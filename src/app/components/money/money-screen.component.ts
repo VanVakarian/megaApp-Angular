@@ -8,5 +8,5 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./money-screen.component.scss'],
 })
 export class MoneyScreenComponent implements OnInit {
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 }
