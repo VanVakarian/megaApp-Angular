@@ -184,29 +184,21 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
       .pipe(take(1))
       .subscribe((result) => {
         if (result) {
-          this.onDelete();
+          this.deleteDiaryEntry();
         }
       });
   }
 
-  public onDelete(): void {
+  public deleteDiaryEntry(): void {
     this.diaryEntryForm.disable();
-    // this.foodService.postRequestResult$.pipe(take(1)).subscribe((response) => {
-    //   if (response.result) {
-    //     if (response.value) {
-    //       const diaryEntryId: number = parseInt(response.value);
-    //       this.foodService.diary$$.update((diary) => {
-    //         delete diary[this.diaryEntryForm.value.date]['food'][diaryEntryId];
-    //         return diary;
-    //       });
-    //     }
-    //     this.diaryEntryForm.enable();
-    //   } else {
-    //     this.diaryEntryForm.enable();
-    //   }
-    // });
-
-    // this.foodService.deleteDiaryEntry(this.diaryEntryForm.value.id as number);
+    this.foodService.deleteDiaryEntry(this.diaryEntryForm.value.id).subscribe({
+      next: () => {
+        this.diaryEntryForm.enable();
+        this.diaryEntryForm.reset();
+        this.onServerSuccessfullEditResponse.emit();
+      },
+      error: () => this.diaryEntryForm.enable(),
+    });
   }
 
   // HISTORY

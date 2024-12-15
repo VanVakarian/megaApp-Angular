@@ -137,6 +137,18 @@ export class FoodService {
     );
   }
 
+  public deleteDiaryEntry(diaryEntryId: number): Observable<ServerResponseBasic> {
+    return this.http.delete<ServerResponseBasic>(`/api/food/diary/${diaryEntryId}`).pipe(
+      tap((response: ServerResponseBasic) => {
+        if (response?.result) {
+          this.removeDiaryEntry(diaryEntryId);
+        } else {
+          console.error('Error deleting diary entry');
+        }
+      }),
+    );
+  }
+
   private updateDiaryEntryWithNewValues(updatedDiaryEntry: DiaryEntry): void {
     this.diary$$.update((oldDiary) => {
       const selectedDay = this.selectedDayIso$$();
@@ -161,6 +173,21 @@ export class FoodService {
         foodWeight: updatedDiaryEntry.foodWeight,
         history: [...updatedFood[updatedDiaryEntry.id].history, ...updatedDiaryEntry.history]
       };
+
+      updatedDay.food = updatedFood;
+      updatedDiary[selectedDay] = updatedDay;
+      return updatedDiary;
+    });
+  }
+
+  private removeDiaryEntry(diaryEntryId: number): void {
+    this.diary$$.update((oldDiary) => {
+      const selectedDay = this.selectedDayIso$$();
+      const updatedDiary = { ...oldDiary };
+      const updatedDay = { ...updatedDiary[selectedDay] };
+      const updatedFood = { ...updatedDay.food };
+
+      delete updatedFood[diaryEntryId];
 
       updatedDay.food = updatedFood;
       updatedDiary[selectedDay] = updatedDay;
