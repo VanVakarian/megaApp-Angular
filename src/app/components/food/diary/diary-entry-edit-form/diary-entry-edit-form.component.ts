@@ -24,7 +24,7 @@ import { Subscription, delay, filter, take } from 'rxjs';
 import { FoodService } from 'src/app/services/food.service';
 import { KeyboardService } from 'src/app/services/keyboard.service';
 import { ConfirmationDialogModalService } from 'src/app/shared/dialog-modal/mat-dialog-modal.service';
-import { DiaryEntry, DiaryEntryEdit, HistoryEntry } from 'src/app/shared/interfaces';
+import { DiaryEntry, HistoryEntry } from 'src/app/shared/interfaces';
 
 @Component({
   selector: 'app-diary-entry-edit-form',
@@ -43,12 +43,16 @@ import { DiaryEntry, DiaryEntryEdit, HistoryEntry } from 'src/app/shared/interfa
   templateUrl: './diary-entry-edit-form.component.html',
 })
 export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy {
-  @Input() diaryEntry!: DiaryEntry;
-  @Output() onServerSuccessfullEditResponse = new EventEmitter<void>();
+  @Input()
+  public diaryEntry!: DiaryEntry;
 
-  @ViewChild('foodWeightChangeElem') foodWeightChangeElem!: ElementRef;
+  @Output()
+  public onServerSuccessfullEditResponse = new EventEmitter<void>();
 
-  public oldWeightDescriptionString: string = '';
+  @ViewChild('foodWeightChangeElem')
+  public foodWeightChangeElem!: ElementRef;
+
+  public previousWeightDisplay: string = '';
   public errorMessageText: string = '';
   public errorMessageShow: boolean = false;
 
@@ -61,14 +65,12 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
 
   public diaryEntryForm: FormGroup = new FormGroup({
     id: new FormControl(0),
-    date: new FormControl(''),
-    foodCatalogueId: new FormControl(0),
     foodWeight: new FormControl(null),
     foodWeightInitial: new FormControl(0),
     foodWeightNew: new FormControl(null, [Validators.pattern(this.newWeightPattern)]),
     foodWeightChange: new FormControl(null, [Validators.pattern(this.editWeightPattern)]),
-    foodWeightFinal: new FormControl(0),
   });
+  public foodWeightFinal: number = 0;
 
   constructor(
     public foodService: FoodService,
@@ -91,7 +93,7 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
     if (this.diaryEntry) {
       this.diaryEntryForm.patchValue(this.diaryEntry);
       this.diaryEntryForm.get('foodWeightInitial')?.setValue(this.diaryEntry.foodWeight);
-      this.oldWeightDescriptionString = `${ this.diaryEntry.foodWeight } г.`;
+      this.previousWeightDisplay = `${ this.diaryEntry.foodWeight } г.`;
     }
   }
 
@@ -107,19 +109,19 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
     );
   }
 
-  public get toDoIHaveNoIdeaHowToNameThis01() {
-    return this.foodService.catalogue$$()?.[this.diaryEntryForm.get('foodCatalogueId')?.value]?.name;
+  public get selectedFoodName() {
+    return this.foodService.catalogue$$()?.[this.diaryEntry.foodCatalogueId]?.name;
   }
 
   public onNewWeightInput() {
     this.diaryEntryForm.get('foodWeightChange')?.setValue(null);
     const newWeight = this.diaryEntryForm.value.foodWeightNew;
     if (this.newWeightPattern.test(newWeight)) {
-      this.diaryEntryForm.get('foodWeightFinal')?.setValue(parseInt(newWeight));
-      this.oldWeightDescriptionString = `${ this.diaryEntryForm.value.foodWeightInitial } г.`;
+      this.foodWeightFinal = parseInt(newWeight);
+      this.previousWeightDisplay = `${ this.diaryEntryForm.value.foodWeightInitial } г.`;
       this.errorMessageShow = false;
     } else {
-      this.diaryEntryForm.get('foodWeightFinal')?.setValue(this.diaryEntryForm.value.foodWeightInitial);
+      this.foodWeightFinal = this.diaryEntryForm.value.foodWeightInitial;
       this.errorMessageText = 'Число должно быть целое, положительное.';
       this.errorMessageShow = true;
     }
@@ -134,10 +136,8 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
       this.diaryEntryForm.value.foodWeightInitial + foodWeightChangeInt > 0
     ) {
       const sign = foodWeightChangeInt < 0 ? '-' : '+';
-      this.diaryEntryForm
-        .get('foodWeightFinal')
-        ?.setValue(this.diaryEntryForm.value.foodWeightInitial + foodWeightChangeInt);
-      this.oldWeightDescriptionString = `${ this.diaryEntryForm.value.foodWeightInitial } г. ${ sign } ${ Math.abs(
+      this.foodWeightFinal = this.diaryEntryForm.value.foodWeightInitial + foodWeightChangeInt;
+      this.previousWeightDisplay = `${ this.diaryEntryForm.value.foodWeightInitial } г. ${ sign } ${ Math.abs(
         foodWeightChangeInt,
       ) } г.`;
       this.errorMessageShow = false;
@@ -145,11 +145,11 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
       this.editWeightPattern.test(foorWeightChangeStr) &&
       this.diaryEntryForm.value.foodWeightInitial + foodWeightChangeInt <= 0
     ) {
-      this.diaryEntryForm.get('foodWeightFinal')?.setValue(this.diaryEntryForm.value.foodWeightInitial);
+      this.foodWeightFinal = this.diaryEntryForm.value.foodWeightInitial;
       this.errorMessageText = 'Итоговый результат должен быть положительным.';
       this.errorMessageShow = true;
     } else {
-      this.diaryEntryForm.get('foodWeightFinal')?.setValue(this.diaryEntryForm.value.foodWeightInitial);
+      this.foodWeightFinal = this.diaryEntryForm.value.foodWeightInitial;
       this.errorMessageText = 'Число должно быть целое. Либо отрицательное, либо положительное.';
       this.errorMessageShow = true;
     }
@@ -157,25 +157,25 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
 
   public onSubmit(): void {
     const weightChange = this.diaryEntryForm.value.foodWeightChange;
-    // console.log('tempdel01, weightChange:', weightChange);
     this.historyAction = weightChange ? (String(weightChange).includes('-') ? 'subtract' : 'add') : 'set';
-    const value = weightChange || this.diaryEntryForm.value.foodWeightFinal;
-    const history = { action: this.historyAction, value: Math.abs(parseInt(value)) };
+    const history = { action: this.historyAction, value: Math.abs(weightChange) };
     this.diaryEntryForm.disable();
-    const preppedFormValues: DiaryEntryEdit = {
+
+    const preppedFormValues: DiaryEntry = {
       id: this.diaryEntryForm.value.id,
-      foodWeight: this.diaryEntryForm.value.foodWeightFinal,
+      dateISO: this.foodService.selectedDayIso$$(),
+      foodCatalogueId: this.diaryEntry.foodCatalogueId,
+      foodWeight: this.foodWeightFinal,
       history: [history],
     };
-    // console.log('tempdel02, preppedFormValues:', preppedFormValues);
-    // this.foodService.editDiaryEntry(preppedFormValues).subscribe({
-    //   next: () => {
-    //     this.diaryEntryForm.enable();
-    //     this.diaryEntryForm.reset();
-    //     this.onServerSuccessfullEditResponse.emit();
-    //   },
-    //   error: () => this.diaryEntryForm.enable(),
-    // });
+    this.foodService.editDiaryEntry(preppedFormValues).subscribe({
+      next: () => {
+        this.diaryEntryForm.enable();
+        this.diaryEntryForm.reset();
+        this.onServerSuccessfullEditResponse.emit();
+      },
+      error: () => this.diaryEntryForm.enable(),
+    });
   }
 
   public openConfirmationModal(actionQuestion: string): void {

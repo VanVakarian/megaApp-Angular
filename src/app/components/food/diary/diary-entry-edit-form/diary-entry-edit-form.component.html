@@ -1,6 +1,6 @@
 <div class="relative">
   <div class="my-3 mr-3 text-xl text-center">
-    {{ toDoIHaveNoIdeaHowToNameThis01 }}
+    {{ selectedFoodName }}
   </div>
 
   <div class="absolute -bottom-[7px] -right-[20px]">
@@ -95,12 +95,12 @@
   <mat-card *ngIf="!errorMessageShow"
             class="h-10 p-2 mb-4">
     <div class="whitespace-nowrap overflow-hidden text-xl text-center">
-      {{ oldWeightDescriptionString }}
+      {{ previousWeightDisplay }}
       <!-- can't decide on this icon... -->
       <!-- <mat-icon class="-mb-[5px] rotate-180">keyboard_backspace</mat-icon> -->
       <!-- <mat-icon class="-mb-[5px] rotate-[225deg]">transit_enterexit</mat-icon> -->
       <mat-icon class="-mb-[5px]">keyboard_double_arrow_right</mat-icon>
-      <span class="font-bold"> {{ diaryEntryForm.value.foodWeightFinal }} </span>
+      <span class="font-bold"> {{ foodWeightFinal }} </span>
       г.
     </div>
   </mat-card>

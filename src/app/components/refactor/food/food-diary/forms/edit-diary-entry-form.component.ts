@@ -4,7 +4,7 @@ import { Subscription, delay, filter, take } from 'rxjs';
 
 import { FoodService } from 'src/app/components/refactor/service/food.service';
 import { ConfirmationDialogModalService } from 'src/app/shared/dialog-modal/mat-dialog-modal.service';
-import { DiaryEntry, HistoryEntry, ServerResponse } from 'src/app/shared/interfaces';
+import { DiaryEntry, HistoryEntry, ServerResponseBasic } from 'src/app/shared/interfaces';
 
 @Component({
   selector: 'app-edit-diary-entry-form',
@@ -61,7 +61,7 @@ export class EditDiaryEntryFormComponent implements OnChanges, OnDestroy {
     const newWeight = this.diaryEntryForm.value.food_weight_new;
     if (this.newWeightPattern.test(newWeight)) {
       this.diaryEntryForm.get('food_weight_final')?.setValue(parseInt(newWeight));
-      this.oldWeightDescriptionString = `${this.diaryEntryForm.value.food_weight_initial} г.`;
+      this.oldWeightDescriptionString = `${ this.diaryEntryForm.value.food_weight_initial } г.`;
       this.errorMessageShow = false;
     } else {
       this.diaryEntryForm.get('food_weight_final')?.setValue(this.diaryEntryForm.value.food_weight_initial);
@@ -82,9 +82,9 @@ export class EditDiaryEntryFormComponent implements OnChanges, OnDestroy {
       this.diaryEntryForm
         .get('food_weight_final')
         ?.setValue(this.diaryEntryForm.value.food_weight_initial + foodWeightChangeInt);
-      this.oldWeightDescriptionString = `${this.diaryEntryForm.value.food_weight_initial} г. ${sign} ${Math.abs(
+      this.oldWeightDescriptionString = `${ this.diaryEntryForm.value.food_weight_initial } г. ${ sign } ${ Math.abs(
         foodWeightChangeInt
-      )} г.`;
+      ) } г.`;
       this.errorMessageShow = false;
     } else if (
       this.editWeightPattern.test(foorWeightChangeStr) &&
@@ -107,7 +107,7 @@ export class EditDiaryEntryFormComponent implements OnChanges, OnDestroy {
     const history = { action: this.historyAction, value: Math.abs(parseInt(value)) };
 
     this.diaryEntryForm.disable();
-    this.foodService.postRequestResult$.pipe(take(1)).subscribe((response: ServerResponse) => {
+    this.foodService.postRequestResult$.pipe(take(1)).subscribe((response: ServerResponseBasic) => {
       if (response.result) {
         if (response.value) {
           const diaryEntryId: number = parseInt(response.value);
@@ -173,13 +173,13 @@ export class EditDiaryEntryFormComponent implements OnChanges, OnDestroy {
   formHistoryEntry(historyEntry: HistoryEntry) {
     switch (historyEntry.action) {
       case 'init':
-        return `Запись создана с весом ${historyEntry.value} г.`;
+        return `Запись создана с весом ${ historyEntry.value } г.`;
       case 'set':
-        return `Задан новый вес: ${historyEntry.value} г.`;
+        return `Задан новый вес: ${ historyEntry.value } г.`;
       case 'add':
-        return `Добавлено ${historyEntry.value} г.`;
+        return `Добавлено ${ historyEntry.value } г.`;
       case 'subtract':
-        return `Убрано ${historyEntry.value} г.`;
+        return `Убрано ${ historyEntry.value } г.`;
     }
   }
 
@@ -201,7 +201,7 @@ export class EditDiaryEntryFormComponent implements OnChanges, OnDestroy {
     if (this.diaryEntry) {
       this.diaryEntryForm.patchValue(this.diaryEntry);
       this.diaryEntryForm.get('food_weight_initial')?.setValue(this.diaryEntry.food_weight);
-      this.oldWeightDescriptionString = `${this.diaryEntry.food_weight} г.`;
+      this.oldWeightDescriptionString = `${ this.diaryEntry.food_weight } г.`;
     }
   }
 

@@ -1,53 +1,72 @@
-<form [formGroup]="diaryEntryForm"
-      (submit)="onSubmit()">
-  <mat-form-field appearance="outline">
+<form (submit)="onSubmit()"
+      [formGroup]="diaryEntryForm">
+
+  <mat-form-field appearance="outline"
+                  class="w-full">
     <mat-label>Еда:</mat-label>
 
     <input #foodInputElem
            type="text"
-           matInput
-           formControlName="foodName"
            required
-           [matAutocomplete]="autoGroup" />
+           [matAutocomplete]="autoGroup"
+           formControlName="foodName"
+           matInput />
 
-    <button *ngIf="isFormValid()"
-            mat-icon-button
-            matSuffix
-            type="button"
-            (click)="onFoodSelect()">
-      <mat-icon>close</mat-icon>
-    </button>
+    @if (shouldShowClearButton()) {
+      <button type="button"
+              (click)="foodNameReset()"
+              mat-icon-button
+              matSuffix>
+        <mat-icon>close</mat-icon>
+      </button>
+    }
 
     <mat-autocomplete #autoGroup="matAutocomplete"
                       (optionSelected)="onFoodSelected($event)">
-      <mat-option *ngFor="let food of filteredCatalogue$ | async"
-                  [value]="food.name">
-        {{ food.name }}
-      </mat-option>
+      @for (food of filteredCatalogue$ | async; track food.name) {
+        <mat-option [value]="food.name">
+          {{ food.name }}
+        </mat-option>
+      }
     </mat-autocomplete>
+
+    @if (foodName?.value !== '' && (foodName?.errors?.['required'] || foodName?.errors?.['notInCatalogue'])) {
+      <mat-error>
+        Выберите еду из списка
+      </mat-error>
+    }
   </mat-form-field>
 
-  <mat-form-field appearance="outline">
+  <mat-form-field appearance="outline"
+                  class="w-full">
     <mat-label>Вес в граммах:</mat-label>
 
     <input #weightInputElem
+           type="text"
+           formControlName="foodWeight"
            matInput
-           class="text-right"
-           formControlName="foodWeight" />
+           class="text-right" />
 
     <span matSuffix
           class="mx-2">
       г.
     </span>
+
+    @if (foodWeight?.value !== '' && (foodWeight?.errors?.['required'] || foodWeight?.errors?.['pattern'])) {
+      <mat-error>
+        Положительное целое число
+      </mat-error>
+    }
   </mat-form-field>
 
   <div class="flex flex-row-reverse w-full">
-    <button mat-raised-button
-            type="submit"
+    <button type="submit"
             color="primary"
-            class="mat-button-enlarged-45-px text-lg"
-            [disabled]="!isFormValid()">
+            [disabled]="!isFormValid()"
+            mat-raised-button
+            class="mat-button-enlarged-45-px text-lg">
       Добавить
     </button>
   </div>
+
 </form>

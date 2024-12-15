@@ -7,6 +7,7 @@ import {
   ViewChildren,
   WritableSignal,
   computed,
+  effect,
   signal
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -42,7 +43,6 @@ import { CatalogueEntry } from 'src/app/shared/interfaces';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FoodCatalogueComponent {
-  // public tempSettingShowOnlySearchResults: boolean = false; // TODO: [058] implement in app settings
   @ViewChildren('foodExpansionPanel', { read: ElementRef }) domElements!: QueryList<ElementRef>;
   public usersSearchQuery$$: WritableSignal<string> = signal('');
   public catalogueFilteredListSelected$$: Signal<CatalogueEntry[]> = computed(() => this.filterCatalogue(true));
@@ -56,8 +56,8 @@ export class FoodCatalogueComponent {
     private foodService: FoodService,
     private settingsService: SettingsService,
   ) {
-    // effect(() => { console.log('CATALOGUE FILTERED LIST SELECTED have been updated:', this.catalogueFilteredListSelected$$()) });
-    // effect(() => { console.log('CATALOGUE FILTERED LIST LEFT OUT have been updated:', this.catalogueFilteredListLeftOut$$()) });
+    effect(() => { console.log('CATALOGUE FILTERED LIST SELECTED have been updated:', this.catalogueFilteredListSelected$$()); });
+    effect(() => { console.log('CATALOGUE FILTERED LIST LEFT OUT have been updated:', this.catalogueFilteredListLeftOut$$()); });
   }
 
   public get isAdmin(): boolean {

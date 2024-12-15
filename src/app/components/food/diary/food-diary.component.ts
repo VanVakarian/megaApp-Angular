@@ -1,4 +1,4 @@
-import { KeyValuePipe, NgFor, NgIf, NgStyle } from '@angular/common';
+import { NgStyle } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -26,10 +26,7 @@ import { FoodService } from 'src/app/services/food.service';
   selector: 'app-food-diary',
   standalone: true,
   imports: [
-    NgIf,
-    NgFor,
     NgStyle,
-    KeyValuePipe,
     MatExpansionModule,
     MatCardModule,
     DiaryNavButtonsComponent,
@@ -48,12 +45,23 @@ import { FoodService } from 'src/app/services/food.service';
   // ],
 })
 export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild(MatAccordion) foodAccordion!: MatAccordion;
-  @ViewChild('foodCont') contDiv!: ElementRef;
-  @ViewChildren('foodName') nameDivs!: QueryList<ElementRef>;
-  @ViewChildren('foodWeight') weightsDivs!: QueryList<ElementRef>;
-  @ViewChildren('foodKcals') kcalsDivs!: QueryList<ElementRef>;
-  @ViewChildren('foodPercent') percentsDivs!: QueryList<ElementRef>;
+  @ViewChild(MatAccordion)
+  public foodAccordion!: MatAccordion;
+
+  @ViewChild('foodCont')
+  public contDiv!: ElementRef;
+
+  @ViewChildren('foodName')
+  public nameDivs!: QueryList<ElementRef>;
+
+  @ViewChildren('foodWeight')
+  public weightsDivs!: QueryList<ElementRef>;
+
+  @ViewChildren('foodKcals')
+  public kcalsDivs!: QueryList<ElementRef>;
+
+  @ViewChildren('foodPercent')
+  public percentsDivs!: QueryList<ElementRef>;
 
   // @ViewChild('#diaryEntry') diaryEntryDivs!: ElementRef;
 

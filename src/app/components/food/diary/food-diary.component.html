@@ -99,18 +99,20 @@
 
       <div class="mb-2"></div>
 
-      <mat-expansion-panel color="primary"
+      <mat-expansion-panel #newEntryPanel="matExpansionPanel"
+                           color="primary"
                            class="sub-expansion-panel-38px-50px expansion-panel-rounded">
         <mat-expansion-panel-header
                                     class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease add-panel-header">
-          <!-- TODO: Think of a way to put text here upon panel expending -->
+          <!-- TODO: Think of a way to put text here upon panel expanding -->
           <div class="add-icon-container w-fit">
             <!-- <div class="mb-4 text-xl font-medium text-center">Добавление записи</div> -->
             <mat-icon class="add-icon relative top-[2px] scale-150">add</mat-icon>
           </div>
         </mat-expansion-panel-header>
 
-        <app-diary-entry-new-form />
+        <app-diary-entry-new-form [expanded]="newEntryPanel.expanded"
+                                  (onServerSuccessfullResponse)="accordionCollapse()" />
       </mat-expansion-panel>
     </mat-accordion>
   </div>

@@ -18,19 +18,19 @@ export type IncomingMessage = {
 
 // MISC ////////////////////////////////////////////////////////////////////////
 
-export interface ServerResponse {
+export interface ServerResponseBasic {
   result: boolean;
 }
 
-export interface ServerResponseWithMessage extends ServerResponse {
+export interface ServerResponseWithMessage extends ServerResponseBasic {
   message?: string;
 }
 
-export interface ServerResponseWithDiaryId extends ServerResponse {
+export interface ServerResponseWithDiaryId extends ServerResponseBasic {
   diaryId: number;
 }
 
-export interface ServerResponseWithCatalogueEntry extends ServerResponse {
+export interface ServerResponseWithCatalogueEntry extends ServerResponseBasic {
   id?: number;
   name?: string;
   kcals?: number;
@@ -62,11 +62,11 @@ export interface DiaryEntry {
   history: HistoryEntry[];
 }
 
-export interface DiaryEntryEdit {
-  id: number;
-  foodWeight: number;
-  history: HistoryEntry[];
-}
+// export interface DiaryEntryEdit {
+//   id: number;
+//   foodWeight: number;
+//   history: HistoryEntry[];
+// }
 
 export interface Diary {
   [dateISO: string]: {

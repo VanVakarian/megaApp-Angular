@@ -1,16 +1,21 @@
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import {
   AfterViewInit,
   Component,
   ElementRef,
+  EventEmitter,
+  Input,
   OnChanges,
   OnDestroy,
   OnInit,
+  Output,
   Signal,
+  SimpleChanges,
   ViewChild,
   computed,
+  effect,
 } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -28,9 +33,8 @@ import { CatalogueEntry, DiaryEntry } from 'src/app/shared/interfaces';
   selector: 'app-diary-entry-new-form',
   standalone: true,
   imports: [
-    NgIf,
-    NgFor,
     AsyncPipe,
+    FormsModule,
     ReactiveFormsModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -42,13 +46,17 @@ import { CatalogueEntry, DiaryEntry } from 'src/app/shared/interfaces';
   templateUrl: './diary-entry-new-form.component.html',
 })
 export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
-  //   @Input() selectedDateISO: string = '';
-  //   @Input() diaryEntry?: DiaryEntry;
-  //   @Output() closeEvent = new EventEmitter();
-  @ViewChild('foodInputElem') public foodInputElem!: ElementRef;
-  @ViewChild('weightInputElem') public weightInputElem!: ElementRef;
+  @Input()
+  public expanded = false;
 
-  // filteredCatalogue!: Observable<CatalogueEntry[]>;
+  @Output()
+  public onServerSuccessfullResponse = new EventEmitter<void>();
+
+  @ViewChild('foodInputElem')
+  public foodInputElem!: ElementRef;
+
+  @ViewChild('weightInputElem')
+  public weightInputElem!: ElementRef;
 
   private subscription = new Subscription();
 
@@ -58,48 +66,49 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
     this.foodService.catalogueSortedListSelected$$().map((food) => food.name),
   );
 
-  // A custom validator that checks whether the value exists in the given names array.
-  private customCatalogueNameValidator(names: string[]): ValidatorFn {
-    return (control: AbstractControl): { [key: string]: any; } | null => {
-      const forbidden = !names.includes(control.value);
-      return forbidden ? { forbiddenName: { value: control.value } } : null;
+  private catalogueNameValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      return this.catalogueNames$$().includes(value) ? null : { notInCatalogue: true };
     };
-  }
+  };
 
   public diaryEntryForm: FormGroup = new FormGroup({
     foodCatalogueId: new FormControl(0),
-    foodName: new FormControl('', [Validators.required]),
-    foodWeight: new FormControl(null, [Validators.required, Validators.pattern(/^\d+$/)]), // Digits only
+    foodName: new FormControl('', [
+      Validators.required,
+      this.catalogueNameValidator(),
+    ]),
+    foodWeight: new FormControl(null, [
+      Validators.required,
+      Validators.pattern(/^\d+$/), // Digits only
+    ]),
   });
 
   constructor(public foodService: FoodService) {
-    // effect(() => { console.log('CATALOGUE NAMES has been updated:', this.catalogueNames$$()) }); // prettier-ignore
+    effect(() => { console.log('CATALOGUE NAMES have been updated:', this.catalogueNames$$()); }); // prettier-ignore
   }
 
   public ngOnInit(): void {
     this.subscribe();
   }
 
-  public ngOnChanges(): void { }
-
-  public ngAfterViewInit(): void {
-    // TODO: make it work
-    // setTimeout(() => {
-    //   this.foodInputElem.nativeElement.focus();
-    // }, 175); // The purpose of this delay is to provide time for the animation to finish, allowing the dropdown list to appear correctly
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes['expanded'] && changes['expanded'].currentValue) {
+      setTimeout(() => {
+        this.foodInputElem?.nativeElement?.focus();
+      }, 125);
+    }
   }
+
+  public ngAfterViewInit(): void { }
 
   public ngOnDestroy(): void {
     this.subscription.unsubscribe();
   }
 
   public isFormValid(): boolean {
-    return this.diaryEntryForm.valid && this.isCatalogueNameExistValidator();
-  }
-
-  private isCatalogueNameExistValidator(): boolean {
-    // TODO: implement
-    return true;
+    return this.diaryEntryForm.valid;
   }
 
   public onFoodSelected(event: MatAutocompleteSelectedEvent) {
@@ -124,31 +133,18 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
       foodWeight: foodWeight,
       history: [{ action: 'init', value: foodWeight }],
     };
-    const isSuccess = await firstValueFrom(this.foodService.createDiaryEntry(preppedDiaryEntry));
-    console.log('isSuccess', isSuccess);
-    //     this.foodService.postRequestResult$.pipe(take(1)).subscribe((response) => {
-    //       if (response.result) {
-    //         if (response.value) {
-    //           const diaryEntryId = parseInt(response.value);
-    //           this.foodService.diary$$.update((diary) => {
-    //             diary[this.selectedDateISO]['food'][diaryEntryId] = { ...preppedDiaryEntry, id: diaryEntryId };
-    //             return diary;
-    //           });
-    //           this.closeEvent.emit();
-    //         }
-    //         this.diaryEntryForm.enable();
-    //       } else {
-    //         this.diaryEntryForm.enable();
-    //       }
-    //     });
-    //     this.foodService.postDiaryEntry(preppedDiaryEntry);
+    const response = await firstValueFrom(this.foodService.createDiaryEntry(preppedDiaryEntry));
+    if (response?.result) {
+      if (response.diaryId) {
+        this.onServerSuccessfullResponse.emit();
+      }
+      this.diaryEntryForm.enable();
+    } else {
+      this.diaryEntryForm.enable();
+    }
   }
 
   private subscribe(): void {
-    // this.filteredCatalogue = this.diaryEntryForm.get('foodName')!.valueChanges.pipe(
-    //   startWith(''),
-    //   map((value) => this._filter(value || '')),
-    // );
     this.subscription.add(
       this.diaryEntryForm.get('foodName')!.valueChanges.subscribe((value) => {
         this.filteredCatalogue$.next(this._filter(value || ''));
@@ -163,7 +159,19 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
       .filter((food) => food.name.toLowerCase().includes(filterValue));
   }
 
-  public onFoodSelect(): void {
+  public foodNameReset(): void {
     this.diaryEntryForm.get('foodName')!.setValue('');
+  }
+
+  public shouldShowClearButton(): boolean {
+    return this.diaryEntryForm.get('foodName')!.value && this.diaryEntryForm.get('foodName')!.value.length > 0;
+  }
+
+  public get foodName() {
+    return this.diaryEntryForm.get('foodName');
+  }
+
+  public get foodWeight() {
+    return this.diaryEntryForm.get('foodWeight');
   }
 }

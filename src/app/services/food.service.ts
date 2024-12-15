@@ -11,7 +11,7 @@ import {
   DiaryEntry,
   FormattedDiary,
   FormattedDiaryEntry,
-  ServerResponse,
+  ServerResponseBasic,
   ServerResponseWithCatalogueEntry,
   ServerResponseWithDiaryId
 } from 'src/app/shared/interfaces';
@@ -21,7 +21,6 @@ import { getTodayIsoNoTimeNoTZ } from 'src/app/shared/utils';
   providedIn: 'root',
 })
 export class FoodService {
-  // public selectedDayIso$$: WritableSignal<string> = signal('2024-06-29');
   public diary$$: WritableSignal<Diary> = signal({});
   public diaryFormatted$$: Signal<FormattedDiary> = computed(() => this.prepDiary());
 
@@ -36,7 +35,7 @@ export class FoodService {
   public diaryEntryClickedFocus$ = new Subject<number>();
   public diaryEntryClickedScroll$ = new Subject<ElementRef>();
 
-  public postRequestResult$ = new Subject<ServerResponse>();
+  public postRequestResult$ = new Subject<ServerResponseBasic>();
 
   constructor(private http: HttpClient) {
     effect(() => { console.log('DIARY has been updated:', this.diary$$()); }); // prettier-ignore
@@ -116,52 +115,53 @@ export class FoodService {
   public createDiaryEntry(diaryEntry: DiaryEntry): Observable<ServerResponseWithDiaryId> {
     return this.http.post<ServerResponseWithDiaryId>('/api/food/diary/', diaryEntry).pipe(
       tap((response: ServerResponseWithDiaryId) => {
-        if (response?.result && response?.diaryId) {
-          const diaryEntryId: number = response.diaryId;
-          console.log('response', response, diaryEntryId);
-          this.updateDiaryEntryWithNewValues(diaryEntryId, diaryEntry);
+        if (response?.result) {
+          diaryEntry.id = response.diaryId;
+          this.updateDiaryEntryWithNewValues(diaryEntry);
         } else {
-          // console.error('Ошибка при обновлении записи в дневнике питания');
+          console.error('Ошибка при создании записи в дневнике питания');
         }
       }),
     );
   }
 
-  public editDiaryEntry(diaryEntry: DiaryEntry): Observable<ServerResponseWithDiaryId> {
-    return this.http.put<ServerResponseWithDiaryId>('/api/food/diary', diaryEntry).pipe(
-      tap((response: ServerResponseWithDiaryId) => {
-        if (response?.result && response?.diaryId) {
-          const diaryEntryId: number = response.diaryId;
-          this.updateDiaryEntryWithNewValues(diaryEntryId, diaryEntry);
+  public editDiaryEntry(diaryEntry: DiaryEntry): Observable<ServerResponseBasic> {
+    return this.http.put<ServerResponseBasic>('/api/food/diary', diaryEntry).pipe(
+      tap((response: ServerResponseBasic) => {
+        if (response?.result) {
+          this.updateDiaryEntryWithNewValues(diaryEntry);
         } else {
-          // console.error('Ошибка при обновлении записи в дневнике питания');
+          console.error('Ошибка при обновлении записи в дневнике питания');
         }
       }),
     );
   }
 
-  private updateDiaryEntryWithNewValues(diaryEntryId: number, diaryEntry: DiaryEntry) {
-    this.diary$$.update((diary) => {
+  private updateDiaryEntryWithNewValues(updatedDiaryEntry: DiaryEntry): void {
+    this.diary$$.update((oldDiary) => {
       const selectedDay = this.selectedDayIso$$();
-      const updatedDiary = { ...diary };
+      const updatedDiary = { ...oldDiary };
       const updatedDay = { ...updatedDiary[selectedDay] };
       const updatedFood = { ...updatedDay.food };
+
       // Creating new food entry if there is none with this id (in case of new food)
-      if (!updatedFood[diaryEntryId]) {
-        updatedFood[diaryEntryId] = {
-          id: diaryEntryId,
+      if (!updatedFood[updatedDiaryEntry.id]) {
+        updatedFood[updatedDiaryEntry.id] = {
+          id: updatedDiaryEntry.id,
           dateISO: selectedDay,
-          foodCatalogueId: diaryEntry.foodCatalogueId,
-          foodWeight: diaryEntry.foodWeight,
+          foodCatalogueId: updatedDiaryEntry.foodCatalogueId,
+          foodWeight: updatedDiaryEntry.foodWeight,
           history: [],
         };
       }
+
       // Updating existing or newly created entry
-      updatedFood[diaryEntryId] = {
-        ...updatedFood[diaryEntryId],
-        foodWeight: diaryEntry.foodWeight,
-        history: [...updatedFood[diaryEntryId].history, ...diaryEntry.history]
+      updatedFood[updatedDiaryEntry.id] = {
+        ...updatedFood[updatedDiaryEntry.id],
+        foodWeight: updatedDiaryEntry.foodWeight,
+        history: [...updatedFood[updatedDiaryEntry.id].history, ...updatedDiaryEntry.history]
       };
+
       updatedDay.food = updatedFood;
       updatedDiary[selectedDay] = updatedDay;
       return updatedDiary;
@@ -187,7 +187,6 @@ export class FoodService {
   public getCatalogueEntries(): Observable<Catalogue> {
     return this.http.get<Catalogue>('/api/food/catalogue').pipe(
       tap((response: Catalogue) => {
-        console.log('response', response);
         this.catalogue$$.set(response);
       }),
     );
@@ -256,7 +255,7 @@ export class FoodService {
   }
 
   public pickUserFoodId(foodId: number): Observable<boolean> {
-    return this.http.put<ServerResponse>('/api/food/user-catalogue/pick/', { foodId: foodId }).pipe(
+    return this.http.put<ServerResponseBasic>('/api/food/user-catalogue/pick/', { foodId: foodId }).pipe(
       map((response) => {
         if (response.result) this.addFoodIdToUserCatalogue(foodId);
         return response.result;
@@ -275,7 +274,7 @@ export class FoodService {
   }
 
   public dismissUserFoodId(foodId: number): Observable<boolean> {
-    return this.http.put<ServerResponse>('/api/food/user-catalogue/dismiss/', { foodId: foodId }).pipe(
+    return this.http.put<ServerResponseBasic>('/api/food/user-catalogue/dismiss/', { foodId: foodId }).pipe(
       map((response) => {
         if (response.result) this.removeFoodIdFromCatalogue(foodId);
         return response.result;
