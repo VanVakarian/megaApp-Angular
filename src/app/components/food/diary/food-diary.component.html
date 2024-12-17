@@ -23,14 +23,13 @@
             ({{ formatSelectedDaysEatenPercent }}%)
           </div>
         </mat-expansion-panel-header>
-        <!--
-          <app-body-weight-form
-            *ngIf="foodService.diaryFormatted$$()?.[selectedDateISO]"
-            [selectedDateISO]="selectedDateISO"
-          />
 
+        <!-- *ngIf="foodService.diaryFormatted$$()?.[selectedDateISO]" -->
+        <app-body-weight />
+
+        <!--
           <app-bmi [selectedDateISO]="selectedDateISO" />
-          -->
+        -->
       </mat-expansion-panel>
 
       <div class="mb-1"></div>

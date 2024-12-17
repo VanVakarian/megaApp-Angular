@@ -15,8 +15,9 @@ export interface DialogData {
 })
 export class ConfirmationDialogModalComponent {
   constructor(
+    @Inject(MAT_DIALOG_DATA)
+    public data: DialogData,
     public dialogRef: MatDialogRef<ConfirmationDialogModalComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: DialogData,
   ) { }
 
   onNoClick(): void {

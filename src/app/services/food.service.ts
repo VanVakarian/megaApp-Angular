@@ -119,7 +119,7 @@ export class FoodService {
           diaryEntry.id = response.diaryId;
           this.updateDiaryEntryWithNewValues(diaryEntry);
         } else {
-          console.error('Ошибка при создании записи в дневнике питания');
+          console.error('Creation of diary entry failed');
         }
       }),
     );
@@ -131,14 +131,14 @@ export class FoodService {
         if (response?.result) {
           this.updateDiaryEntryWithNewValues(diaryEntry);
         } else {
-          console.error('Ошибка при обновлении записи в дневнике питания');
+          console.error('Updating diary entry failed');
         }
       }),
     );
   }
 
   public deleteDiaryEntry(diaryEntryId: number): Observable<ServerResponseBasic> {
-    return this.http.delete<ServerResponseBasic>(`/api/food/diary/${diaryEntryId}`).pipe(
+    return this.http.delete<ServerResponseBasic>(`/api/food/diary/${ diaryEntryId }`).pipe(
       tap((response: ServerResponseBasic) => {
         if (response?.result) {
           this.removeDiaryEntry(diaryEntryId);

@@ -1,21 +1,21 @@
-<!-- <h1 mat-dialog-subheading>{{ data.question }}</h1> -->
-
 <div mat-dialog-content>
-  <h2>{{ data.question }}</h2>
+  <!-- <div> -->
+  <div class="text-xl font-bold">{{ data.question }}</div>
 </div>
 
 <div mat-dialog-actions
      align="end">
   <button mat-raised-button
-          cdkFocusInitial
-          color="warn"
-          (click)="onYesClick()">
-    Да
+          color="basic"
+          (click)="onNoClick()">
+    Нет
   </button>
 
   <button mat-raised-button
-          color="primary"
-          (click)="onNoClick()">
-    Нет
+          cdkFocusInitial
+          color="warn"
+          (click)="onYesClick()"
+          class="font-black">
+    Да
   </button>
 </div>

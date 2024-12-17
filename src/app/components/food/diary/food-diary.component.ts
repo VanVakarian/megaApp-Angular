@@ -21,6 +21,7 @@ import { DiaryEntryEditFormComponent } from 'src/app/components/food/diary/diary
 import { DiaryEntryNewFormComponent } from 'src/app/components/food/diary/diary-entry-new-form/diary-entry-new-form.component';
 import { DiaryNavButtonsComponent } from 'src/app/components/food/diary/diary-nav/diary-nav-buttons.component';
 import { FoodService } from 'src/app/services/food.service';
+import { BodyWeightComponent } from './body-weight/body-weight.component';
 
 @Component({
   selector: 'app-food-diary',
@@ -29,10 +30,11 @@ import { FoodService } from 'src/app/services/food.service';
     NgStyle,
     MatExpansionModule,
     MatCardModule,
+    MatIconModule,
     DiaryNavButtonsComponent,
     DiaryEntryEditFormComponent,
     DiaryEntryNewFormComponent,
-    MatIconModule,
+    BodyWeightComponent,
   ],
   templateUrl: './food-diary.component.html',
   styleUrl: './food-diary.component.scss',

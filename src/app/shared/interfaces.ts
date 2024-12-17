@@ -125,10 +125,10 @@ export interface Catalogue {
 //   [id: number]: number;
 // }
 
-// export interface BodyWeight {
-//   bodyWeight: string;
-//   date_iso: string;
-// }
+export interface BodyWeight {
+  bodyWeight: string;
+  dateISO: string;
+}
 
 // export interface BMI {
 //   widthFractions: number[];

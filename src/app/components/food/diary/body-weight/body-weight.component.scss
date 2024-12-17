@@ -1,0 +1,115 @@
+.header-weight-input-text {
+  font-size: 22px;
+  font-weight: 500;
+}
+
+::ng-deep {
+  .mat-expansion-panel-body {
+    padding: 14px 10px 8px;
+  }
+
+  .mat-mdc-form-field-subscript-wrapper {
+    height: 22px !important;
+  }
+
+  .mat-mdc-form-field-error {
+    font-size: 16px;
+  }
+
+  .mdc-text-field--disabled .mat-mdc-form-field-text-suffix {
+    opacity: 0.44;
+  }
+
+  .ng-invalid .mat-mdc-form-field-text-suffix {
+    color: #f44336;
+  }
+
+  .countdown-state {
+    .mdc-notched-outline {
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: #3F51B5;
+        opacity: 0.1;
+        animation: fill-background 2s linear forwards;
+        border-radius: 5px;
+      }
+    }
+  }
+
+  .submitting-state {
+    .mdc-notched-outline {
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: #3F51B5;
+        opacity: 0.1;
+        border-radius: 5px;
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(135deg, #3F51B5 0 4px, transparent 0 8px) right/200% 100%;
+        opacity: 0.2;
+        animation: slide-pattern 7s infinite linear;
+        border-radius: 5px;
+      }
+    }
+  }
+
+  .success-state {
+    .mdc-notched-outline {
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: #4CAF50;
+        border-radius: 5px;
+        animation: fade-out 1s ease-out forwards;
+      }
+    }
+  }
+
+  .error-state {
+    .mdc-notched-outline {
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: #F44336;
+        border-radius: 5px;
+        animation: fade-out 1s ease-out forwards;
+      }
+    }
+  }
+}
+
+@keyframes fill-background {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes slide-pattern {
+  to {
+    background-position: left;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 0.2;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
