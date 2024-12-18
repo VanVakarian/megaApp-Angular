@@ -4,6 +4,7 @@ import { computed, effect, ElementRef, Injectable, Signal, signal, WritableSigna
 import { catchError, map, Observable, of, Subject, tap } from 'rxjs';
 
 import {
+  BodyWeight,
   Catalogue,
   CatalogueEntry,
   CatalogueIds,
@@ -48,7 +49,7 @@ export class FoodService {
     effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()); }); // prettier-ignore
   }
 
-  ///// INIT ///////////////////////////////////////////////////////////////////
+  //                                                                        INIT
 
   private prepDiary(): FormattedDiary {
     const formattedDiary: FormattedDiary = {};
@@ -110,7 +111,7 @@ export class FoodService {
     );
   }
 
-  ///// DIARY //////////////////////////////////////////////////////////////////
+  //                                                                       DIARY
 
   public createDiaryEntry(diaryEntry: DiaryEntry): Observable<ServerResponseWithDiaryId> {
     return this.http.post<ServerResponseWithDiaryId>('/api/food/diary/', diaryEntry).pipe(
@@ -210,6 +211,8 @@ export class FoodService {
   // getDatesOutOfDiary() {
   //   return Object.keys(this.diary$$());
   // }
+
+  //                                                                   CATALOGUE
 
   public getCatalogueEntries(): Observable<Catalogue> {
     return this.http.get<Catalogue>('/api/food/catalogue').pipe(
@@ -316,4 +319,31 @@ export class FoodService {
   private removeFoodIdFromCatalogue(foodId: number): void {
     this.catalogueMyIds$$.update((foodIds) => foodIds.filter((id) => id !== foodId));
   }
+
+  //                                                                      WEIGHT
+
+  public setUserBodyWeight(bodyWeight: BodyWeight): Observable<boolean> {
+    return this.http.post<ServerResponseBasic>('/api/food/body_weight/', bodyWeight).pipe(
+      map((response) => {
+        if (response.result) {
+          console.log('response', response);
+          this.diary$$.update((diary) => {
+            return {
+              ...diary,
+              [bodyWeight.dateISO]: {
+                ...diary[bodyWeight.dateISO],
+                bodyWeight: Number(bodyWeight.bodyWeight),
+              },
+            };
+          });
+        }
+        return response.result;
+      }),
+      catchError((error) => {
+        console.warn('Error setting user body weight:', error);
+        return of(false);
+      }),
+    );
+  }
+
 }

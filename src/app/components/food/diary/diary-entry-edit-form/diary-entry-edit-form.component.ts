@@ -19,7 +19,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
-import { Subscription, delay, filter, take } from 'rxjs';
+import { Subscription, delay, filter, firstValueFrom, take } from 'rxjs';
 
 import { FoodService } from 'src/app/services/food.service';
 import { KeyboardService } from 'src/app/services/keyboard.service';
@@ -155,7 +155,7 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
     }
   }
 
-  public onSubmit(): void {
+  public async onSubmit(): Promise<void> {
     const weightChange = this.diaryEntryForm.value.foodWeightChange;
     this.historyAction = weightChange ? (String(weightChange).includes('-') ? 'subtract' : 'add') : 'set';
     const history = { action: this.historyAction, value: Math.abs(weightChange) };
@@ -168,14 +168,15 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
       foodWeight: this.foodWeightFinal,
       history: [history],
     };
-    this.foodService.editDiaryEntry(preppedFormValues).subscribe({
-      next: () => {
-        this.diaryEntryForm.enable();
-        this.diaryEntryForm.reset();
-        this.onServerSuccessfullEditResponse.emit();
-      },
-      error: () => this.diaryEntryForm.enable(),
-    });
+
+    try {
+      await firstValueFrom(this.foodService.editDiaryEntry(preppedFormValues));
+      this.diaryEntryForm.enable();
+      this.diaryEntryForm.reset();
+      this.onServerSuccessfullEditResponse.emit();
+    } catch {
+      this.diaryEntryForm.enable();
+    }
   }
 
   public openConfirmationModal(actionQuestion: string): void {

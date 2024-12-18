@@ -1,12 +1,12 @@
 import { animate, sequence, style, transition, trigger } from '@angular/animations';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import { debounceTime, filter, Subject } from 'rxjs';
+import { debounceTime, filter, firstValueFrom, Subject } from 'rxjs';
 
 import { FoodService } from 'src/app/services/food.service';
 import { BodyWeight } from 'src/app/shared/interfaces';
@@ -14,11 +14,17 @@ import { BodyWeight } from 'src/app/shared/interfaces';
 const COUNTDOWN_DELAY_MS = 2000;
 const COUNTDOWN_DELAY_S = COUNTDOWN_DELAY_MS / 1000;
 
+enum UIState {
+  Idle = 'idle',
+  Countdown = 'countdown',
+  Submitting = 'submitting',
+  Success = 'success',
+  Error = 'error'
+}
+
 interface BodyWeightForm {
   bodyWeight: FormControl<string>;
 }
-
-type UIState = 'idle' | 'countdown' | 'submitting' | 'success' | 'error';
 
 @Component({
   selector: 'app-body-weight',
@@ -38,11 +44,11 @@ type UIState = 'idle' | 'countdown' | 'submitting' | 'success' | 'error';
   ],
 })
 export class BodyWeightComponent implements OnInit {
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly submitTrigger = new Subject<void>();
+  public UIState = UIState;
 
-  protected readonly uiState = signal<UIState>('idle');
-  protected readonly prevValue = signal<string>('');
+  public prevValue: string = '';
+
+  private uiState: typeof UIState[keyof typeof UIState] = UIState.Idle;
 
   protected readonly form = new FormGroup<BodyWeightForm>({
     bodyWeight: new FormControl('', {
@@ -55,91 +61,76 @@ export class BodyWeightComponent implements OnInit {
     }),
   });
 
+  private readonly destroyRef = inject(DestroyRef);
+
+  private readonly submitTrigger = new Subject<void>();
+
   constructor(
-    protected readonly foodService: FoodService
+    protected readonly foodService: FoodService,
   ) {
-    this.initializeValueChanges();
     this.initializeSubmitTrigger();
   }
 
   public ngOnInit(): void {
-    // TODO: Delete mocks
-    this.prevValue.set('123');
-    this.form.controls.bodyWeight.setValue(this.prevValue());
-    this.form.controls.bodyWeight.markAsTouched();
-  }
-
-  private initializeValueChanges(): void {
-    this.form.controls.bodyWeight.valueChanges.pipe(
-      filter(() => this.form.valid),
-      filter(value => value !== this.prevValue()),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(() => {
-      this.uiState.set('countdown');
-    });
   }
 
   private initializeSubmitTrigger(): void {
     this.submitTrigger.pipe(
       debounceTime(COUNTDOWN_DELAY_MS),
       filter(() => this.form.valid),
-      filter(() => this.form.controls.bodyWeight.value !== this.prevValue()),
+      filter(() => this.form.controls.bodyWeight.value !== this.prevValue),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
-      this.uiState.set('idle'); // Сбрасываем состояние перед отправкой
       this.submitWeight();
     });
   }
 
   protected onInput(): void {
+    console.log('onInput fired');
     const control = this.form.controls.bodyWeight;
     control.markAsTouched();
 
-    if (this.form.valid && control.value !== this.prevValue()) {
-      this.uiState.set('idle'); // Сбрасываем состояние
-      setTimeout(() => this.uiState.set('countdown')); // Запускаем анимацию в следующем тике
+    if (this.form.valid && control.value !== this.prevValue) {
+      console.log('form is valid');
+      this.uiState = UIState.Countdown;
       this.submitTrigger.next();
     } else {
-      this.uiState.set('idle');
+      this.uiState = UIState.Idle;
     }
   }
 
-  protected onEnter(): void {
-    if (this.form.valid && this.form.controls.bodyWeight.value !== this.prevValue()) {
-      this.submitWeight();
-    }
-  }
+  // protected onEnter(): void {
+  //   if (this.form.valid && this.form.controls.bodyWeight.value !== this.prevValue) {
+  //     this.submitWeight();
+  //   }
+  // }
 
-  private submitWeight(): void {
-    this.uiState.set('submitting');
+  private async submitWeight(): Promise<void> {
+    this.uiState = UIState.Idle;
+    setTimeout(() => this.uiState = UIState.Submitting);
     this.form.disable();
 
     const weight: BodyWeight = {
       bodyWeight: this.form.controls.bodyWeight.value.replace(',', '.'),
       dateISO: this.foodService.selectedDayIso$$(),
     };
-    console.log(weight);
 
-    // TODO: Delete mock submission
-    setTimeout(() => {
-      this.prevValue.set(weight.bodyWeight);
+    try {
+      const result = await firstValueFrom(this.foodService.setUserBodyWeight(weight));
       this.form.enable();
-      this.uiState.set('success');
-    }, 2000);
+      if (result) {
+        this.prevValue = weight.bodyWeight;
+        this.uiState = UIState.Success;
+      } else {
+        this.uiState = UIState.Error;
+      }
+    } catch {
+      this.form.enable();
+      this.uiState = UIState.Error;
+    }
+  }
 
-    // TODO: Implement weight submission
-    // this.foodService.submitWeight(weight).pipe(
-    //   takeUntilDestroyed(this.destroyRef)
-    // ).subscribe({
-    //   next: () => {
-    //     this.prevValue.set(weight.bodyWeight);
-    //     this.uiState.set('idle');
-    //     this.form.enable();
-    //   },
-    //   error: () => {
-    //     this.uiState.set('idle');
-    //     this.form.enable();
-    //   }
-    // });
+  public getState(state: UIState): boolean {
+    return this.uiState === state;
   }
 }

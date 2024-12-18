@@ -57,6 +57,15 @@
         opacity: 0.2;
         animation: slide-pattern 7s infinite linear;
         border-radius: 5px;
+        animation-play-state: running;
+      }
+    }
+  }
+
+  .success-state, .error-state {
+    .mdc-notched-outline {
+      &::after {
+        animation-play-state: paused;
       }
     }
   }
