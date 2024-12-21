@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { computed, effect, ElementRef, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { computed, ElementRef, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 
 import { catchError, map, Observable, of, Subject, tap } from 'rxjs';
 
@@ -39,14 +39,14 @@ export class FoodService {
   public postRequestResult$ = new Subject<ServerResponseBasic>();
 
   constructor(private http: HttpClient) {
-    effect(() => { console.log('DIARY has been updated:', this.diary$$()); }); // prettier-ignore
-    effect(() => { console.log('FORMATTED DIARY has been updated:', this.diaryFormatted$$()); }); // prettier-ignore
-    effect(() => { console.log('SELECTED DAY has been updated:', this.selectedDayIso$$()); }); // prettier-ignore
-    effect(() => { console.log('DAYS have been updated:', this.days$$()); }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE have been updated:', this.catalogue$$()); }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE MY IDS have been updated:', this.catalogueMyIds$$()); }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()); }); // prettier-ignore
-    effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()); }); // prettier-ignore
+    // effect(() => { console.log('DIARY has been updated:', this.diary$$()); }); // prettier-ignore
+    // effect(() => { console.log('FORMATTED DIARY has been updated:', this.diaryFormatted$$()); }); // prettier-ignore
+    // effect(() => { console.log('SELECTED DAY has been updated:', this.selectedDayIso$$()); }); // prettier-ignore
+    // effect(() => { console.log('DAYS have been updated:', this.days$$()); }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE have been updated:', this.catalogue$$()); }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE MY IDS have been updated:', this.catalogueMyIds$$()); }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()); }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()); }); // prettier-ignore
   }
 
   //                                                                        INIT
@@ -56,7 +56,6 @@ export class FoodService {
     if (Object.keys(this.catalogue$$()).length === 0) return formattedDiary; // postpone formatting Diary if there is no catalogue yet
 
     for (const dateISO in this.diary$$()) {
-      // console.log('date', dateIso);
       formattedDiary[dateISO] = {
         food: {},
         bodyWeight: this.diary$$()[dateISO].bodyWeight,
@@ -91,7 +90,6 @@ export class FoodService {
     }
     return formattedDiary;
   }
-
 
   private prepCatalogueSortedListSeparate(selected: boolean): CatalogueEntry[] {
     return Object.values(this.catalogue$$())

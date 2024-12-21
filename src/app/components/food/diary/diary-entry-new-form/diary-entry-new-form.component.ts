@@ -12,8 +12,7 @@ import {
   Signal,
   SimpleChanges,
   ViewChild,
-  computed,
-  effect,
+  computed
 } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 
@@ -86,7 +85,7 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
   });
 
   constructor(public foodService: FoodService) {
-    effect(() => { console.log('CATALOGUE NAMES have been updated:', this.catalogueNames$$()); }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE NAMES have been updated:', this.catalogueNames$$()); }); // prettier-ignore
   }
 
   public ngOnInit(): void {

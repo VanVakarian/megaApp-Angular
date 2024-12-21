@@ -75,3 +75,10 @@ export function divideNumberWithWhitespaces(num: string): string {
 export async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export function toKebabCase(str: string): string {
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1-$2') // Adds hyphen between camelCase parts (e.g. 'camelCase' -> 'camel-Case')
+    .replace(/[\s_]+/g, '-') // Replaces spaces and underscores with hyphens
+    .toLowerCase();
+}
