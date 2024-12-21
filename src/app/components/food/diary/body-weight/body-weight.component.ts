@@ -65,6 +65,17 @@ export class BodyWeightComponent implements OnInit {
     }
   }
 
+  protected onEnter(): void {
+    if (!this.form.valid) {
+      return;
+    }
+
+    if (this.stateManager.currentState === IndicatorState.Countdown) {
+      this.stateManager.setState(IndicatorState.Idle);
+    }
+    this.submitWeight();
+  }
+
   protected isSuffixInvalid(): boolean {
     const control = this.form.controls.bodyWeight;
     return control.invalid && control.touched && !control.pristine;

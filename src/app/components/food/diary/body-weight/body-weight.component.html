@@ -15,8 +15,8 @@
         <input matInput
                class="text-right"
                formControlName="bodyWeight"
+               (keydown.enter)="onEnter()"
                (input)="onInput()" />
-        <!-- (keydown.enter)="onEnter()" -->
 
         <span matTextSuffix
               class="ml-2 font-medium"
