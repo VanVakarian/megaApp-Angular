@@ -1,26 +1,14 @@
 import { animate, sequence, style, transition, trigger } from '@angular/animations';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-
-import { debounceTime, filter, firstValueFrom, Subject } from 'rxjs';
-
+import { firstValueFrom } from 'rxjs';
 import { FoodService } from 'src/app/services/food.service';
 import { BodyWeight } from 'src/app/shared/interfaces';
+import { AnimationStateManager, IndicatorState } from './animation-state.manager';
 
 const COUNTDOWN_DELAY_MS = 2000;
-const COUNTDOWN_DELAY_S = COUNTDOWN_DELAY_MS / 1000;
-
-enum UIState {
-  Idle = 'idle',
-  Countdown = 'countdown',
-  Submitting = 'submitting',
-  Success = 'success',
-  Error = 'error'
-}
 
 interface BodyWeightForm {
   bodyWeight: FormControl<string>;
@@ -39,75 +27,57 @@ interface BodyWeightForm {
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('countdown-bar', [
-      transition(':enter', [sequence([style({ width: '0%' }), animate(`${ COUNTDOWN_DELAY_S }s`, style({ width: '100%' }))])]),
+      transition(':enter', [sequence([style({ width: '0%' }), animate(`${ COUNTDOWN_DELAY_MS / 1000 }s`, style({ width: '100%' }))])]),
     ]),
   ],
 })
 export class BodyWeightComponent implements OnInit {
-  public UIState = UIState;
-
+  public IndicatorState = IndicatorState;
   public prevValue: string = '';
 
-  private uiState: typeof UIState[keyof typeof UIState] = UIState.Idle;
+  private stateManager: AnimationStateManager;
 
   protected readonly form = new FormGroup<BodyWeightForm>({
     bodyWeight: new FormControl('', {
       validators: [
         Validators.required,
-        // a two- or a three-digit number with or without a decimal part with only one digit after a dot (or a comma)
         Validators.pattern(/^\d{2,3}([.,]\d)?$/)
       ],
       nonNullable: true,
     }),
   });
 
-  private readonly destroyRef = inject(DestroyRef);
-
-  private readonly submitTrigger = new Subject<void>();
-
   constructor(
     protected readonly foodService: FoodService,
+    private cdRef: ChangeDetectorRef,
   ) {
-    this.initializeSubmitTrigger();
+    this.stateManager = new AnimationStateManager(cdRef);
   }
 
-  public ngOnInit(): void {
-  }
+  public ngOnInit(): void { }
 
-  private initializeSubmitTrigger(): void {
-    this.submitTrigger.pipe(
-      debounceTime(COUNTDOWN_DELAY_MS),
-      filter(() => this.form.valid),
-      filter(() => this.form.controls.bodyWeight.value !== this.prevValue),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(() => {
-      this.submitWeight();
-    });
+  protected getState(state: IndicatorState): boolean {
+    return this.stateManager.currentState === state;
   }
 
   protected onInput(): void {
-    console.log('onInput fired');
     const control = this.form.controls.bodyWeight;
     control.markAsTouched();
 
     if (this.form.valid && control.value !== this.prevValue) {
-      console.log('form is valid');
-      this.uiState = UIState.Countdown;
-      this.submitTrigger.next();
+      this.stateManager.startCountdown(() => this.submitWeight(), COUNTDOWN_DELAY_MS);
     } else {
-      this.uiState = UIState.Idle;
+      this.stateManager.setState(IndicatorState.Idle);
     }
   }
 
-  // protected onEnter(): void {
-  //   if (this.form.valid && this.form.controls.bodyWeight.value !== this.prevValue) {
-  //     this.submitWeight();
-  //   }
-  // }
+  protected isSuffixInvalid(): boolean {
+    const control = this.form.controls.bodyWeight;
+    return control.invalid && control.touched && !control.pristine;
+  }
 
   private async submitWeight(): Promise<void> {
-    this.uiState = UIState.Idle;
-    setTimeout(() => this.uiState = UIState.Submitting);
+    this.stateManager.setStateWithDelay(IndicatorState.Submitting);
     this.form.disable();
 
     const weight: BodyWeight = {
@@ -120,17 +90,13 @@ export class BodyWeightComponent implements OnInit {
       this.form.enable();
       if (result) {
         this.prevValue = weight.bodyWeight;
-        this.uiState = UIState.Success;
+        this.stateManager.setState(IndicatorState.Success);
       } else {
-        this.uiState = UIState.Error;
+        this.stateManager.setState(IndicatorState.Error);
       }
     } catch {
       this.form.enable();
-      this.uiState = UIState.Error;
+      this.stateManager.setState(IndicatorState.Error);
     }
-  }
-
-  public getState(state: UIState): boolean {
-    return this.uiState === state;
   }
 }

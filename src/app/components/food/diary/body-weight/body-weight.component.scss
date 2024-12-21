@@ -20,7 +20,7 @@
     opacity: 0.44;
   }
 
-  .ng-invalid .mat-mdc-form-field-text-suffix {
+  .invalid-suffix {
     color: #f44336;
   }
 
@@ -62,7 +62,8 @@
     }
   }
 
-  .success-state, .error-state {
+  .success-state,
+  .error-state {
     .mdc-notched-outline {
       &::after {
         animation-play-state: paused;

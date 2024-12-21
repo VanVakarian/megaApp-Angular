@@ -6,10 +6,10 @@
     <div class="relative w-1/2">
       <mat-form-field appearance="outline"
                       class="header-weight-input-text"
-                      [class.countdown-state]="getState(UIState.Countdown)"
-                      [class.submitting-state]="getState(UIState.Submitting)"
-                      [class.success-state]="getState(UIState.Success)"
-                      [class.error-state]="getState(UIState.Error)">
+                      [class.countdown-state]="getState(IndicatorState.Countdown)"
+                      [class.submitting-state]="getState(IndicatorState.Submitting)"
+                      [class.success-state]="getState(IndicatorState.Success)"
+                      [class.error-state]="getState(IndicatorState.Error)">
         <mat-label>Вес</mat-label>
 
         <input matInput
@@ -19,7 +19,8 @@
         <!-- (keydown.enter)="onEnter()" -->
 
         <span matTextSuffix
-              class="ml-2 font-medium">кг</span>
+              class="ml-2 font-medium"
+              [class.invalid-suffix]="isSuffixInvalid()">кг</span>
 
         @if (form.controls.bodyWeight.invalid) {
           <mat-error>ХХ.Х или ХХ</mat-error>
