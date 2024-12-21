@@ -16,14 +16,19 @@
     font-size: 16px;
   }
 
-  // .mdc-text-field--disabled .mat-mdc-form-field-text-suffix {
-  //   opacity: 0.44;
-  // }
+  .mat-mdc-form-field-infix {
+    padding: 12px 0 !important;
+  }
+
+  .mat-mdc-form-field-text-suffix {
+    color: #00000099;
+  }
 
   .invalid-suffix {
     color: #f44336;
   }
 
+  // mdc-notched-outline element is a perfect fit for this animations
   .countdown-state {
     .mdc-notched-outline {
       &::before {
@@ -77,9 +82,9 @@
         content: '';
         position: absolute;
         inset: 0;
-        background: #4CAF50;
+        background-color: #00FF00;
         border-radius: 5px;
-        animation: fade-out 1s ease-out forwards;
+        animation: fade-out 3s linear forwards;
       }
     }
   }
@@ -90,9 +95,9 @@
         content: '';
         position: absolute;
         inset: 0;
-        background: #F44336;
+        background-color: #FF0000;
         border-radius: 5px;
-        animation: fade-out 1s ease-out forwards;
+        animation: fade-out 3s linear forwards;
       }
     }
   }
