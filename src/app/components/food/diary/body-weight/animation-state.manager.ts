@@ -12,7 +12,8 @@ export class AnimationStateManager {
   private state: IndicatorState = IndicatorState.Idle;
   private timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(private cdRef: ChangeDetectorRef) {}
+  constructor(private cdRef: ChangeDetectorRef) {
+  }
 
   public get currentState(): IndicatorState {
     return this.state;
@@ -39,7 +40,7 @@ export class AnimationStateManager {
     this.timeoutId = setTimeout(() => {
       this.state = IndicatorState.Countdown;
       this.cdRef.markForCheck();
-      
+
       this.timeoutId = setTimeout(() => {
         this.timeoutId = null;
         onComplete();

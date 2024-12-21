@@ -1,4 +1,3 @@
-import { animate, sequence, style, transition, trigger } from '@angular/animations';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,11 +24,6 @@ interface BodyWeightForm {
   templateUrl: './body-weight.component.html',
   styleUrl: './body-weight.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('countdown-bar', [
-      transition(':enter', [sequence([style({ width: '0%' }), animate(`${ COUNTDOWN_DELAY_MS / 1000 }s`, style({ width: '100%' }))])]),
-    ]),
-  ],
 })
 export class BodyWeightComponent implements OnInit {
   public IndicatorState = IndicatorState;

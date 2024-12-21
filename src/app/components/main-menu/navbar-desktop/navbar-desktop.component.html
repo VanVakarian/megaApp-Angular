@@ -1,8 +1,8 @@
 @if (authService.isAuthenticated) {
   <header #header
-          class="tw-bg-color-80 lg:block lg:pl-2 fixed z-10 hidden w-full">
+          class="tw-bg-color-80 lg:block fixed z-10 hidden w-full">
 
-    <div class="mx-auto flex w-full max-w-[1198px] gap-2 py-2">
+    <div class="mx-auto flex w-full max-w-[1198px] gap-2 py-1 px-1">
       @for (button of desktopButtons; track $index) {
         @if (button.label !== "DarkThemeSwitch") {
           @if (button.selected) {
