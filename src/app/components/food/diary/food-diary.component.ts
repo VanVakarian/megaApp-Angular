@@ -10,7 +10,6 @@ import {
   ViewChild,
   ViewChildren,
 } from '@angular/core';
-
 import { MatCardModule } from '@angular/material/card';
 import { MatAccordion, MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
@@ -65,19 +64,6 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('foodPercent')
   public percentsDivs!: QueryList<ElementRef>;
 
-  // @ViewChild('#diaryEntry') diaryEntryDivs!: ElementRef;
-
-  // direction: string = 'left';
-  // daysList: string[] = [];
-  // calendarSelectedDay: FormControl = new FormControl(new Date());
-
-  // today: Date = new Date();
-  // todayDate: number = this.today.setHours(0, 0, 0, 0);
-  // selectedDateMs: number = this.todayDate;
-  // selectedDateISO: string = dateToIsoNoTimeNoTZ(this.today.getTime());
-
-  // showFloatingWindow: boolean = false;
-
   constructor(
     public foodService: FoodService,
     // private cdRef: ChangeDetectorRef,
@@ -85,10 +71,6 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   ) { }
 
   public ngOnInit(): void {
-    // setTimeout(() => {
-    //   this.foodService.getFoodDiary('2024-06-20', 2).subscribe();
-    // }, 3333);
-    //   this.daysList = generateDatesList(this.selectedDateISO);
   }
 
   public ngAfterViewInit(): void {
@@ -107,13 +89,10 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public get todaysFood() {
     const selectedDay = this.foodService.selectedDayIso$$();
-    // console.log('selectedDay:', selectedDay);
     const todaysFood = this.foodService.diaryFormatted$$()?.[selectedDay]?.food;
 
     if (todaysFood) {
       const foodArray = Object.values(todaysFood);
-      // foodArray.sort((a: FormattedDiaryEntry, b: FormattedDiaryEntry) => a.dateISO - b.dateISO);
-      // console.log('Sorted todaysFood:', foodArray);
       return foodArray;
     }
 
@@ -140,23 +119,12 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
       background: `linear-gradient(to right, var(--gradient-color) ${ percentCapped }%, var(--gradient-bg) ${ percentCapped }%)`,
     };
   }
+
   // DIARY
   public diaryEntryExpanded(diaryEntry: MatExpansionPanel, diaryEntryId: number) {
     this.foodService.diaryEntryClickedFocus$.next(diaryEntryId);
     this.foodService.diaryEntryClickedScroll$.next(diaryEntry._body);
   }
-
-  // regenerateDaysList(): void {
-  //   const dayIdx = this.daysList.indexOf(this.selectedDateISO);
-
-  //   if (
-  //     dayIdx < Math.floor((FETCH_DAYS_RANGE_OFFSET * 2) / 4) ||
-  //     dayIdx > Math.ceil(((FETCH_DAYS_RANGE_OFFSET * 2) / 4) * 3)
-  //   ) {
-  //     this.daysList = generateDatesList(this.selectedDateISO);
-  //     this.foodService.getFullUpdate(this.selectedDateISO);
-  //   }
-  // }
 
   // COLUMN WIDH SETTING FNS
   private adjustWidths(): void {

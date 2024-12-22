@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
-import { computed, ElementRef, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { computed, effect, ElementRef, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 
-import { catchError, map, Observable, of, Subject, tap } from 'rxjs';
+import { catchError, debounceTime, filter, firstValueFrom, map, Observable, of, Subject, tap } from 'rxjs';
 
 import {
   BodyWeight,
@@ -38,6 +38,13 @@ export class FoodService {
 
   public postRequestResult$ = new Subject<ServerResponseBasic>();
 
+  private FETCH_OFFSET = 7; // TODO[063]: move to settings
+  private FETCH_THRESHOLD = 3; // TODO[063]: move to settings
+
+  private loadedRanges$$: WritableSignal<{ start: string; end: string; }[]> = signal([]);
+  private isLoading$$: WritableSignal<boolean> = signal(false);
+  private fetchMoreDiaryTrigger$ = new Subject<void>();
+
   constructor(private http: HttpClient) {
     // effect(() => { console.log('DIARY has been updated:', this.diary$$()); }); // prettier-ignore
     // effect(() => { console.log('FORMATTED DIARY has been updated:', this.diaryFormatted$$()); }); // prettier-ignore
@@ -47,6 +54,18 @@ export class FoodService {
     // effect(() => { console.log('CATALOGUE MY IDS have been updated:', this.catalogueMyIds$$()); }); // prettier-ignore
     // effect(() => { console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()); }); // prettier-ignore
     // effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()); }); // prettier-ignore
+    effect(() => {
+      if (this.shouldLoadMore()) {
+        this.fetchMoreDiaryTrigger$.next();
+      }
+    });
+
+    this.fetchMoreDiaryTrigger$.pipe(
+      debounceTime(100),
+      filter(() => !this.isLoading$$())
+    ).subscribe(() => {
+      this.loadMoreData();
+    });
   }
 
   //                                                                        INIT
@@ -100,13 +119,8 @@ export class FoodService {
   }
 
   public getFoodDiaryFullUpdateRange(dateIso?: string, offset?: number): Observable<Diary> {
-    // this.extendDates(dateIso, offset);
-    const paramsStr = `date=${ dateIso ?? getTodayIsoNoTimeNoTZ() }&offset=${ offset ?? 7 }`;
-    return this.http.get<Diary>(`/api/food/diary-full-update?${ paramsStr }`).pipe(
-      tap((response: Diary) => {
-        this.diary$$.set(response);
-      }),
-    );
+    const paramsStr = `date=${ dateIso ?? getTodayIsoNoTimeNoTZ() }&offset=${ offset ?? this.FETCH_OFFSET }`;
+    return this.http.get<Diary>(`/api/food/diary-full-update?${ paramsStr }`);
   }
 
   //                                                                       DIARY
@@ -344,4 +358,131 @@ export class FoodService {
     );
   }
 
+  //                                                             AUTO DIARY LOAD
+
+  private shouldLoadMore(): boolean {
+    const selectedDay = this.selectedDayIso$$();
+    const ranges = this.loadedRanges$$();
+
+    if (ranges.length === 0) return true;
+
+    for (const range of ranges) {
+      const start = new Date(range.start);
+      const end = new Date(range.end);
+      const selected = new Date(selectedDay);
+
+      const daysToStart = Math.floor((selected.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      const daysToEnd = Math.floor((end.getTime() - selected.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (daysToStart <= this.FETCH_THRESHOLD || daysToEnd <= this.FETCH_THRESHOLD) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private async loadMoreData(): Promise<void> {
+    this.isLoading$$.set(true);
+
+    try {
+      const selectedDay = this.selectedDayIso$$();
+      const ranges = this.loadedRanges$$();
+
+      let dateToLoad = selectedDay;
+      if (ranges.length > 0) {
+        const nearestRange = this.findNearestRange(selectedDay);
+        if (nearestRange) {
+          const selected = new Date(selectedDay);
+          const start = new Date(nearestRange.start);
+          const end = new Date(nearestRange.end);
+
+          if (Math.abs(selected.getTime() - start.getTime()) < Math.abs(selected.getTime() - end.getTime())) {
+            const newStart = new Date(start);
+            newStart.setDate(start.getDate() - this.FETCH_OFFSET);
+            dateToLoad = newStart.toISOString().split('T')[0];
+          } else {
+            const newEnd = new Date(end);
+            newEnd.setDate(end.getDate() + this.FETCH_OFFSET);
+            dateToLoad = newEnd.toISOString().split('T')[0];
+          }
+        }
+      }
+
+      const response = await firstValueFrom(this.getFoodDiaryFullUpdateRange(dateToLoad));
+      this.diary$$.update(diary => ({ ...diary, ...response }));
+      this.updateLoadedRanges(dateToLoad);
+    } finally {
+      this.isLoading$$.set(false);
+    }
+  }
+
+  private findNearestRange(date: string): { start: string; end: string; } | null {
+    const ranges = this.loadedRanges$$();
+    if (ranges.length === 0) return null;
+
+    const targetDate = new Date(date).getTime();
+
+    return ranges.reduce((nearest, range) => {
+      const startDiff = Math.abs(new Date(range.start).getTime() - targetDate);
+      const endDiff = Math.abs(new Date(range.end).getTime() - targetDate);
+      const minDiff = Math.min(startDiff, endDiff);
+
+      if (!nearest || minDiff < Math.min(
+        Math.abs(new Date(nearest.start).getTime() - targetDate),
+        Math.abs(new Date(nearest.end).getTime() - targetDate)
+      )) {
+        return range;
+      }
+      return nearest;
+    }, null as { start: string; end: string; } | null);
+  }
+
+  private updateLoadedRanges(centerDate: string): void {
+    const center = new Date(centerDate);
+    const start = new Date(center);
+    const end = new Date(center);
+
+    start.setDate(center.getDate() - this.FETCH_OFFSET);
+    end.setDate(center.getDate() + this.FETCH_OFFSET);
+
+    const newRange = {
+      start: start.toISOString().split('T')[0],
+      end: end.toISOString().split('T')[0]
+    };
+
+    this.loadedRanges$$.update(ranges => {
+      const mergedRanges = this.mergeRanges([...ranges, newRange]);
+      return mergedRanges;
+    });
+  }
+
+  private mergeRanges(ranges: { start: string; end: string; }[]): { start: string; end: string; }[] {
+    if (ranges.length <= 1) return ranges;
+
+    const sortedRanges = ranges.sort((a, b) =>
+      new Date(a.start).getTime() - new Date(b.start).getTime()
+    );
+
+    const result: { start: string; end: string; }[] = [sortedRanges[0]];
+
+    for (const range of sortedRanges.slice(1)) {
+      const lastRange = result[result.length - 1];
+      const lastEnd = new Date(lastRange.end);
+      const currentStart = new Date(range.start);
+
+      lastEnd.setDate(lastEnd.getDate() + 1);
+
+      if (lastEnd.getTime() >= currentStart.getTime()) {
+        const newEnd = new Date(Math.max(
+          new Date(lastRange.end).getTime(),
+          new Date(range.end).getTime()
+        ));
+        lastRange.end = newEnd.toISOString().split('T')[0];
+      } else {
+        result.push(range);
+      }
+    }
+
+    return result;
+  }
 }
