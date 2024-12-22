@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, effect, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -46,9 +46,22 @@ export class BodyWeightComponent implements OnInit {
     private cdRef: ChangeDetectorRef,
   ) {
     this.stateManager = new AnimationStateManager(cdRef);
+
+    effect(() => {
+      this.applyWeight();
+    });
   }
 
-  public ngOnInit(): void { }
+  public ngOnInit(): void {
+  }
+
+  public applyWeight(): void {
+    const selectedDateISO = this.foodService.selectedDayIso$$();
+    const weight = this.foodService.diary$$()?.[selectedDateISO]?.['bodyWeight'];
+    if (!weight) return;
+    this.form.patchValue({ bodyWeight: String(weight) });
+    this.prevValue = String(weight);
+  }
 
   protected getState(state: IndicatorState): boolean {
     return this.stateManager.currentState === state;
