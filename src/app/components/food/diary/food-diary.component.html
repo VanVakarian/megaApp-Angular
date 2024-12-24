@@ -89,8 +89,10 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
 
-      <app-diary-entry-edit-form [diaryEntry]="food"
-                                 (onServerSuccessfullEditResponse)="accordionCollapse()"></app-diary-entry-edit-form>
+      @defer (on timer(500)) {
+        <app-diary-entry-edit-form [diaryEntry]="food"
+                                   (onServerSuccessfullEditResponse)="accordionCollapse()"></app-diary-entry-edit-form>
+      }
     </mat-expansion-panel>
   }
 

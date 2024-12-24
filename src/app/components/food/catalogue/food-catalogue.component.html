@@ -53,11 +53,11 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
 
-      <ng-template matExpansionPanelContent>
+      @defer (on timer(500)) {
         <app-food-catalogue-form [formRole]="'edit'"
                                  [categoryEntry]="food" />
         <!-- (ownershipChanged)="onOwnershipChanged($event)" -->
-      </ng-template>
+      }
 
     </mat-expansion-panel>
   }
