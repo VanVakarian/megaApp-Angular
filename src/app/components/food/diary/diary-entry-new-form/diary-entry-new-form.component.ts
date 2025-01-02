@@ -1,32 +1,28 @@
 import { AsyncPipe } from '@angular/common';
 import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  Output,
-  Signal,
-  SimpleChanges,
-  ViewChild,
-  computed
+  AfterViewInit, Component, computed, ElementRef, EventEmitter, Input,
+  OnChanges, OnDestroy, OnInit, Output, Signal, SimpleChanges, ViewChild,
 } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {
+  AbstractControl, FormControl, FormGroup, FormGroupDirective, FormsModule,
+  ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators,
+} from '@angular/forms';
 
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import {
+  MatAutocompleteModule,
+  MatAutocompleteSelectedEvent
+} from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
-import { Subject, Subscription, firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject, Subscription } from 'rxjs';
 
 import { FoodService } from 'src/app/services/food.service';
 import { CatalogueEntry, DiaryEntry } from 'src/app/shared/interfaces';
+
 
 @Component({
   selector: 'app-diary-entry-new-form',
@@ -45,19 +41,21 @@ import { CatalogueEntry, DiaryEntry } from 'src/app/shared/interfaces';
   templateUrl: './diary-entry-new-form.component.html',
 })
 export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
+
   @Input()
   public expanded = false;
 
   @Output()
   public onServerSuccessfullResponse = new EventEmitter<void>();
 
+  @ViewChild('formGroupDirective')
+  public formDirective!: FormGroupDirective;
+
   @ViewChild('foodInputElem')
   public foodInputElem!: ElementRef;
 
   @ViewChild('weightInputElem')
   public weightInputElem!: ElementRef;
-
-  private subscription = new Subscription();
 
   public filteredCatalogue$: Subject<CatalogueEntry[]> = new Subject<CatalogueEntry[]>();
 
@@ -70,7 +68,7 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
       const value = control.value;
       return this.catalogueNames$$().includes(value) ? null : { notInCatalogue: true };
     };
-  };
+  }
 
   public diaryEntryForm: FormGroup = new FormGroup({
     foodCatalogueId: new FormControl(0),
@@ -83,6 +81,16 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
       Validators.pattern(/^\d+$/), // Digits only
     ]),
   });
+
+  private subscription = new Subscription();
+
+  public get foodName() {
+    return this.diaryEntryForm.get('foodName');
+  }
+
+  public get foodWeight() {
+    return this.diaryEntryForm.get('foodWeight');
+  }
 
   constructor(public foodService: FoodService) {
     // effect(() => { console.log('CATALOGUE NAMES have been updated:', this.catalogueNames$$()); }); // prettier-ignore
@@ -119,7 +127,7 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
     }
     setTimeout(() => {
       this.weightInputElem.nativeElement.focus();
-    }, 100); // Without this 'delay' focus doesn't work
+    }, 100); // Waiting for panel expansion animation for the focus to work
   }
 
   public async onSubmit(): Promise<void> {
@@ -132,15 +140,37 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
       foodWeight: foodWeight,
       history: [{ action: 'init', value: foodWeight }],
     };
-    const response = await firstValueFrom(this.foodService.createDiaryEntry(preppedDiaryEntry));
+
+    const response = await firstValueFrom(
+      this.foodService.createDiaryEntry(preppedDiaryEntry),
+    );
+
     if (response?.result) {
       if (response.diaryId) {
         this.onServerSuccessfullResponse.emit();
       }
+
       this.diaryEntryForm.enable();
+      this.formDirective.resetForm({
+        foodCatalogueId: 0,
+        foodName: '',
+        foodWeight: null,
+      });
+
     } else {
       this.diaryEntryForm.enable();
     }
+  }
+
+  public foodNameReset(): void {
+    this.diaryEntryForm.get('foodName')!.setValue('');
+  }
+
+  public shouldShowClearButton(): boolean {
+    return (
+      this.diaryEntryForm.get('foodName')!.value &&
+      this.diaryEntryForm.get('foodName')!.value.length > 0
+    );
   }
 
   private subscribe(): void {
@@ -156,21 +186,5 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
     return this.foodService
       .catalogueSortedListSelected$$()
       .filter((food) => food.name.toLowerCase().includes(filterValue));
-  }
-
-  public foodNameReset(): void {
-    this.diaryEntryForm.get('foodName')!.setValue('');
-  }
-
-  public shouldShowClearButton(): boolean {
-    return this.diaryEntryForm.get('foodName')!.value && this.diaryEntryForm.get('foodName')!.value.length > 0;
-  }
-
-  public get foodName() {
-    return this.diaryEntryForm.get('foodName');
-  }
-
-  public get foodWeight() {
-    return this.diaryEntryForm.get('foodWeight');
   }
 }

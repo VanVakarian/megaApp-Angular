@@ -1,22 +1,20 @@
 import { HttpClient } from '@angular/common/http';
-import { computed, effect, ElementRef, Injectable, Signal, signal, WritableSignal } from '@angular/core';
-
-import { catchError, debounceTime, filter, firstValueFrom, map, Observable, of, Subject, tap } from 'rxjs';
+import {
+  computed, effect, ElementRef, Injectable, Signal, signal, WritableSignal
+} from '@angular/core';
 
 import {
-  BodyWeight,
-  Catalogue,
-  CatalogueEntry,
-  CatalogueIds,
-  Diary,
-  DiaryEntry,
-  FormattedDiary,
-  FormattedDiaryEntry,
-  ServerResponseBasic,
-  ServerResponseWithCatalogueEntry,
-  ServerResponseWithDiaryId
+  catchError, debounceTime, filter, firstValueFrom, map, Observable, of,
+  Subject, tap,
+} from 'rxjs';
+
+import {
+  BodyWeight, Catalogue, CatalogueEntry, CatalogueIds, Diary, DiaryEntry,
+  FormattedDiary, FormattedDiaryEntry, ServerResponseBasic,
+  ServerResponseWithCatalogueEntry, ServerResponseWithDiaryId,
 } from 'src/app/shared/interfaces';
 import { getTodayIsoNoTimeNoTZ } from 'src/app/shared/utils';
+
 
 @Injectable({
   providedIn: 'root',
