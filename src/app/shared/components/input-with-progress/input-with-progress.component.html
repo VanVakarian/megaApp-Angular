@@ -1,0 +1,23 @@
+<form [formGroup]="form">
+  <mat-form-field appearance="outline"
+                  [class.countdown-state]="getState(IndicatorState.Countdown)"
+                  [class.submitting-state]="getState(IndicatorState.Submitting)"
+                  [class.success-state]="getState(IndicatorState.Success)"
+                  [class.error-state]="getState(IndicatorState.Error)">
+    <mat-label> {{ label }} </mat-label>
+
+    <input matInput
+           class="text-right"
+           formControlName="value"
+           (keydown.enter)="onEnter()"
+           (input)="onInput()" />
+
+    <span matTextSuffix
+          class="ml-2 font-medium"
+          [class.invalid-suffix]="isSuffixInvalid()"> {{ suffix }} </span>
+
+    @if (!isValid) {
+      <mat-error> {{ errorText }} </mat-error>
+    }
+  </mat-form-field>
+</form>

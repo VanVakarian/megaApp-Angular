@@ -1,3 +1,9 @@
+::ng-deep {
+  .panel-body-weight .mat-expansion-panel-body {
+    padding: 14px 14px 0px;
+  }
+}
+
 .mat-expansion-panel-header .add-icon-container {
   transition: 0.2s cubic-bezier(0, 0, 0, 1);
   margin-left: auto;

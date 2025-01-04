@@ -206,22 +206,6 @@ export class FoodService {
     });
   }
 
-  // extendDates(middleDateIso: string, daysOffset: number): void {
-  //   const dateSet = new Set(this.days$$());
-  //   const middleDay = new Date(middleDateIso);
-  //   for (let i = -daysOffset; i <= daysOffset; i++) {
-  //     const currentDate = new Date(middleDay);
-  //     currentDate.setDate(middleDay.getDate() + i);
-  //     dateSet.add(currentDate.toISOString().split('T')[0]);
-  //   }
-  //   const sortedDates = Array.from(dateSet).sort();
-  //   this.days$$.set(sortedDates);
-  // }
-
-  // getDatesOutOfDiary() {
-  //   return Object.keys(this.diary$$());
-  // }
-
   //                                                                   CATALOGUE
 
   public getCatalogueEntries(): Observable<Catalogue> {

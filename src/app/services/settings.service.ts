@@ -1,5 +1,5 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { effect, Injectable, signal, WritableSignal } from '@angular/core';
+import { Injectable, signal, WritableSignal } from '@angular/core';
 
 import { firstValueFrom, Observable, tap } from 'rxjs';
 
@@ -26,7 +26,7 @@ export class SettingsService {
   constructor(
     private readonly http: HttpClient,
   ) {
-    effect(() => { console.log('settings', this.settings$$()); }); // prettier-ignore
+    // effect(() => { console.log('settings', this.settings$$()); }); // prettier-ignore
   }
 
   public initLoadSettings(): Observable<Settings> {

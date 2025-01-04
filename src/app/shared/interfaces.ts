@@ -1,4 +1,4 @@
-// AUTH ////////////////////////////////////////////////////////////////////////
+//                                                                          AUTH
 
 export interface UserCreds {
   username: string;
@@ -10,13 +10,13 @@ export interface AuthResponse {
   refreshToken: string;
 }
 
-// WS //////////////////////////////////////////////////////////////////////////
+//                                                                            WS
 
 export interface IncomingMessage {
   [key: string]: string;
 }
 
-// MISC ////////////////////////////////////////////////////////////////////////
+//                                                                          MISC
 
 export interface ServerResponseBasic {
   result: boolean;
@@ -36,7 +36,7 @@ export interface ServerResponseWithCatalogueEntry extends ServerResponseBasic {
   kcals?: number;
 }
 
-// SETTINGS ////////////////////////////////////////////////////////////////////
+//                                                                      SETTINGS
 
 export interface Settings {
   userName: string;
@@ -51,9 +51,9 @@ export type SelectedChapterNames = 'selectedChapterFood' | 'selectedChapterMoney
 
 export type LocalStorageSettings = Settings | null;
 
-// NAVBARS /////////////////////////////////////////////////////////////////////
+//                                                                       NAVBARS
 
-// FOOD ////////////////////////////////////////////////////////////////////////
+//                                                                          FOOD
 
 export interface DiaryEntry {
   id: number;
@@ -141,7 +141,7 @@ export interface BodyWeight {
 //   [id: string]: [number, number, number, number];
 // }
 
-// MONEY ///////////////////////////////////////////////////////////////////////
+//                                                                         MONEY
 
 // export interface Currency {
 //   id: number;
@@ -200,3 +200,11 @@ export interface Notification {
 //   month?: 'numeric' | '2-digit' | 'long' | 'short' | 'narrow';
 //   day?: 'numeric' | '2-digit';
 // }
+
+//                                                                            UI
+
+export interface InputWithProgressSubmitData {
+  value: string;
+  resolve: () => void;
+  reject: () => void;
+}

@@ -7,12 +7,12 @@
 <mat-accordion>
   <div class="flex gap-2">
     <div class="w-full mb-2">
-      <app-diary-nav-buttons></app-diary-nav-buttons>
+      <app-diary-nav-buttons />
     </div>
   </div>
 
   <mat-expansion-panel color="primary"
-                       class="sub-expansion-panel-38px-50px expansion-panel-rounded">
+                       class="sub-expansion-panel-38px-50px expansion-panel-rounded panel-body-weight">
     <mat-expansion-panel-header class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
                                 [ngStyle]="setBackgroundStyle(todaysKcalsPercent)">
       <div class="whitespace-nowrap overflow-hidden text-center">
@@ -91,7 +91,7 @@
 
       @defer (on timer(500)) {
         <app-diary-entry-edit-form [diaryEntry]="food"
-                                   (onServerSuccessfullEditResponse)="accordionCollapse()"></app-diary-entry-edit-form>
+                                   (onServerSuccessfullEditResponse)="accordionCollapse()" />
       }
     </mat-expansion-panel>
   }
