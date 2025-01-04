@@ -12,7 +12,11 @@ import { MainMenuService } from 'src/app/services/main-menu.service';
 @Component({
   selector: 'app-navbar-desktop',
   standalone: true,
-  imports: [RouterLink, MatButtonModule, DarkSwitchComponent],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    DarkSwitchComponent,
+  ],
   templateUrl: './navbar-desktop.component.html',
 })
 export class NavbarDesktopComponent implements OnInit, OnDestroy {

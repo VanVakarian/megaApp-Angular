@@ -1,10 +1,9 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Injectable, signal, WritableSignal } from '@angular/core';
+import { effect, Injectable, signal, WritableSignal } from '@angular/core';
 
 import { firstValueFrom, Observable, tap } from 'rxjs';
 
 import { Settings } from 'src/app/shared/interfaces';
-
 
 @Injectable({
   providedIn: 'root',
@@ -18,8 +17,7 @@ export class SettingsService {
     selectedChapterMoney: false,
     height: null,
   };
-  public settings$$: WritableSignal<Settings> = signal(this.loadSettingsFromLocalStorage() ?? this.defaultSettings);
-
+  public settings$$: WritableSignal<Settings> = signal(this.defaultSettings);
   private requestInProgress$$: WritableSignal<boolean> = signal(false);
   private settingsLocalStorageKey = 'settings';
   private updateTimeout: any;
@@ -28,14 +26,18 @@ export class SettingsService {
   constructor(
     private readonly http: HttpClient,
   ) {
-    // effect(() => { console.log('settings', this.settings$$()); }); // prettier-ignore
+    effect(() => { console.log('settings', this.settings$$()); }); // prettier-ignore
   }
 
-  public initLoadSettings(): Observable<any> {
+  public initLoadSettings(): Observable<Settings> {
     return this.http.get<Settings>('/api/settings/').pipe(
       tap((response: Settings) => {
-        this.settings$$.set(response);
-        this.saveSettingsToLocalStorage(response);
+        const mergedSettings: Settings = {
+          ...this.defaultSettings,
+          ...response
+        };
+        this.settings$$.set(mergedSettings);
+        this.saveSettingsToLocalStorage(mergedSettings);
       }),
     );
   }
@@ -52,7 +54,7 @@ export class SettingsService {
     }
   }
 
-  private loadSettingsFromLocalStorage(): Settings | null {
+  public loadSettingsFromLocalStorage(): Settings | null {
     const settings = localStorage.getItem(this.settingsLocalStorageKey);
     return settings ? JSON.parse(settings) : null;
   }

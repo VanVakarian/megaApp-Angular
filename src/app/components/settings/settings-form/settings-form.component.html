@@ -1,18 +1,20 @@
-<div class="flex flex-col gap-4 m-4 text-lg">
+<mat-card [formGroup]="settingsForm"
+          class="flex flex-col gap-4 p-4 text-lg">
 
   <div>
-    <div class="font-bold">Выбор разделов:</div>
+    <div class="font-bold text-right">Основные настройки</div>
+    <div class="font-normal">Выбор разделов:</div>
     <div class="ml-5">
       <mat-chip-listbox class="mat-mdc-chip-set-stacked w-64">
-        <mat-chip-option (click)="toggleChapterSelection('selectedChapterFood')"
-                         [selected]="selectedChapterFood">
+        <mat-chip-option [selected]="settingsForm.get('selectedChapterFood')?.value"
+                         (click)="toggleChapterSelection('selectedChapterFood')">
           <span class="text-lg"> Дневник питания </span>
         </mat-chip-option>
       </mat-chip-listbox>
 
       <mat-chip-listbox class="mat-mdc-chip-set-stacked w-64">
-        <mat-chip-option (click)="toggleChapterSelection('selectedChapterMoney')"
-                         [selected]="selectedChapterMoney">
+        <mat-chip-option [selected]="settingsForm.get('selectedChapterMoney')?.value"
+                         (click)="toggleChapterSelection('selectedChapterMoney')">
           <span class="text-lg"> Дневник финансов </span>
         </mat-chip-option>
       </mat-chip-listbox>
@@ -20,12 +22,20 @@
   </div>
 
   <div class="flex gap-4">
-    <div class="font-bold leading-[30px]">Тёмная тема:</div>
+    <div class="font-normal leading-[30px]">Тёмная тема:</div>
     <div>
-      <mat-slide-toggle [(ngModel)]="darkTheme"
-                        color="primary"
-                        (click)="toggleDarkMode()"></mat-slide-toggle>
+      <mat-slide-toggle formControlName="darkTheme"
+                        color="primary"></mat-slide-toggle>
     </div>
   </div>
 
-</div>
+</mat-card>
+
+<mat-card class="flex flex-col gap-4 p-4 mt-4 text-lg">
+
+  <div>
+    <div class="font-bold text-right"> Настройки дневника питания </div>
+    <div class="font-normal">Рост:</div>
+  </div>
+
+</mat-card>

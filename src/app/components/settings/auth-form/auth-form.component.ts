@@ -1,9 +1,10 @@
-import { NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
@@ -14,7 +15,15 @@ import { UserCreds } from 'src/app/shared/interfaces';
 @Component({
   selector: 'app-auth-form',
   standalone: true,
-  imports: [NgIf, ReactiveFormsModule, RouterModule, MatInputModule, MatButtonModule, MatFormFieldModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+    MatCardModule,
+    MatInputModule,
+    MatButtonModule,
+    MatFormFieldModule,
+  ],
   templateUrl: './auth-form.component.html',
 })
 export class AuthFormComponent implements OnInit {
