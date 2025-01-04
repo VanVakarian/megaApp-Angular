@@ -12,9 +12,9 @@ export interface AuthResponse {
 
 // WS //////////////////////////////////////////////////////////////////////////
 
-export type IncomingMessage = {
+export interface IncomingMessage {
   [key: string]: string;
-};
+}
 
 // MISC ////////////////////////////////////////////////////////////////////////
 
@@ -38,12 +38,13 @@ export interface ServerResponseWithCatalogueEntry extends ServerResponseBasic {
 
 // SETTINGS ////////////////////////////////////////////////////////////////////
 
-export type Settings = {
+export interface Settings {
   userName: string;
   isUserAdmin?: boolean;
   darkTheme: boolean;
   selectedChapterFood: boolean;
   selectedChapterMoney: boolean;
+  height: number | null;
 };
 
 export type SelectedChapterNames = 'selectedChapterFood' | 'selectedChapterMoney' | '';

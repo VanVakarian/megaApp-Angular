@@ -4,7 +4,7 @@ import { RouterService } from 'src/app/services/router.service';
 import { SettingsService } from 'src/app/services/settings.service';
 import { SelectedChapterNames } from 'src/app/shared/interfaces';
 
-type MenuButton = {
+interface MenuButton {
   label: string;
   place: 'mobile' | 'desktop' | 'both';
   link: string | string[];
@@ -18,6 +18,7 @@ type MenuButton = {
   providedIn: 'root',
 })
 export class MainMenuService {
+
   private buttons: MenuButton[] = [
     {
       label: 'Дневник питания',

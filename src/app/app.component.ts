@@ -42,7 +42,7 @@ export class MainAppComponent implements OnInit {
   ngOnInit(): void {
     this.makeMondayFirstDayOfWeek();
 
-    firstValueFrom(this.settingsService.getSettings());
+    firstValueFrom(this.settingsService.initLoadSettings());
   }
 
   private makeMondayFirstDayOfWeek() {

@@ -1,12 +1,4 @@
 <div class="flex flex-col gap-4 m-4 text-lg">
-  <div class="flex gap-4">
-    <div class="font-bold leading-[30px]">Тёмная тема:</div>
-    <div>
-      <mat-slide-toggle [(ngModel)]="darkTheme"
-                        color="primary"
-                        (click)="toggleDarkMode()"></mat-slide-toggle>
-    </div>
-  </div>
 
   <div>
     <div class="font-bold">Выбор разделов:</div>
@@ -26,4 +18,14 @@
       </mat-chip-listbox>
     </div>
   </div>
+
+  <div class="flex gap-4">
+    <div class="font-bold leading-[30px]">Тёмная тема:</div>
+    <div>
+      <mat-slide-toggle [(ngModel)]="darkTheme"
+                        color="primary"
+                        (click)="toggleDarkMode()"></mat-slide-toggle>
+    </div>
+  </div>
+
 </div>
