@@ -23,7 +23,7 @@ import { Subscription, delay, filter, firstValueFrom, take } from 'rxjs';
 
 import { FoodService } from 'src/app/services/food.service';
 import { KeyboardService } from 'src/app/services/keyboard.service';
-import { ConfirmationDialogModalService } from 'src/app/shared/dialog-modal/mat-dialog-modal.service';
+import { ConfirmationDialogModalService } from 'src/app/shared/components/dialog-modal/mat-dialog-modal.service';
 import { DiaryEntry, HistoryEntry } from 'src/app/shared/interfaces';
 
 @Component({
