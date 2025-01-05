@@ -1,20 +1,22 @@
 import { HttpClient } from '@angular/common/http';
-import {
-  computed, effect, ElementRef, Injectable, Signal, signal, WritableSignal
-} from '@angular/core';
+import { computed, effect, ElementRef, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+
+import { catchError, debounceTime, filter, firstValueFrom, map, Observable, of, Subject, tap } from 'rxjs';
 
 import {
-  catchError, debounceTime, filter, firstValueFrom, map, Observable, of,
-  Subject, tap,
-} from 'rxjs';
-
-import {
-  BodyWeight, Catalogue, CatalogueEntry, CatalogueIds, Diary, DiaryEntry,
-  FormattedDiary, FormattedDiaryEntry, ServerResponseBasic,
-  ServerResponseWithCatalogueEntry, ServerResponseWithDiaryId,
+  BodyWeight,
+  Catalogue,
+  CatalogueEntry,
+  CatalogueIds,
+  Diary,
+  DiaryEntry,
+  FormattedDiary,
+  FormattedDiaryEntry,
+  ServerResponseBasic,
+  ServerResponseWithCatalogueEntry,
+  ServerResponseWithDiaryId,
 } from 'src/app/shared/interfaces';
 import { getTodayIsoNoTimeNoTZ } from 'src/app/shared/utils';
-
 
 @Injectable({
   providedIn: 'root',
@@ -39,7 +41,7 @@ export class FoodService {
   private FETCH_OFFSET = 7; // TODO[063]: move to settings
   private FETCH_THRESHOLD = 3; // TODO[063]: move to settings
 
-  private loadedRanges$$: WritableSignal<{ start: string; end: string; }[]> = signal([]);
+  private loadedRanges$$: WritableSignal<{ start: string; end: string }[]> = signal([]);
   private isLoading$$: WritableSignal<boolean> = signal(false);
   private fetchMoreDiaryTrigger$ = new Subject<void>();
 
@@ -58,12 +60,14 @@ export class FoodService {
       }
     });
 
-    this.fetchMoreDiaryTrigger$.pipe(
-      debounceTime(100),
-      filter(() => !this.isLoading$$())
-    ).subscribe(() => {
-      this.loadMoreData();
-    });
+    this.fetchMoreDiaryTrigger$
+      .pipe(
+        debounceTime(100),
+        filter(() => !this.isLoading$$()),
+      )
+      .subscribe(() => {
+        this.loadMoreData();
+      });
   }
 
   //                                                                        INIT
@@ -96,7 +100,7 @@ export class FoodService {
           history: entry.history || [],
           foodName: this.catalogue$$()[entry.foodCatalogueId]?.name || '',
           foodKcals: kcals,
-          foodPercent: `${ Math.floor(percent) < 100 ? percent.toFixed(1) : Math.round(percent).toString() }`,
+          foodPercent: `${Math.floor(percent) < 100 ? percent.toFixed(1) : Math.round(percent).toString()}`,
           foodKcalPercentageOfDaysNorm: percent,
         };
 
@@ -117,8 +121,8 @@ export class FoodService {
   }
 
   public getFoodDiaryFullUpdateRange(dateIso?: string, offset?: number): Observable<Diary> {
-    const paramsStr = `date=${ dateIso ?? getTodayIsoNoTimeNoTZ() }&offset=${ offset ?? this.FETCH_OFFSET }`;
-    return this.http.get<Diary>(`/api/food/diary-full-update?${ paramsStr }`);
+    const paramsStr = `date=${dateIso ?? getTodayIsoNoTimeNoTZ()}&offset=${offset ?? this.FETCH_OFFSET}`;
+    return this.http.get<Diary>(`/api/food/diary-full-update?${paramsStr}`);
   }
 
   //                                                                       DIARY
@@ -149,7 +153,7 @@ export class FoodService {
   }
 
   public deleteDiaryEntry(diaryEntryId: number): Observable<ServerResponseBasic> {
-    return this.http.delete<ServerResponseBasic>(`/api/food/diary/${ diaryEntryId }`).pipe(
+    return this.http.delete<ServerResponseBasic>(`/api/food/diary/${diaryEntryId}`).pipe(
       tap((response: ServerResponseBasic) => {
         if (response?.result) {
           this.removeDiaryEntry(diaryEntryId);
@@ -182,7 +186,7 @@ export class FoodService {
       updatedFood[updatedDiaryEntry.id] = {
         ...updatedFood[updatedDiaryEntry.id],
         foodWeight: updatedDiaryEntry.foodWeight,
-        history: [...updatedFood[updatedDiaryEntry.id].history, ...updatedDiaryEntry.history]
+        history: [...updatedFood[updatedDiaryEntry.id].history, ...updatedDiaryEntry.history],
       };
 
       updatedDay.food = updatedFood;
@@ -320,7 +324,7 @@ export class FoodService {
     return this.http.post<ServerResponseBasic>('/api/food/body_weight/', bodyWeight).pipe(
       map((response) => {
         if (response.result) {
-          console.log('response', response);
+          // console.log('response', response);
           this.diary$$.update((diary) => {
             return {
               ...diary,
@@ -391,32 +395,39 @@ export class FoodService {
       }
 
       const response = await firstValueFrom(this.getFoodDiaryFullUpdateRange(dateToLoad));
-      this.diary$$.update(diary => ({ ...diary, ...response }));
+      this.diary$$.update((diary) => ({ ...diary, ...response }));
       this.updateLoadedRanges(dateToLoad);
     } finally {
       this.isLoading$$.set(false);
     }
   }
 
-  private findNearestRange(date: string): { start: string; end: string; } | null {
+  private findNearestRange(date: string): { start: string; end: string } | null {
     const ranges = this.loadedRanges$$();
     if (ranges.length === 0) return null;
 
     const targetDate = new Date(date).getTime();
 
-    return ranges.reduce((nearest, range) => {
-      const startDiff = Math.abs(new Date(range.start).getTime() - targetDate);
-      const endDiff = Math.abs(new Date(range.end).getTime() - targetDate);
-      const minDiff = Math.min(startDiff, endDiff);
+    return ranges.reduce(
+      (nearest, range) => {
+        const startDiff = Math.abs(new Date(range.start).getTime() - targetDate);
+        const endDiff = Math.abs(new Date(range.end).getTime() - targetDate);
+        const minDiff = Math.min(startDiff, endDiff);
 
-      if (!nearest || minDiff < Math.min(
-        Math.abs(new Date(nearest.start).getTime() - targetDate),
-        Math.abs(new Date(nearest.end).getTime() - targetDate)
-      )) {
-        return range;
-      }
-      return nearest;
-    }, null as { start: string; end: string; } | null);
+        if (
+          !nearest ||
+          minDiff <
+            Math.min(
+              Math.abs(new Date(nearest.start).getTime() - targetDate),
+              Math.abs(new Date(nearest.end).getTime() - targetDate),
+            )
+        ) {
+          return range;
+        }
+        return nearest;
+      },
+      null as { start: string; end: string } | null,
+    );
   }
 
   private updateLoadedRanges(centerDate: string): void {
@@ -429,23 +440,21 @@ export class FoodService {
 
     const newRange = {
       start: start.toISOString().split('T')[0],
-      end: end.toISOString().split('T')[0]
+      end: end.toISOString().split('T')[0],
     };
 
-    this.loadedRanges$$.update(ranges => {
+    this.loadedRanges$$.update((ranges) => {
       const mergedRanges = this.mergeRanges([...ranges, newRange]);
       return mergedRanges;
     });
   }
 
-  private mergeRanges(ranges: { start: string; end: string; }[]): { start: string; end: string; }[] {
+  private mergeRanges(ranges: { start: string; end: string }[]): { start: string; end: string }[] {
     if (ranges.length <= 1) return ranges;
 
-    const sortedRanges = ranges.sort((a, b) =>
-      new Date(a.start).getTime() - new Date(b.start).getTime()
-    );
+    const sortedRanges = ranges.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
-    const result: { start: string; end: string; }[] = [sortedRanges[0]];
+    const result: { start: string; end: string }[] = [sortedRanges[0]];
 
     for (const range of sortedRanges.slice(1)) {
       const lastRange = result[result.length - 1];
@@ -455,10 +464,7 @@ export class FoodService {
       lastEnd.setDate(lastEnd.getDate() + 1);
 
       if (lastEnd.getTime() >= currentStart.getTime()) {
-        const newEnd = new Date(Math.max(
-          new Date(lastRange.end).getTime(),
-          new Date(range.end).getTime()
-        ));
+        const newEnd = new Date(Math.max(new Date(lastRange.end).getTime(), new Date(range.end).getTime()));
         lastRange.end = newEnd.toISOString().split('T')[0];
       } else {
         result.push(range);

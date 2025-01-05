@@ -195,3 +195,4 @@ export const enRuTranslation: { [key: string]: string } = {
 export const USER_PREFERRED_MIDNIGHT_OFFSET_HOURS = 5;
 
 export const DEFAULT_FIELD_PROGRESS_TIMER_MS = 2000;
+export const DEFAULT_FIELD_STATUS_TIMER_MS = 3000;

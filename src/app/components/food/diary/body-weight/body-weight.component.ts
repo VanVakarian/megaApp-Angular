@@ -7,8 +7,12 @@ import { MatInputModule } from '@angular/material/input';
 import { firstValueFrom } from 'rxjs';
 
 import { FoodService } from 'src/app/services/food.service';
+import { DEFAULT_FIELD_PROGRESS_TIMER_MS } from 'src/app/shared/const';
+import {
+  AnimationState,
+  FieldStateAnimationsDirective,
+} from 'src/app/shared/directives/field-state-animations.directive';
 import { BodyWeight } from 'src/app/shared/interfaces';
-import { AnimationStateManager, IndicatorState } from './animation-state.manager';
 
 interface BodyWeightForm {
   bodyWeight: FormControl<string>;
@@ -17,16 +21,12 @@ interface BodyWeightForm {
 @Component({
   selector: 'app-body-weight',
   standalone: true,
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, FieldStateAnimationsDirective],
   templateUrl: './body-weight.component.html',
   styleUrl: './body-weight.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BodyWeightComponent {
-  public IndicatorState = IndicatorState;
-  private previousValue: string = '';
-  private stateManager: AnimationStateManager;
-
   public form = new FormGroup<BodyWeightForm>({
     bodyWeight: new FormControl('', {
       validators: [Validators.required, Validators.pattern(/^\d{2,3}([.,]\d)?$/)],
@@ -34,18 +34,17 @@ export class BodyWeightComponent {
     }),
   });
 
+  public currentState: AnimationState = AnimationState.Idle;
+  private previousValue: string = '';
+  private submitTimer: ReturnType<typeof setTimeout> | null = null;
+
   constructor(
     private foodService: FoodService,
     private cdRef: ChangeDetectorRef,
   ) {
-    this.stateManager = new AnimationStateManager(cdRef);
     effect(() => {
       this.applyWeight();
     });
-  }
-
-  public getState(state: IndicatorState): boolean {
-    return this.stateManager.currentState === state;
   }
 
   public get isFormValid(): boolean {
@@ -57,8 +56,8 @@ export class BodyWeightComponent {
       return;
     }
 
-    if (this.stateManager.currentState === IndicatorState.Countdown) {
-      this.stateManager.setState(IndicatorState.Idle);
+    if (this.currentState === AnimationState.Countdown) {
+      this.currentState = AnimationState.Idle;
     }
     this.submitValue();
   }
@@ -68,17 +67,26 @@ export class BodyWeightComponent {
     control.markAsTouched();
 
     if (this.form.valid && control.value !== String(this.previousValue)) {
-      this.stateManager.startCountdown(() => this.submitValue(), 2000);
+      this.currentState = AnimationState.Idle;
+      setTimeout(() => {
+        this.currentState = AnimationState.Countdown;
+        this.cdRef.detectChanges();
+      });
+
+      if (this.submitTimer) {
+        clearTimeout(this.submitTimer);
+      }
+      this.submitTimer = setTimeout(() => {
+        if (this.currentState === AnimationState.Countdown) this.submitValue();
+      }, DEFAULT_FIELD_PROGRESS_TIMER_MS);
     } else {
-      this.stateManager.setState(IndicatorState.Idle);
+      this.currentState = AnimationState.Idle;
     }
   }
 
   private async submitValue(): Promise<void> {
-    this.stateManager.setStateWithDelay(IndicatorState.Submitting);
-    console.log('before', this.form.valid);
+    this.currentState = AnimationState.Submitting;
     this.form.disable();
-    console.log('after', this.form.valid);
 
     try {
       const weight: BodyWeight = {
@@ -90,9 +98,9 @@ export class BodyWeightComponent {
       if (!result) throw new Error();
 
       this.previousValue = this.form.controls.bodyWeight.value;
-      this.stateManager.setState(IndicatorState.Success);
+      this.currentState = AnimationState.Success;
     } catch {
-      this.stateManager.setState(IndicatorState.Error);
+      this.currentState = AnimationState.Error;
     } finally {
       this.form.enable();
     }

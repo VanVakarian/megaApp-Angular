@@ -6,10 +6,9 @@
 
     <form [formGroup]="form">
       <mat-form-field appearance="outline"
-                      [class.countdown-state]="getState(IndicatorState.Countdown)"
-                      [class.submitting-state]="getState(IndicatorState.Submitting)"
-                      [class.success-state]="getState(IndicatorState.Success)"
-                      [class.error-state]="getState(IndicatorState.Error)">
+                      class="field-with-progress-animations"
+                      fieldStateAnimations
+                      [state]="currentState">
         <mat-label>Вес</mat-label>
 
         <input matInput
