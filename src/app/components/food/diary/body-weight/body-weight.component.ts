@@ -14,44 +14,34 @@ interface BodyWeightForm {
 @Component({
   selector: 'app-body-weight',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    InputWithProgressComponent,
-  ],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, InputWithProgressComponent],
   templateUrl: './body-weight.component.html',
   styleUrl: './body-weight.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BodyWeightComponent {
-  protected readonly weightValidators = [
-    Validators.required,
-    Validators.pattern(/^\d{2,3}([.,]\d)?$/)
-  ];
+  public weightValidators = [Validators.required, Validators.pattern(/^\d{2,3}([.,]\d)?$/)];
 
-  protected readonly form = new FormGroup<BodyWeightForm>({
+  public form = new FormGroup<BodyWeightForm>({
     bodyWeight: new FormControl('', {
       nonNullable: true,
     }),
   });
 
-  constructor(
-    protected readonly foodService: FoodService,
-  ) {
+  constructor(private foodService: FoodService) {
     effect(() => {
       this.applyWeight();
     });
   }
 
-  protected applyWeight(): void {
+  private applyWeight(): void {
     const selectedDateISO = this.foodService.selectedDayIso$$();
     const weight = this.foodService.diary$$()?.[selectedDateISO]?.['bodyWeight'];
     if (!weight) return;
     this.form.patchValue({ bodyWeight: String(weight) });
   }
 
-  protected async submitWeight(data: InputWithProgressSubmitData): Promise<void> {
+  public async submitWeight(data: InputWithProgressSubmitData): Promise<void> {
     const weight: BodyWeight = {
       bodyWeight: data.value.replace(',', '.'),
       dateISO: this.foodService.selectedDayIso$$(),
@@ -59,13 +49,10 @@ export class BodyWeightComponent {
 
     try {
       const result = await firstValueFrom(this.foodService.setUserBodyWeight(weight));
-      if (!result) {
-        data.reject();
-      }
+      if (!result) data.reject();
       data.resolve();
     } catch {
       data.reject();
     }
   }
-
 }

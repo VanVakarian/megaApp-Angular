@@ -1,10 +1,26 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
-import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule, ValidatorFn } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  forwardRef,
+  Input,
+  Output,
+} from '@angular/core';
+import {
+  ControlValueAccessor,
+  FormControl,
+  FormGroup,
+  NG_VALUE_ACCESSOR,
+  ReactiveFormsModule,
+  ValidatorFn,
+} from '@angular/forms';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import { InputWithProgressSubmitData } from '../../interfaces';
+import { DEFAULT_FIELD_PROGRESS_TIMER_MS } from 'src/app/shared/const';
+import { InputWithProgressSubmitData } from 'src/app/shared/interfaces';
 import { AnimationStateManager, IndicatorState } from './animation-state.manager';
 
 interface InputForm {
@@ -14,14 +30,9 @@ interface InputForm {
 @Component({
   selector: 'app-input-with-progress',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-  ],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule],
   templateUrl: './input-with-progress.component.html',
   styleUrl: './input-with-progress.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -29,6 +40,7 @@ interface InputForm {
       multi: true,
     },
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InputWithProgressComponent implements ControlValueAccessor {
   @Input()
@@ -41,7 +53,7 @@ export class InputWithProgressComponent implements ControlValueAccessor {
   public errorText: string = '';
 
   @Input()
-  public countdownDelay: number = 2000;
+  public countdownDelay: number = DEFAULT_FIELD_PROGRESS_TIMER_MS;
 
   @Input()
   public set validators(value: ValidatorFn[]) {
@@ -57,23 +69,32 @@ export class InputWithProgressComponent implements ControlValueAccessor {
   public submit = new EventEmitter<InputWithProgressSubmitData>();
 
   public IndicatorState = IndicatorState;
-  public prevValue: string = '';
 
+  private previousValue: string = '';
   private stateManager: AnimationStateManager;
   private _validators: ValidatorFn[] = [];
-  private onChange: (value: string) => void = () => { };
-  private onTouched: () => void = () => { };
+  private onChange: (value: string) => void = () => {};
+  private onTouched: () => void = () => {};
 
-  protected readonly form = new FormGroup<InputForm>({
+  public form = new FormGroup<InputForm>({
     value: new FormControl('', {
       nonNullable: true,
     }),
   });
 
+  public get isValid(): boolean {
+    return this.form.valid;
+  }
+
+  public get isSuffixValid(): boolean {
+    const control = this.form.controls.value;
+    return control.valid && control.touched && !control.pristine;
+  }
+
   constructor(private cdRef: ChangeDetectorRef) {
     this.stateManager = new AnimationStateManager(cdRef);
 
-    this.form.controls.value.valueChanges.subscribe(value => {
+    this.form.controls.value.valueChanges.subscribe((value) => {
       this.onChange(value);
       this.valueChange.emit(value);
     });
@@ -82,7 +103,7 @@ export class InputWithProgressComponent implements ControlValueAccessor {
   public writeValue(value: string): void {
     if (value !== this.form.controls.value.value) {
       this.form.patchValue({ value });
-      this.prevValue = value;
+      this.previousValue = value;
     }
   }
 
@@ -98,27 +119,23 @@ export class InputWithProgressComponent implements ControlValueAccessor {
     isDisabled ? this.form.disable() : this.form.enable();
   }
 
-  public get isValid(): boolean {
-    return this.form.valid;
-  }
-
-  protected getState(state: IndicatorState): boolean {
+  public getState(state: IndicatorState): boolean {
     return this.stateManager.currentState === state;
   }
 
-  protected onInput(): void {
+  public onInput(): void {
     const control = this.form.controls.value;
     control.markAsTouched();
     this.onTouched();
 
-    if (this.form.valid && control.value !== this.prevValue) {
+    if (this.form.valid && control.value !== String(this.previousValue)) {
       this.stateManager.startCountdown(() => this.submitValue(), this.countdownDelay);
     } else {
       this.stateManager.setState(IndicatorState.Idle);
     }
   }
 
-  protected onEnter(): void {
+  public onEnter(): void {
     if (!this.form.valid) {
       return;
     }
@@ -127,11 +144,6 @@ export class InputWithProgressComponent implements ControlValueAccessor {
       this.stateManager.setState(IndicatorState.Idle);
     }
     this.submitValue();
-  }
-
-  protected isSuffixInvalid(): boolean {
-    const control = this.form.controls.value;
-    return control.invalid && control.touched && !control.pristine;
   }
 
   private async submitValue(): Promise<void> {
@@ -143,11 +155,11 @@ export class InputWithProgressComponent implements ControlValueAccessor {
         this.submit.emit({
           value: this.form.controls.value.value,
           resolve,
-          reject
+          reject,
         });
       });
 
-      this.prevValue = this.form.controls.value.value;
+      this.previousValue = this.form.controls.value.value;
       this.stateManager.setState(IndicatorState.Success);
     } catch {
       this.stateManager.setState(IndicatorState.Error);
@@ -155,40 +167,4 @@ export class InputWithProgressComponent implements ControlValueAccessor {
       this.form.enable();
     }
   }
-
-  // private async submitValue(): Promise<void> {
-  //   this.stateManager.setStateWithDelay(IndicatorState.Submitting);
-  //   this.form.disable();
-
-  //   try {
-  //     await new Promise<void>((resolve, reject) => {
-  //       this.submit.emit({
-  //         value: this.form.controls.value.value,
-  //         resolve,
-  //         reject
-  //       });
-  //     });
-
-  //     this.prevValue = this.form.controls.value.value;
-  //     this.stateManager.setState(IndicatorState.Success);
-  //   } catch {
-  //     this.stateManager.setState(IndicatorState.Error);
-  //   } finally {
-  //     this.form.enable();
-  //   }
-  // }
-  // private submitValue(): void {
-  //   this.stateManager.setStateWithDelay(IndicatorState.Submitting);
-  //   this.form.disable();
-
-  //   try {
-  //     this.submit.emit(this.form.controls.value.value);
-  //     this.prevValue = this.form.controls.value.value;
-  //     this.stateManager.setState(IndicatorState.Success);
-  //   } catch {
-  //     this.stateManager.setState(IndicatorState.Error);
-  //   } finally {
-  //     this.form.enable();
-  //   }
-  // }
 }

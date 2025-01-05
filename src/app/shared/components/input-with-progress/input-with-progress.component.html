@@ -14,7 +14,7 @@
 
     <span matTextSuffix
           class="ml-2 font-medium"
-          [class.invalid-suffix]="isSuffixInvalid()"> {{ suffix }} </span>
+          [class.invalid-suffix]="!isSuffixValid"> {{ suffix }} </span>
 
     @if (!isValid) {
       <mat-error> {{ errorText }} </mat-error>

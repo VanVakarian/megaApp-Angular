@@ -35,7 +35,17 @@
 
   <div>
     <div class="font-bold text-right"> Настройки дневника питания </div>
-    <div class="font-normal">Рост:</div>
+    <div class="w-1/2 ml-[50%] mt-4">
+      <form [formGroup]="settingsForm">
+        <app-input-with-progress class="text-[22px] font-medium"
+                                 formControlName="height"
+                                 label="Рост"
+                                 suffix="см"
+                                 errorText="3 цифры"
+                                 [validators]="heightValidators"
+                                 (submit)="submitHeight($event)" />
+      </form>
+    </div>
   </div>
 
 </mat-card>

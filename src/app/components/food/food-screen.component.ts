@@ -1,4 +1,4 @@
-import { NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
@@ -12,7 +12,7 @@ import { FoodService } from 'src/app/services/food.service';
 @Component({
   selector: 'app-food-screen',
   standalone: true,
-  imports: [NgIf, FoodStatsComponent, FoodDiaryComponent, FoodCatalogueComponent],
+  imports: [CommonModule, FoodStatsComponent, FoodDiaryComponent, FoodCatalogueComponent],
   templateUrl: './food-screen.component.html',
 })
 export class FoodScreenComponent implements OnInit {

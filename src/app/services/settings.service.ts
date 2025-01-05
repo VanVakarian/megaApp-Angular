@@ -9,7 +9,6 @@ import { Settings } from 'src/app/shared/interfaces';
   providedIn: 'root',
 })
 export class SettingsService {
-
   private defaultSettings: Settings = {
     userName: '',
     darkTheme: false,
@@ -20,12 +19,10 @@ export class SettingsService {
   public settings$$: WritableSignal<Settings> = signal(this.defaultSettings);
   private requestInProgress$$: WritableSignal<boolean> = signal(false);
   private settingsLocalStorageKey = 'settings';
-  private updateTimeout: any;
+  private requestTimeout: any;
   private serverUpdateLimitMs = 500;
 
-  constructor(
-    private readonly http: HttpClient,
-  ) {
+  constructor(private http: HttpClient) {
     // effect(() => { console.log('settings', this.settings$$()); }); // prettier-ignore
   }
 
@@ -34,16 +31,12 @@ export class SettingsService {
       tap((response: Settings) => {
         const mergedSettings: Settings = {
           ...this.defaultSettings,
-          ...response
+          ...response,
         };
         this.settings$$.set(mergedSettings);
         this.saveSettingsToLocalStorage(mergedSettings);
       }),
     );
-  }
-
-  public saveSettings() {
-    this.schedulePostRequest();
   }
 
   public applyTheme(): void {
@@ -59,17 +52,24 @@ export class SettingsService {
     return settings ? JSON.parse(settings) : null;
   }
 
-  private schedulePostRequest() {
-    clearTimeout(this.updateTimeout);
-    if (this.requestInProgress$$()) {
-      this.updateTimeout = setTimeout(() => this.schedulePostRequest(), this.serverUpdateLimitMs);
-    } else {
-      this.updateTimeout = setTimeout(() => this.sendPostRequest(), this.serverUpdateLimitMs);
-    }
+  public saveSettings(): Promise<void> {
+    clearTimeout(this.requestTimeout);
+
+    return new Promise<void>((resolve, reject) => {
+      if (this.requestInProgress$$()) {
+        this.schedulePostRequest(resolve, reject);
+      } else {
+        this.sendPostRequest(resolve, reject);
+      }
+    });
   }
 
-  private sendPostRequest() {
-    firstValueFrom(this.postRequest());
+  private schedulePostRequest(resolve: () => void, reject: (error: any) => void): void {
+    this.requestTimeout = setTimeout(() => this.sendPostRequest(resolve, reject), this.serverUpdateLimitMs);
+  }
+
+  private sendPostRequest(resolve: () => void, reject: (error: any) => void): void {
+    firstValueFrom(this.postRequest()).then(resolve).catch(reject);
   }
 
   private postRequest(): Observable<any> {
@@ -77,7 +77,6 @@ export class SettingsService {
     return this.http.post<HttpResponse<any>>('/api/settings', this.settings$$(), { observe: 'response' }).pipe(
       tap((response: HttpResponse<any>) => {
         if (response.status === 200) {
-          console.log('Settings saved successfully', response);
           this.saveSettingsToLocalStorage(this.settings$$());
         } else {
           throw new Error('Settings saving failed');
@@ -90,5 +89,4 @@ export class SettingsService {
   private saveSettingsToLocalStorage(settings: Settings): void {
     localStorage.setItem(this.settingsLocalStorageKey, JSON.stringify(settings));
   }
-
 }
