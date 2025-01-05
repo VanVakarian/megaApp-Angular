@@ -5,15 +5,14 @@ export enum IndicatorState {
   Countdown = 'countdown',
   Submitting = 'submitting',
   Success = 'success',
-  Error = 'error'
+  Error = 'error',
 }
 
 export class AnimationStateManager {
   private state: IndicatorState = IndicatorState.Idle;
   private timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(private cdRef: ChangeDetectorRef) {
-  }
+  constructor(private cdRef: ChangeDetectorRef) {}
 
   public get currentState(): IndicatorState {
     return this.state;

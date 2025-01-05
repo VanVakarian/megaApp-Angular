@@ -5,13 +5,26 @@
   <div class="relative w-1/2">
 
     <form [formGroup]="form">
-      <app-input-with-progress class="text-[22px] font-medium"
-                               formControlName="bodyWeight"
-                               label="Вес"
-                               suffix="кг"
-                               errorText="ХХ.Х или ХХ"
-                               [validators]="weightValidators"
-                               (submit)="submitWeight($event)" />
+      <mat-form-field appearance="outline"
+                      [class.countdown-state]="getState(IndicatorState.Countdown)"
+                      [class.submitting-state]="getState(IndicatorState.Submitting)"
+                      [class.success-state]="getState(IndicatorState.Success)"
+                      [class.error-state]="getState(IndicatorState.Error)">
+        <mat-label>Вес</mat-label>
+
+        <input matInput
+               formControlName="bodyWeight"
+               (keydown.enter)="onEnter()"
+               (input)="onInput()" />
+
+        <span matTextSuffix
+              class="ml-2 font-medium"
+              [class.invalid-suffix]="!isFormValid">кг</span>
+
+        @if (!isFormValid) {
+          <mat-error> ХХ.Х или ХХ </mat-error>
+        }
+      </mat-form-field>
     </form>
 
   </div>
