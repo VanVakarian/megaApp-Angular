@@ -2,18 +2,18 @@
           class="flex flex-col gap-4 p-4 text-lg">
 
   <div>
-    <div class="font-bold text-right">Основные настройки</div>
-    <div class="font-normal">Выбор разделов:</div>
+    <div class="font-bold text-right"> Основные настройки </div>
+    <div class="font-normal"> Выбор разделов: </div>
     <div class="ml-5">
       <mat-chip-listbox class="mat-mdc-chip-set-stacked w-64">
-        <mat-chip-option [selected]="settingsForm.get('selectedChapterFood')?.value"
+        <mat-chip-option [selected]="settingsForm.controls.selectedChapterFood.value"
                          (click)="toggleChapterSelection('selectedChapterFood')">
           <span class="text-lg"> Дневник питания </span>
         </mat-chip-option>
       </mat-chip-listbox>
 
       <mat-chip-listbox class="mat-mdc-chip-set-stacked w-64">
-        <mat-chip-option [selected]="settingsForm.get('selectedChapterMoney')?.value"
+        <mat-chip-option [selected]="settingsForm.controls.selectedChapterMoney.value"
                          (click)="toggleChapterSelection('selectedChapterMoney')">
           <span class="text-lg"> Дневник финансов </span>
         </mat-chip-option>
@@ -22,7 +22,7 @@
   </div>
 
   <div class="flex gap-4">
-    <div class="font-normal leading-[30px]">Тёмная тема:</div>
+    <div class="font-normal leading-[30px]"> Тёмная тема: </div>
     <div>
       <mat-slide-toggle formControlName="darkTheme"
                         color="primary"></mat-slide-toggle>
@@ -35,15 +35,26 @@
 
   <div>
     <div class="font-bold text-right"> Настройки дневника питания </div>
-    <div class="w-1/2 ml-[50%] mt-4">
+    <div class="w-1/3 mt-4">
       <form [formGroup]="settingsForm">
-        <app-input-with-progress class="text-[22px] font-medium"
-                                 formControlName="height"
-                                 label="Рост"
-                                 suffix="см"
-                                 errorText="3 цифры"
-                                 [validators]="heightValidators"
-                                 (submit)="submitHeight($event)" />
+        <mat-form-field appearance="outline"
+                        class="field-with-progress-animations"
+                        fieldStateAnimations
+                        [state]="heightFieldState">
+          <mat-label> Рост </mat-label>
+
+          <input matInput
+                 type="number"
+                 formControlName="height"
+                 (keydown.enter)="onHeightEnter()"
+                 (input)="onHeightInput()" />
+
+          <span matTextSuffix
+                class="ml-1"
+                [class.invalid-suffix]="!isHeightValid"> см </span>
+
+          <mat-error *ngIf="!isHeightValid"> XXX </mat-error>
+        </mat-form-field>
       </form>
     </div>
   </div>

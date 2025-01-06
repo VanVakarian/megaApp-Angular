@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { RouterOutlet } from '@angular/router';
+
 import { firstValueFrom } from 'rxjs';
 
 import { NavbarDesktopComponent } from 'src/app/components/main-menu/navbar-desktop/navbar-desktop.component';
@@ -13,20 +14,15 @@ import { SettingsService } from 'src/app/services/settings.service';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
-  imports: [
-    NavbarMobileComponent,
-    NavbarDesktopComponent,
-    RouterOutlet,
-    MatNativeDateModule,
-  ],
   templateUrl: './app.component.html',
   providers: [
     {
       provide: MatPaginatorIntl,
-      useClass: PaginatorLocalisation
+      useClass: PaginatorLocalisation,
     },
   ],
+  standalone: true,
+  imports: [NavbarMobileComponent, NavbarDesktopComponent, RouterOutlet, MatNativeDateModule],
 })
 export class MainAppComponent implements OnInit {
   constructor(

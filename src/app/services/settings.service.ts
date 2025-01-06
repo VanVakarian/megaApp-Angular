@@ -5,6 +5,16 @@ import { firstValueFrom, Observable, tap } from 'rxjs';
 
 import { Settings } from 'src/app/shared/interfaces';
 
+const SETTINGS_LOCALSTORAGE_KEY = 'settings';
+const REQUEST_RATE_LIMIT_MS = 500;
+
+export enum RequestStatus {
+  Idle = 'Idle',
+  InProgress = 'InProgress',
+  Success = 'Success',
+  Error = 'Error',
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -16,11 +26,13 @@ export class SettingsService {
     selectedChapterMoney: false,
     height: null,
   };
+
   public settings$$: WritableSignal<Settings> = signal(this.defaultSettings);
-  private requestInProgress$$: WritableSignal<boolean> = signal(false);
-  private settingsLocalStorageKey = 'settings';
+
+  public requestInProgress$$: WritableSignal<boolean> = signal(false);
+  public heightRequestStatus$$: WritableSignal<RequestStatus> = signal(RequestStatus.Idle);
+
   private requestTimeout: any;
-  private serverUpdateLimitMs = 500;
 
   constructor(private http: HttpClient) {
     // effect(() => { console.log('settings', this.settings$$()); }); // prettier-ignore
@@ -48,7 +60,7 @@ export class SettingsService {
   }
 
   public loadSettingsFromLocalStorage(): Settings | null {
-    const settings = localStorage.getItem(this.settingsLocalStorageKey);
+    const settings = localStorage.getItem(SETTINGS_LOCALSTORAGE_KEY);
     return settings ? JSON.parse(settings) : null;
   }
 
@@ -65,7 +77,7 @@ export class SettingsService {
   }
 
   private schedulePostRequest(resolve: () => void, reject: (error: any) => void): void {
-    this.requestTimeout = setTimeout(() => this.sendPostRequest(resolve, reject), this.serverUpdateLimitMs);
+    this.requestTimeout = setTimeout(() => this.sendPostRequest(resolve, reject), REQUEST_RATE_LIMIT_MS);
   }
 
   private sendPostRequest(resolve: () => void, reject: (error: any) => void): void {
@@ -74,19 +86,21 @@ export class SettingsService {
 
   private postRequest(): Observable<any> {
     this.requestInProgress$$.set(true);
+    this.heightRequestStatus$$.set(RequestStatus.InProgress);
     return this.http.post<HttpResponse<any>>('/api/settings', this.settings$$(), { observe: 'response' }).pipe(
       tap((response: HttpResponse<any>) => {
         if (response.status === 200) {
           this.saveSettingsToLocalStorage(this.settings$$());
+          this.heightRequestStatus$$.set(RequestStatus.Success);
         } else {
+          this.heightRequestStatus$$.set(RequestStatus.Error);
           throw new Error('Settings saving failed');
         }
-        this.requestInProgress$$.set(false);
       }),
     );
   }
 
   private saveSettingsToLocalStorage(settings: Settings): void {
-    localStorage.setItem(this.settingsLocalStorageKey, JSON.stringify(settings));
+    localStorage.setItem(SETTINGS_LOCALSTORAGE_KEY, JSON.stringify(settings));
   }
 }
