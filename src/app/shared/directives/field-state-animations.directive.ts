@@ -1,6 +1,6 @@
 import { Directive, ElementRef, Input, OnDestroy, Renderer2 } from '@angular/core';
 
-import { DEFAULT_FIELD_STATUS_TIMER_MS } from 'src/app/shared/const';
+import { DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER } from 'src/app/shared/const';
 
 export enum AnimationState {
   Idle = 'idle',
@@ -71,7 +71,7 @@ export class FieldStateAnimationsDirective implements OnDestroy {
         this.clearStateClass(AnimationState.Success);
         this.clearStateClass(AnimationState.Error);
         this.addStateClass(AnimationState.Idle);
-      }, DEFAULT_FIELD_STATUS_TIMER_MS);
+      }, DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER);
     }
   }
 

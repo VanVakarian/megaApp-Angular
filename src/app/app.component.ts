@@ -35,10 +35,11 @@ export class MainAppComponent implements OnInit {
     this.networkMonitorService.initNetworkEvents();
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.makeMondayFirstDayOfWeek();
 
-    firstValueFrom(this.settingsService.initLoadSettings());
+    await firstValueFrom(this.settingsService.initLoadSettings());
+    this.settingsService.applyTheme();
   }
 
   private makeMondayFirstDayOfWeek() {

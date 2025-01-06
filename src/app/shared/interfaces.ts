@@ -39,13 +39,22 @@ export interface ServerResponseWithCatalogueEntry extends ServerResponseBasic {
 //                                                                      SETTINGS
 
 export interface Settings {
-  userName: string;
-  isUserAdmin?: boolean;
-  darkTheme: boolean;
   selectedChapterFood: boolean;
   selectedChapterMoney: boolean;
+  darkTheme: boolean;
   height: number | null;
-};
+  userName: string;
+  isUserAdmin?: boolean;
+}
+
+export enum KeyOfSettings {
+  selectedChapterFood = 'selectedChapterFood',
+  selectedChapterMoney = 'selectedChapterMoney',
+  darkTheme = 'darkTheme',
+  height = 'height',
+  userName = 'userName',
+  isUserAdmin = 'isUserAdmin',
+}
 
 export type SelectedChapterNames = 'selectedChapterFood' | 'selectedChapterMoney' | '';
 

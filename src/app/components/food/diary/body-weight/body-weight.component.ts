@@ -7,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { firstValueFrom } from 'rxjs';
 
 import { FoodService } from 'src/app/services/food.service';
-import { DEFAULT_FIELD_PROGRESS_TIMER_MS } from 'src/app/shared/const';
+import { DEFAULT_INPUT_FIELD_PROGRESS_TIMER } from 'src/app/shared/const';
 import {
   AnimationState,
   AnimationStateManager,
@@ -37,7 +37,7 @@ export class BodyWeightComponent {
 
   public currentState: AnimationState = AnimationState.Idle;
   private previousValue: string = '';
-  private submitTimer: ReturnType<typeof setTimeout> | null = null;
+  private weightSubmitDelay: ReturnType<typeof setTimeout> | null = null;
 
   private weightFieldAnimationStateManager = new AnimationStateManager(AnimationState.Idle, (state) => {
     this.currentState = state;
@@ -79,12 +79,11 @@ export class BodyWeightComponent {
         this.cdRef.detectChanges();
       });
 
-      if (this.submitTimer) {
-        clearTimeout(this.submitTimer);
-      }
-      this.submitTimer = setTimeout(() => {
+      if (this.weightSubmitDelay) clearTimeout(this.weightSubmitDelay);
+
+      this.weightSubmitDelay = setTimeout(() => {
         if (this.currentState === AnimationState.Countdown) this.submitValue();
-      }, DEFAULT_FIELD_PROGRESS_TIMER_MS);
+      }, DEFAULT_INPUT_FIELD_PROGRESS_TIMER);
     } else {
       this.weightFieldAnimationStateManager.toIdle();
     }
