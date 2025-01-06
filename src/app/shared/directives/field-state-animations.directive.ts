@@ -10,6 +10,33 @@ export enum AnimationState {
   Error = 'error',
 }
 
+export class AnimationStateManager {
+  constructor(
+    private currentState: AnimationState,
+    private onChange: (state: AnimationState) => void,
+  ) {}
+
+  toIdle() {
+    this.transition(AnimationState.Idle);
+  }
+  toCountdown() {
+    this.transition(AnimationState.Countdown);
+  }
+  toSubmitting() {
+    this.transition(AnimationState.Submitting);
+  }
+  toSuccess() {
+    this.transition(AnimationState.Success);
+  }
+  toError() {
+    this.transition(AnimationState.Error);
+  }
+
+  private transition(state: AnimationState) {
+    this.onChange(state);
+  }
+}
+
 @Directive({
   selector: '[fieldStateAnimations]',
   standalone: true,

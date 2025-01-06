@@ -12,6 +12,7 @@ import { RequestStatus, SettingsService } from 'src/app/services/settings.servic
 import { DEFAULT_FIELD_PROGRESS_TIMER_MS } from 'src/app/shared/const';
 import {
   AnimationState,
+  AnimationStateManager,
   FieldStateAnimationsDirective,
 } from 'src/app/shared/directives/field-state-animations.directive';
 
@@ -54,6 +55,9 @@ export class SettingsFormComponent implements OnInit {
   public heightFieldState: AnimationState = AnimationState.Idle;
   private heightPreviousValue: string = '';
   private heightSubmitTimer: ReturnType<typeof setTimeout> | null = null;
+  private heightFieldAnimationStateManager = new AnimationStateManager(AnimationState.Idle, (state) => {
+    this.heightFieldState = state;
+  });
 
   constructor(private settingsService: SettingsService) {
     effect(() => {
@@ -90,7 +94,7 @@ export class SettingsFormComponent implements OnInit {
     if (!this.settingsForm.controls.height.valid) return;
 
     if (this.heightFieldState === AnimationState.Countdown) {
-      this.heightFieldState = AnimationState.Idle;
+      this.heightFieldAnimationStateManager.toIdle();
     }
     this.submitHeightValue();
   }
@@ -100,9 +104,9 @@ export class SettingsFormComponent implements OnInit {
     control.markAsTouched();
 
     if (control.valid && control.value !== String(this.heightPreviousValue)) {
-      this.heightFieldState = AnimationState.Idle;
+      this.heightFieldAnimationStateManager.toIdle();
       setTimeout(() => {
-        this.heightFieldState = AnimationState.Countdown;
+        this.heightFieldAnimationStateManager.toCountdown();
       });
 
       if (this.heightSubmitTimer) {
@@ -114,17 +118,15 @@ export class SettingsFormComponent implements OnInit {
         }
       }, DEFAULT_FIELD_PROGRESS_TIMER_MS);
     } else {
-      this.heightFieldState = AnimationState.Idle;
+      this.heightFieldAnimationStateManager.toIdle();
     }
   }
 
   private async submitHeightValue(): Promise<void> {
-    const control = this.settingsForm.controls.height;
-
-    this.heightFieldState = AnimationState.Submitting;
+    this.heightFieldAnimationStateManager.toSubmitting();
     this.settingsForm.disable();
 
-    const height = control.value.replace(',', '.');
+    const height = this.settingsForm.controls.height.value;
     this.settingsForm.patchValue({ height });
     this.settingsService.settings$$.update((settings) => ({
       ...settings,
@@ -133,7 +135,7 @@ export class SettingsFormComponent implements OnInit {
 
     try {
       await this.settingsService.saveSettings();
-      this.heightPreviousValue = control.value;
+      this.heightPreviousValue = height;
     } catch (error) {
       console.error(error);
     } finally {
@@ -161,15 +163,15 @@ export class SettingsFormComponent implements OnInit {
     const requestStatus = this.settingsService.heightRequestStatus$$();
 
     if (requestStatus === RequestStatus.InProgress) {
-      this.heightFieldState = AnimationState.Submitting;
+      this.heightFieldAnimationStateManager.toSubmitting();
     }
 
     if (requestStatus === RequestStatus.Success) {
-      this.heightFieldState = AnimationState.Success;
+      this.heightFieldAnimationStateManager.toSuccess();
     }
 
     if (requestStatus === RequestStatus.Error) {
-      this.heightFieldState = AnimationState.Error;
+      this.heightFieldAnimationStateManager.toError();
     }
   }
 }
