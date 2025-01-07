@@ -1,3 +1,5 @@
+import { Settings } from './interfaces';
+
 export const FETCH_DAYS_RANGE_OFFSET: number = 10; // TODO: create settings item out of this constant
 
 export const WEIGHT_CHART_SETTINGS: any = {
@@ -196,3 +198,13 @@ export const USER_PREFERRED_MIDNIGHT_OFFSET_HOURS = 5;
 
 export const DEFAULT_INPUT_FIELD_PROGRESS_TIMER = 2000;
 export const DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER = 3000;
+
+export const DEFAULT_SETTINGS: Settings = {
+  selectedChapterFood: false,
+  selectedChapterMoney: false,
+  darkTheme: false,
+  height: null,
+  userName: '',
+};
+
+export const DEFAULT_CACHED_REQUEST_VALIDITY_MS = 1000;

@@ -56,7 +56,7 @@ export enum KeyOfSettings {
   isUserAdmin = 'isUserAdmin',
 }
 
-export type SelectedChapterNames = 'selectedChapterFood' | 'selectedChapterMoney' | '';
+export type SettingsChapterNames = 'selectedChapterFood' | 'selectedChapterMoney' | '';
 
 export type LocalStorageSettings = Settings | null;
 

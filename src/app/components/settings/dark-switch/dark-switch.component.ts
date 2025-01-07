@@ -24,7 +24,9 @@ export class DarkSwitchComponent implements OnInit {
   public async switchTheme(): Promise<void> {
     const setting = { darkTheme: !this.settingsService.settings$$().darkTheme };
     this.settingsService.applyTheme(setting.darkTheme);
-    await this.settingsService.saveSelectedChapter(setting);
+    const requestIsSuccess = await this.settingsService.saveSelectedChapter(setting);
+
+    if (!requestIsSuccess) this.settingsService.applyTheme(!setting.darkTheme);
   }
 
   public get requestInProgress(): boolean {

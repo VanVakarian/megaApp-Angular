@@ -3,8 +3,6 @@ import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { RouterOutlet } from '@angular/router';
 
-import { firstValueFrom } from 'rxjs';
-
 import { NavbarDesktopComponent } from 'src/app/components/main-menu/navbar-desktop/navbar-desktop.component';
 import { NavbarMobileComponent } from 'src/app/components/main-menu/navbar-mobile/navbar-mobile.component';
 import { PaginatorLocalisation } from 'src/app/paginator-localisation';
@@ -38,8 +36,7 @@ export class MainAppComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.makeMondayFirstDayOfWeek();
 
-    await firstValueFrom(this.settingsService.initLoadSettings());
-    this.settingsService.applyTheme();
+    await this.settingsService.initLoadSettings();
   }
 
   private makeMondayFirstDayOfWeek() {

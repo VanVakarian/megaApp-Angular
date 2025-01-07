@@ -1,10 +1,15 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { effect, Injectable, signal, WritableSignal } from '@angular/core';
 
-import { firstValueFrom, Observable, of, tap } from 'rxjs';
+import { catchError, firstValueFrom, map, Observable, of } from 'rxjs';
 
 import { Settings } from 'src/app/shared/interfaces';
-import { DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER } from '../shared/const';
+import {
+  DEFAULT_CACHED_REQUEST_VALIDITY_MS,
+  DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER,
+  DEFAULT_SETTINGS,
+} from '../shared/const';
+import { cached } from '../shared/decorators/cached-request.decorator';
 
 type SettingsRequestStatus = Pick<Settings, 'selectedChapterFood' | 'selectedChapterMoney' | 'darkTheme' | 'height'>;
 
@@ -21,15 +26,7 @@ export enum RequestStatus {
   providedIn: 'root',
 })
 export class SettingsService {
-  private defaultSettings: Settings = {
-    selectedChapterFood: false,
-    selectedChapterMoney: false,
-    darkTheme: false,
-    height: null,
-    userName: '',
-  };
-
-  public settings$$: WritableSignal<Settings> = signal(this.defaultSettings);
+  public settings$$: WritableSignal<Settings> = signal(this.loadSettingsFromLocalStorage());
 
   public requestStatus: Record<keyof SettingsRequestStatus, WritableSignal<RequestStatus>> = {
     selectedChapterFood: signal(RequestStatus.Idle),
@@ -49,66 +46,93 @@ export class SettingsService {
     effect(() => { console.log('settings', this.settings$$()); }); // prettier-ignore
   }
 
-  public initLoadSettings(): Observable<Settings> {
-    return this.http.get<Settings>('/api/settings/').pipe(
-      tap((response: Settings) => {
-        const mergedSettings: Settings = {
-          ...this.defaultSettings,
-          ...response,
-        };
-        this.settings$$.set(mergedSettings);
-        this.saveSettingsToLocalStorage(mergedSettings);
-      }),
+  public initLoadLocalSettings(): Settings {
+    return this.loadSettingsFromLocalStorage();
+  }
+
+  public async initLoadSettings(): Promise<Settings> {
+    try {
+      const response = await this.fetchSettings();
+      this.settings$$.set(response);
+      this.saveSettingsToLocalStorage(response);
+      this.applyTheme(response.darkTheme);
+
+      return response;
+    } catch (error) {
+      console.error('Falling back to local storage');
+
+      const localSettings = this.loadSettingsFromLocalStorage();
+      this.settings$$.set(localSettings);
+      this.applyTheme(localSettings.darkTheme);
+
+      return localSettings;
+    }
+  }
+
+  @cached(DEFAULT_CACHED_REQUEST_VALIDITY_MS)
+  private fetchSettings(): Promise<Settings> {
+    return firstValueFrom(
+      this.http.get<Settings>('/api/settings/').pipe(
+        catchError((error) => {
+          console.error('Failed to fetch settings:', error);
+          throw error;
+        }),
+      ),
     );
   }
 
-  public applyTheme(isDarkTheme?: boolean): void {
-    const valueToApply = isDarkTheme ?? this.settings$$().darkTheme;
-    if (valueToApply) {
+  public applyTheme(isDarkTheme: boolean): void {
+    if (isDarkTheme) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
   }
 
-  public loadSettingsFromLocalStorage(): Settings | null {
-    const settings = localStorage.getItem(SETTINGS_LOCALSTORAGE_KEY);
-    return settings ? JSON.parse(settings) : null;
-  }
-
-  public async saveSelectedChapter(setting: Partial<Settings>): Promise<void> {
+  public async saveSelectedChapter(setting: Partial<Settings>): Promise<boolean> {
     return await firstValueFrom(this.putRequest(setting));
   }
 
-  private putRequest(newSetting: Partial<Settings>): Observable<any> {
+  private putRequest(newSetting: Partial<Settings>): Observable<boolean> {
     const settingKey = Object.keys(newSetting)[0] as keyof Settings;
-    if (!(settingKey in this.requestStatus)) return of(null);
+    if (!(settingKey in this.requestStatus)) return of(false);
 
-    const timeoutKey = settingKey as keyof typeof this.requestStatusTimeouts;
-    const currentTimeout = this.requestStatusTimeouts[timeoutKey];
+    const currentTimeout = this.requestStatusTimeouts[settingKey as keyof SettingsRequestStatus];
     if (currentTimeout) clearTimeout(currentTimeout);
+
+    const timeoutKey = settingKey as keyof SettingsRequestStatus;
     this.requestStatus[timeoutKey].set(RequestStatus.InProgress);
 
     return this.http.put<HttpResponse<any>>('/api/settings/', newSetting, { observe: 'response' }).pipe(
-      tap((response: HttpResponse<any>) => {
+      map((response: HttpResponse<any>) => {
         if (response.status === 200) {
           const updatedSettings = { ...this.settings$$(), ...newSetting };
           this.settings$$.set(updatedSettings);
           this.saveSettingsToLocalStorage(updatedSettings);
-
-          this.requestStatus[timeoutKey].set(RequestStatus.Success);
-          this.requestStatusTimeouts[timeoutKey] = setTimeout(() => {
-            this.requestStatus[timeoutKey].set(RequestStatus.Idle);
-          }, DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER);
+          this.updateRequestStatus(timeoutKey, RequestStatus.Success);
+          return true;
         } else {
-          this.requestStatus[timeoutKey].set(RequestStatus.Error);
-          this.requestStatusTimeouts[timeoutKey] = setTimeout(() => {
-            this.requestStatus[timeoutKey].set(RequestStatus.Idle);
-          }, DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER);
-          throw new Error('Setting update failed');
+          this.updateRequestStatus(timeoutKey, RequestStatus.Error);
+          return false;
         }
       }),
+      catchError(() => {
+        this.updateRequestStatus(timeoutKey, RequestStatus.Error);
+        return of(false);
+      }),
     );
+  }
+
+  private updateRequestStatus(settingKey: keyof SettingsRequestStatus, status: RequestStatus): void {
+    this.requestStatus[settingKey].set(status);
+    this.requestStatusTimeouts[settingKey] = setTimeout(() => {
+      this.requestStatus[settingKey].set(RequestStatus.Idle);
+    }, DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER);
+  }
+
+  private loadSettingsFromLocalStorage(): Settings {
+    const settings = localStorage.getItem(SETTINGS_LOCALSTORAGE_KEY);
+    return settings ? JSON.parse(settings) : DEFAULT_SETTINGS;
   }
 
   private saveSettingsToLocalStorage(settings: Settings): void {

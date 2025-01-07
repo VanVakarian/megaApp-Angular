@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, effect, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { MatCardModule } from '@angular/material/card';
@@ -15,7 +15,7 @@ import {
   AnimationStateManager,
   FieldStateAnimationsDirective,
 } from 'src/app/shared/directives/field-state-animations.directive';
-import { KeyOfSettings } from 'src/app/shared/interfaces';
+import { KeyOfSettings, Settings } from 'src/app/shared/interfaces';
 
 interface SettingsForm {
   selectedChapterFood: FormControl<boolean>;
@@ -46,11 +46,9 @@ export class SettingsFormComponent implements OnInit {
   public readonly KeyOfSettings = KeyOfSettings;
 
   public settingsForm = new FormGroup<SettingsForm>({
-    selectedChapterFood: new FormControl(this.settingsService.settings$$().selectedChapterFood, { nonNullable: true }),
-    selectedChapterMoney: new FormControl(this.settingsService.settings$$().selectedChapterMoney, {
-      nonNullable: true,
-    }),
-    darkTheme: new FormControl(this.settingsService.settings$$().darkTheme, { nonNullable: true }),
+    selectedChapterFood: new FormControl(false, { nonNullable: true }),
+    selectedChapterMoney: new FormControl(false, { nonNullable: true }),
+    darkTheme: new FormControl(false, { nonNullable: true }),
     height: new FormControl('', {
       validators: [Validators.required, Validators.pattern(/^\d{3}$/)],
       nonNullable: true,
@@ -64,28 +62,45 @@ export class SettingsFormComponent implements OnInit {
     this.heightFieldState = state;
   });
 
-  constructor(private settingsService: SettingsService) {
+  constructor(
+    private settingsService: SettingsService,
+    private cdr: ChangeDetectorRef,
+  ) {
     effect(() => {
-      // this.applySettingsToFrom();
       this.blockFieldsOnRequestsStatusChanes();
     });
   }
 
   ngOnInit(): void {
-    console.log('this.settingsService.settings$$()', this.settingsService.settings$$());
     this.applySettingsToForm();
-    // this.blockFieldsOnRequestsStatusChanes();
   }
 
-  public onSelectedChapterChipToggle(chapterName: FormFields): void {
-    const setting = { [chapterName]: !this.settingsForm.controls[chapterName].value };
-    this.settingsService.saveSelectedChapter(setting);
+  public async onSelectedChapterChipToggle(chapterName: FormFields): Promise<void> {
+    const currentValue = this.settingsForm.controls[chapterName].value;
+    const newValue = !currentValue;
+    const setting = { [chapterName]: newValue };
+
+    this.settingsForm.patchValue({ [chapterName]: newValue }, { emitEvent: false });
+
+    const requestIsSuccess = await this.settingsService.saveSelectedChapter(setting);
+    if (!requestIsSuccess) {
+      this.settingsForm.patchValue({ [chapterName]: currentValue }, { emitEvent: false });
+    }
   }
 
   public async onThemeToggle(): Promise<void> {
-    const setting = { darkTheme: this.settingsForm.controls.darkTheme.value };
-    this.settingsService.applyTheme(setting.darkTheme);
-    await this.settingsService.saveSelectedChapter(setting);
+    const currentValue = this.settingsForm.controls.darkTheme.value;
+    const newValue = !currentValue;
+    const setting = { darkTheme: newValue };
+
+    this.settingsForm.patchValue({ darkTheme: newValue }, { emitEvent: false });
+    this.settingsService.applyTheme(newValue);
+
+    const requestIsSuccess = await this.settingsService.saveSelectedChapter(setting);
+    if (!requestIsSuccess) {
+      this.settingsForm.patchValue({ darkTheme: currentValue }, { emitEvent: false });
+      this.settingsService.applyTheme(currentValue);
+    }
   }
 
   public get isHeightValid(): boolean {
@@ -124,14 +139,27 @@ export class SettingsFormComponent implements OnInit {
   private async submitHeightValue(): Promise<void> {
     this.heightFieldAnimationStateManager.toSubmitting();
     const height = this.settingsForm.controls.height.value;
-    await this.settingsService.saveSelectedChapter({ height: Number(height) });
-    this.heightPreviousValue = Number(height);
+    const setting = { height: Number(height) };
+
+    const requestIsSuccess = await this.settingsService.saveSelectedChapter(setting);
+    if (requestIsSuccess) {
+      this.heightPreviousValue = Number(height);
+    } else {
+      this.settingsForm.patchValue({ height: String(this.heightPreviousValue) }, { emitEvent: false });
+    }
   }
 
-  private applySettingsToForm(): void {
-    const settings = this.settingsService.settings$$();
-    if (!settings) return;
+  private async applySettingsToForm(): Promise<void> {
+    const localSettings = this.settingsService.initLoadLocalSettings();
+    this.applySettingstoForm(localSettings);
 
+    const settings = await this.settingsService.initLoadSettings();
+    this.applySettingstoForm(settings);
+
+    this.heightPreviousValue = Number(settings.height);
+  }
+
+  private applySettingstoForm(settings: Settings): void {
     this.settingsForm.patchValue(
       {
         selectedChapterFood: settings.selectedChapterFood,
@@ -141,8 +169,6 @@ export class SettingsFormComponent implements OnInit {
       },
       { emitEvent: false },
     );
-
-    this.heightPreviousValue = Number(settings.height);
   }
 
   private blockFieldsOnRequestsStatusChanes(): void {

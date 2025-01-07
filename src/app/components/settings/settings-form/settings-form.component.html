@@ -12,7 +12,6 @@
                            [disabled]="settingsForm.controls.selectedChapterFood.disabled">
             <span class="text-lg"> Дневник питания </span>
           </mat-chip-option>
-
         </mat-chip-listbox>
 
         <mat-chip-listbox class="mat-mdc-chip-set-stacked w-64">
@@ -28,9 +27,10 @@
     <div class="flex gap-4">
       <div class="font-normal leading-[30px]"> Тёмная тема: </div>
       <div>
-        <mat-slide-toggle formControlName="darkTheme"
-                          color="primary"
-                          (click)="onThemeToggle()" />
+        <mat-slide-toggle color="primary"
+                          [checked]="settingsForm.controls.darkTheme.value"
+                          (click)="onThemeToggle()"
+                          [disabled]="settingsForm.controls.darkTheme.disabled" />
       </div>
     </div>
 

@@ -2,23 +2,22 @@ import { Injectable } from '@angular/core';
 
 import { RouterService } from 'src/app/services/router.service';
 import { SettingsService } from 'src/app/services/settings.service';
-import { SelectedChapterNames } from 'src/app/shared/interfaces';
+import { SettingsChapterNames } from 'src/app/shared/interfaces';
 
 interface MenuButton {
   label: string;
   place: 'mobile' | 'desktop' | 'both';
   link: string | string[];
   selected?: boolean;
-  chapterSettingName?: string;
+  chapterSettingName?: SettingsChapterNames;
   iconName?: string;
   bgClass?: string;
-};
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class MainMenuService {
-
   private buttons: MenuButton[] = [
     {
       label: 'Дневник питания',
@@ -95,8 +94,8 @@ export class MainMenuService {
 
   public prepButtons(place: 'mobile' | 'desktop'): MenuButton[] {
     return this.buttons.filter((button) => {
-      const chapterName: SelectedChapterNames = button.chapterSettingName as SelectedChapterNames;
-      const chapterSelected = chapterName ? this.settingsService.settings$$()[chapterName] : true; // showing button if there's no chapterSettingName setting
+      const chapterName: SettingsChapterNames = button.chapterSettingName as SettingsChapterNames;
+      const chapterSelected = chapterName ? this.settingsService.settings$$()[chapterName] : true; // showing button if there's no chapterSettingName setting in buttons
       return (button.place === place || button.place === 'both') && chapterSelected;
     });
   }
