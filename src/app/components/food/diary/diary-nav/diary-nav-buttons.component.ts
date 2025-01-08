@@ -8,11 +8,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
-import { Subscription } from 'rxjs';
-
 import { AuthService } from 'src/app/services/auth.service';
 import { FoodService } from 'src/app/services/food.service';
-import { KeyboardService } from 'src/app/services/keyboard.service';
 import { dateToIsoNoTimeNoTZ, getAdjustedDate } from 'src/app/shared/utils';
 
 @Component({
@@ -31,31 +28,30 @@ import { dateToIsoNoTimeNoTZ, getAdjustedDate } from 'src/app/shared/utils';
   styleUrl: './diary-nav-buttons.component.scss',
 })
 export class DiaryNavButtonsComponent implements OnInit, OnDestroy {
-
   public today: Date = getAdjustedDate(new Date());
   private todayDate: number = this.today.getTime();
   private selectedDateMs: number = this.todayDate;
   public calendarSelectedDay: FormControl = new FormControl(this.today);
-  private keyboardSubscription!: Subscription;
+  // private keyboardSubscription!: Subscription;
 
   constructor(
-    private keyboardService: KeyboardService,
+    // private keyboardService: KeyboardService,
     private authService: AuthService,
     public foodService: FoodService,
   ) {
-    this.keyboardSubscription = this.keyboardService.getKeyboardEvents$().subscribe((event) => {
-      if (event.key === 'ArrowRight') {
-        this.nextDay();
-      } else if (event.key === 'ArrowLeft') {
-        this.previousDay();
-      }
-    });
+    // this.keyboardSubscription = this.keyboardService.getKeyboardEvents$().subscribe((event) => {
+    //   if (event.key === 'ArrowRight') {
+    //     this.nextDay();
+    //   } else if (event.key === 'ArrowLeft') {
+    //     this.previousDay();
+    //   }
+    // });
   }
 
-  public ngOnInit(): void { }
+  public ngOnInit(): void {}
 
   public ngOnDestroy(): void {
-    this.keyboardSubscription.unsubscribe();
+    // this.keyboardSubscription.unsubscribe();
   }
 
   public get isAuthenticated() {
@@ -101,7 +97,6 @@ export class DiaryNavButtonsComponent implements OnInit, OnDestroy {
     this.foodService.selectedDayIso$$.set(newDateIso);
     // this.regenerateDaysList();
   }
-
 
   public isLastDay(): boolean {
     return this.today.getTime() === this.selectedDateMs;

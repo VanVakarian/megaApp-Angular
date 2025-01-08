@@ -140,12 +140,6 @@ export interface BodyWeight {
   dateISO: string;
 }
 
-// export interface BMI {
-//   widthFractions: number[];
-//   bmiKgs: number[];
-//   pointerShiftsInPxByDate: { [date: string]: number };
-// }
-
 // export interface Stats {
 //   [id: string]: [number, number, number, number];
 // }

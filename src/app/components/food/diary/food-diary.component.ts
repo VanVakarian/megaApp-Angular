@@ -10,20 +10,24 @@ import {
   ViewChild,
   ViewChildren,
 } from '@angular/core';
+
 import { MatCardModule } from '@angular/material/card';
 import { MatAccordion, MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 
 import { combineLatest } from 'rxjs';
 
+import { BMIComponent } from 'src/app/components/food/diary/bmi/bmi.component';
+import { BodyWeightComponent } from 'src/app/components/food/diary/body-weight/body-weight.component';
 import { DiaryEntryEditFormComponent } from 'src/app/components/food/diary/diary-entry-edit-form/diary-entry-edit-form.component';
 import { DiaryEntryNewFormComponent } from 'src/app/components/food/diary/diary-entry-new-form/diary-entry-new-form.component';
 import { DiaryNavButtonsComponent } from 'src/app/components/food/diary/diary-nav/diary-nav-buttons.component';
 import { FoodService } from 'src/app/services/food.service';
-import { BodyWeightComponent } from './body-weight/body-weight.component';
 
 @Component({
   selector: 'app-food-diary',
+  templateUrl: './food-diary.component.html',
+  styleUrl: './food-diary.component.scss',
   standalone: true,
   imports: [
     NgStyle,
@@ -34,16 +38,8 @@ import { BodyWeightComponent } from './body-weight/body-weight.component';
     DiaryEntryEditFormComponent,
     DiaryEntryNewFormComponent,
     BodyWeightComponent,
+    BMIComponent,
   ],
-  templateUrl: './food-diary.component.html',
-  styleUrl: './food-diary.component.scss',
-  // animations: [
-  //   trigger('rotateIcon', [
-  //     state('closed', style({ transform: 'rotate(0deg)' })),
-  //     state('open', style({ transform: 'rotate(45deg)' })),
-  //     transition('closed <=> open', animate('300ms ease-out')),
-  //   ]),
-  // ],
 })
 export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatAccordion)
@@ -64,14 +60,40 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('foodPercent')
   public percentsDivs!: QueryList<ElementRef>;
 
+  public get todaysKcalsPercent() {
+    return this.foodService.diaryFormatted$$()?.[this.selectedDateIso]?.['kcalsPercent'] ?? 0;
+  }
+
+  public get selectedDayFood() {
+    const selectedDay = this.foodService.selectedDayIso$$();
+    const selectedDayFood = this.foodService.diaryFormatted$$()?.[selectedDay]?.food;
+
+    if (selectedDayFood) return Object.values(selectedDayFood);
+    return [];
+  }
+
+  public get todaysKcalsEaten() {
+    return this.foodService.diaryFormatted$$()?.[this.selectedDateIso]?.['kcalsEaten'];
+  }
+
+  public get todaysTargetKcals() {
+    return this.foodService.diary$$()?.[this.selectedDateIso]?.['targetKcals'];
+  }
+
+  public get formatSelectedDaysEatenPercent(): number {
+    return Math.round(this.foodService.diaryFormatted$$()?.[this.selectedDateIso]?.['kcalsPercent'] * 10) / 10;
+  }
+
+  private get selectedDateIso() {
+    return this.foodService.selectedDayIso$$();
+  }
+
   constructor(
     public foodService: FoodService,
-    // private cdRef: ChangeDetectorRef,
     private ngZone: NgZone,
-  ) { }
+  ) {}
 
-  public ngOnInit(): void {
-  }
+  public ngOnInit(): void {}
 
   public ngAfterViewInit(): void {
     // setting columns width
@@ -81,52 +103,23 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => this.adjustWidths(), 100);
   }
 
-  public ngOnDestroy(): void { }
+  public ngOnDestroy(): void {}
 
-  public get todaysKcalsPercent() {
-    return this.foodService.diaryFormatted$$()?.[this.selectedDateIso]?.['kcalsPercent'] ?? 0;
-  }
-
-  public get todaysFood() {
-    const selectedDay = this.foodService.selectedDayIso$$();
-    const todaysFood = this.foodService.diaryFormatted$$()?.[selectedDay]?.food;
-
-    if (todaysFood) {
-      const foodArray = Object.values(todaysFood);
-      return foodArray;
-    }
-
-    return [];
-  }
-
-  private get selectedDateIso() {
-    return this.foodService.selectedDayIso$$();
-  }
-  public get todaysKcalsEaten() {
-    return this.foodService.diaryFormatted$$()?.[this.selectedDateIso]?.['kcalsEaten'];
-  }
-  public get todaysTargetKcals() {
-    return this.foodService.diary$$()?.[this.selectedDateIso]?.['targetKcals'];
-  }
-  public get formatSelectedDaysEatenPercent(): number {
-    return Math.round(this.foodService.diaryFormatted$$()?.[this.selectedDateIso]?.['kcalsPercent'] * 10) / 10;
-  }
-
-  // VIEW FNs
   public setBackgroundStyle(percent: number) {
     const percentCapped = percent <= 100 ? percent : 100;
     return {
-      background: `linear-gradient(to right, var(--gradient-color) ${ percentCapped }%, var(--gradient-bg) ${ percentCapped }%)`,
+      background: `linear-gradient(to right, var(--gradient-color) ${percentCapped}%, var(--gradient-bg) ${percentCapped}%)`,
     };
   }
 
-  // DIARY
   public diaryEntryExpanded(diaryEntry: MatExpansionPanel, diaryEntryId: number) {
     this.foodService.diaryEntryClickedFocus$.next(diaryEntryId);
     this.foodService.diaryEntryClickedScroll$.next(diaryEntry._body);
   }
 
-  // COLUMN WIDH SETTING FNS
+  public accordionCollapse() {
+    this.foodAccordion.closeAll();
+  }
   private adjustWidths(): void {
     this.ngZone.run(() => {
       this.setWidth(this.weightsDivs);
@@ -155,12 +148,7 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private setWidth(elems: QueryList<ElementRef>, width?: number): void {
     elems.forEach((elem) => {
-      elem.nativeElement.style.width = width === undefined ? 'auto' : `${ width }px`;
+      elem.nativeElement.style.width = width === undefined ? 'auto' : `${width}px`;
     });
   }
-
-  protected accordionCollapse() {
-    this.foodAccordion.closeAll();
-  }
-
 }

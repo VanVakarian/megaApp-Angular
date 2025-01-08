@@ -22,12 +22,10 @@
       </div>
     </mat-expansion-panel-header>
 
-    <!-- *ngIf="foodService.diaryFormatted$$()?.[selectedDateISO]" -->
+    <app-bmi />
+
     <app-body-weight />
 
-    <!--
-          <app-bmi [selectedDateISO]="selectedDateISO" />
-        -->
   </mat-expansion-panel>
 
   <div class="mb-1"></div>
@@ -55,7 +53,7 @@
     </div>
   </div>
 
-  @for (food of todaysFood; track food.id; let first = $first; let last = $last) {
+  @for (food of selectedDayFood; track food.id; let first = $first; let last = $last) {
     <mat-expansion-panel #diaryEntry
                          class="sub-expansion-panel-38px-50px"
                          [class.first-in-group]="first"

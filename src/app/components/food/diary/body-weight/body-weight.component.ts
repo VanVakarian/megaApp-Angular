@@ -16,7 +16,7 @@ import {
 import { BodyWeight } from 'src/app/shared/interfaces';
 
 interface BodyWeightForm {
-  bodyWeight: FormControl<string>;
+  bodyWeight: FormControl<string | null>;
 }
 
 enum FormLabels {
@@ -43,7 +43,6 @@ export class BodyWeightComponent {
   public form = new FormGroup<BodyWeightForm>({
     bodyWeight: new FormControl('', {
       validators: [Validators.required, Validators.pattern(/^\d{2,3}([.,]\d)?$/)],
-      nonNullable: true,
     }),
   });
 
@@ -66,7 +65,7 @@ export class BodyWeightComponent {
   }
 
   public get isFormValid(): boolean {
-    return this.form.valid || this.form.disabled;
+    return this.form.valid || this.form.disabled || this.form.pristine;
   }
 
   public onEnter(): void {
@@ -102,19 +101,22 @@ export class BodyWeightComponent {
   }
 
   private async submitValue(): Promise<void> {
+    const weightValue = this.form.controls.bodyWeight.value;
+    if (!weightValue) return;
+
     this.weightFieldAnimationStateManager.toSubmitting();
     this.form.disable();
 
     try {
       const weight: BodyWeight = {
-        bodyWeight: this.form.controls.bodyWeight.value.replace(',', '.'),
+        bodyWeight: weightValue.replace(',', '.'),
         dateISO: this.foodService.selectedDayIso$$(),
       };
 
       const result = await firstValueFrom(this.foodService.setUserBodyWeight(weight));
       if (!result) throw new Error();
 
-      this.previousValue = this.form.controls.bodyWeight.value;
+      this.previousValue = weightValue;
       this.weightFieldAnimationStateManager.toSuccess();
     } catch {
       this.weightFieldAnimationStateManager.toError();
@@ -126,7 +128,11 @@ export class BodyWeightComponent {
   private applyWeight(): void {
     const selectedDateISO = this.foodService.selectedDayIso$$();
     const weight = this.foodService.diary$$()?.[selectedDateISO]?.['bodyWeight'];
-    if (!weight) return;
+
+    if (!weight) {
+      this.form.patchValue({ bodyWeight: null });
+      return;
+    }
 
     this.form.patchValue({ bodyWeight: String(weight) });
     this.previousValue = String(weight);
