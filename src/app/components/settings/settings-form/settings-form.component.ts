@@ -73,10 +73,10 @@ export class SettingsFormComponent implements OnInit {
     }),
   });
 
-  public heightFieldState: AnimationState = AnimationState.Idle;
+  public heightFieldState: AnimationState = AnimationState.IDLE;
   private heightPreviousValue: number = 0;
   private heightSubmitDelay: ReturnType<typeof setTimeout> | null = null;
-  private heightFieldAnimationStateManager = new AnimationStateManager(AnimationState.Idle, (state) => {
+  private heightFieldAnimationStateManager = new AnimationStateManager(AnimationState.IDLE, (state) => {
     this.heightFieldState = state;
   });
 
@@ -128,7 +128,7 @@ export class SettingsFormComponent implements OnInit {
   public onHeightEnter(): void {
     if (!this.settingsForm.controls.height.valid) return;
 
-    if (this.heightFieldState === AnimationState.Countdown) {
+    if (this.heightFieldState === AnimationState.COUNTDOWN) {
       this.heightFieldAnimationStateManager.toIdle();
     }
 
@@ -145,7 +145,7 @@ export class SettingsFormComponent implements OnInit {
       if (this.heightSubmitDelay) clearTimeout(this.heightSubmitDelay);
 
       this.heightSubmitDelay = setTimeout(() => {
-        if (this.heightFieldState === AnimationState.Countdown) {
+        if (this.heightFieldState === AnimationState.COUNTDOWN) {
           this.submitHeightValue();
         }
       }, DEFAULT_INPUT_FIELD_PROGRESS_TIMER);
@@ -191,34 +191,34 @@ export class SettingsFormComponent implements OnInit {
 
   private blockFieldsOnRequestsStatusChanges(): void {
     const selectedChapterFoodRequestStatus = this.settingsService.requestStatus.selectedChapterFood();
-    if (selectedChapterFoodRequestStatus === RequestStatus.InProgress) {
+    if (selectedChapterFoodRequestStatus === RequestStatus.IN_PROGRESS) {
       this.settingsForm.controls.selectedChapterFood.disable();
     } else {
       this.settingsForm.controls.selectedChapterFood.enable();
     }
 
     const selectedChapterMoneyRequestStatus = this.settingsService.requestStatus.selectedChapterMoney();
-    if (selectedChapterMoneyRequestStatus === RequestStatus.InProgress) {
+    if (selectedChapterMoneyRequestStatus === RequestStatus.IN_PROGRESS) {
       this.settingsForm.controls.selectedChapterMoney.disable();
     } else {
       this.settingsForm.controls.selectedChapterMoney.enable();
     }
 
     const darkThemeRequestStatus = this.settingsService.requestStatus.darkTheme();
-    if (darkThemeRequestStatus === RequestStatus.InProgress) {
+    if (darkThemeRequestStatus === RequestStatus.IN_PROGRESS) {
       this.settingsForm.controls.darkTheme.disable();
     } else {
       this.settingsForm.controls.darkTheme.enable();
     }
 
     const heightRequestStatus = this.settingsService.requestStatus.height();
-    if (heightRequestStatus === RequestStatus.InProgress) {
+    if (heightRequestStatus === RequestStatus.IN_PROGRESS) {
       this.settingsForm.controls.height.disable();
       this.heightFieldAnimationStateManager.toSubmitting();
-    } else if (heightRequestStatus === RequestStatus.Success) {
+    } else if (heightRequestStatus === RequestStatus.SUCCESS) {
       this.settingsForm.controls.height.enable();
       this.heightFieldAnimationStateManager.toSuccess();
-    } else if (heightRequestStatus === RequestStatus.Error) {
+    } else if (heightRequestStatus === RequestStatus.ERROR) {
       this.settingsForm.controls.height.enable();
       this.heightFieldAnimationStateManager.toError();
     }

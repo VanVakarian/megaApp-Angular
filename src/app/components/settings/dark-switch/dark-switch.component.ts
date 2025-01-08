@@ -30,6 +30,6 @@ export class DarkSwitchComponent implements OnInit {
   }
 
   public get requestInProgress(): boolean {
-    return this.settingsService.requestStatus.darkTheme() === RequestStatus.InProgress;
+    return this.settingsService.requestStatus.darkTheme() === RequestStatus.IN_PROGRESS;
   }
 }

@@ -9,20 +9,23 @@
                       class="field-with-progress-animations"
                       fieldStateAnimations
                       [state]="currentState">
-        <mat-label>Вес</mat-label>
+
+        <mat-label>{{ FormLabels.WEIGHT }}</mat-label>
 
         <input matInput
+               number
                formControlName="bodyWeight"
                (keydown.enter)="onEnter()"
                (input)="onInput()" />
 
         <span matTextSuffix
               class="ml-2 font-medium"
-              [class.invalid-suffix]="!isFormValid">кг</span>
+              [class.invalid-suffix]="!isFormValid"> {{ FormLabels.KG }} </span>
 
         @if (!isFormValid) {
-          <mat-error> ХХ.Х или ХХ </mat-error>
+          <mat-error> {{ FormErrors.WEIGHT }} </mat-error>
         }
+
       </mat-form-field>
     </form>
 

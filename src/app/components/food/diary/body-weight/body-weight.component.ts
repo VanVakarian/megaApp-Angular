@@ -19,6 +19,15 @@ interface BodyWeightForm {
   bodyWeight: FormControl<string>;
 }
 
+enum FormLabels {
+  WEIGHT = 'Вес',
+  KG = 'кг',
+}
+
+enum FormErrors {
+  WEIGHT = 'ХХ.Х или ХХ',
+}
+
 @Component({
   selector: 'app-body-weight',
   templateUrl: './body-weight.component.html',
@@ -28,6 +37,9 @@ interface BodyWeightForm {
   imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, FieldStateAnimationsDirective],
 })
 export class BodyWeightComponent {
+  public FormLabels = FormLabels;
+  public FormErrors = FormErrors;
+
   public form = new FormGroup<BodyWeightForm>({
     bodyWeight: new FormControl('', {
       validators: [Validators.required, Validators.pattern(/^\d{2,3}([.,]\d)?$/)],
@@ -35,11 +47,11 @@ export class BodyWeightComponent {
     }),
   });
 
-  public currentState: AnimationState = AnimationState.Idle;
+  public currentState: AnimationState = AnimationState.IDLE;
   private previousValue: string = '';
   private weightSubmitDelay: ReturnType<typeof setTimeout> | null = null;
 
-  private weightFieldAnimationStateManager = new AnimationStateManager(AnimationState.Idle, (state) => {
+  private weightFieldAnimationStateManager = new AnimationStateManager(AnimationState.IDLE, (state) => {
     this.currentState = state;
     this.cdRef.detectChanges();
   });
@@ -62,7 +74,7 @@ export class BodyWeightComponent {
       return;
     }
 
-    if (this.currentState === AnimationState.Countdown) {
+    if (this.currentState === AnimationState.COUNTDOWN) {
       this.weightFieldAnimationStateManager.toIdle();
     }
     this.submitValue();
@@ -82,7 +94,7 @@ export class BodyWeightComponent {
       if (this.weightSubmitDelay) clearTimeout(this.weightSubmitDelay);
 
       this.weightSubmitDelay = setTimeout(() => {
-        if (this.currentState === AnimationState.Countdown) this.submitValue();
+        if (this.currentState === AnimationState.COUNTDOWN) this.submitValue();
       }, DEFAULT_INPUT_FIELD_PROGRESS_TIMER);
     } else {
       this.weightFieldAnimationStateManager.toIdle();

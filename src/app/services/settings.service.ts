@@ -1,5 +1,5 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { effect, Injectable, signal, WritableSignal } from '@angular/core';
+import { Injectable, signal, WritableSignal } from '@angular/core';
 
 import { catchError, firstValueFrom, map, Observable, of } from 'rxjs';
 
@@ -16,10 +16,10 @@ type SettingsKeysForRequestTracking = 'selectedChapterFood' | 'selectedChapterMo
 const SETTINGS_LOCALSTORAGE_KEY = 'settings';
 
 export enum RequestStatus {
-  Idle = 'Idle',
-  InProgress = 'InProgress',
-  Success = 'Success',
-  Error = 'Error',
+  IDLE = 'Idle',
+  IN_PROGRESS = 'InProgress',
+  SUCCESS = 'Success',
+  ERROR = 'Error',
 }
 
 @Injectable({
@@ -29,10 +29,10 @@ export class SettingsService {
   public settings$$: WritableSignal<Settings> = signal(this.loadSettingsFromLocalStorage());
 
   public requestStatus: Record<SettingsKeysForRequestTracking, WritableSignal<RequestStatus>> = {
-    selectedChapterFood: signal(RequestStatus.Idle),
-    selectedChapterMoney: signal(RequestStatus.Idle),
-    darkTheme: signal(RequestStatus.Idle),
-    height: signal(RequestStatus.Idle),
+    selectedChapterFood: signal(RequestStatus.IDLE),
+    selectedChapterMoney: signal(RequestStatus.IDLE),
+    darkTheme: signal(RequestStatus.IDLE),
+    height: signal(RequestStatus.IDLE),
   };
 
   private requestStatusTimeouts: Record<SettingsKeysForRequestTracking, ReturnType<typeof setTimeout> | null> = {
@@ -43,7 +43,7 @@ export class SettingsService {
   };
 
   constructor(private http: HttpClient) {
-    effect(() => { console.log('settings', this.settings$$()); }); // prettier-ignore
+    // effect(() => { console.log('settings', this.settings$$()); }); // prettier-ignore
   }
 
   public initLoadLocalSettings(): Settings {
@@ -101,7 +101,7 @@ export class SettingsService {
     if (currentTimeout) clearTimeout(currentTimeout);
 
     const timeoutKey = settingKey as SettingsKeysForRequestTracking;
-    this.requestStatus[timeoutKey].set(RequestStatus.InProgress);
+    this.requestStatus[timeoutKey].set(RequestStatus.IN_PROGRESS);
 
     return this.http.put<HttpResponse<any>>('/api/settings/', newSetting, { observe: 'response' }).pipe(
       map((response: HttpResponse<any>) => {
@@ -109,15 +109,15 @@ export class SettingsService {
           const updatedSettings = { ...this.settings$$(), ...newSetting };
           this.settings$$.set(updatedSettings);
           this.saveSettingsToLocalStorage(updatedSettings);
-          this.updateRequestStatus(timeoutKey, RequestStatus.Success);
+          this.updateRequestStatus(timeoutKey, RequestStatus.SUCCESS);
           return true;
         } else {
-          this.updateRequestStatus(timeoutKey, RequestStatus.Error);
+          this.updateRequestStatus(timeoutKey, RequestStatus.ERROR);
           return false;
         }
       }),
       catchError(() => {
-        this.updateRequestStatus(timeoutKey, RequestStatus.Error);
+        this.updateRequestStatus(timeoutKey, RequestStatus.ERROR);
         return of(false);
       }),
     );
@@ -126,7 +126,7 @@ export class SettingsService {
   private updateRequestStatus(settingKey: SettingsKeysForRequestTracking, status: RequestStatus): void {
     this.requestStatus[settingKey].set(status);
     this.requestStatusTimeouts[settingKey] = setTimeout(() => {
-      this.requestStatus[settingKey].set(RequestStatus.Idle);
+      this.requestStatus[settingKey].set(RequestStatus.IDLE);
     }, DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER);
   }
 
