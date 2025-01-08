@@ -3,29 +3,29 @@
   <mat-card class="flex flex-col gap-4 p-4 text-lg">
 
     <div>
-      <div class="font-bold text-right"> Основные настройки </div>
-      <div class="font-normal"> Выбор разделов: </div>
+      <div class="font-bold text-right"> {{ FormFieldLabels.MAIN_SETTINGS }} </div>
+      <div class="font-normal"> {{ FormFieldLabels.CHAPTERS_SELECTION }} </div>
       <div class="ml-5">
-        <mat-chip-listbox class="mat-mdc-chip-set-stacked w-64">
+        <mat-chip-listbox multiple
+                          class="mat-mdc-chip-set-stacked w-64">
           <mat-chip-option [selected]="settingsForm.controls.selectedChapterFood.value"
                            (click)="onSelectedChapterChipToggle(KeyOfSettings.selectedChapterFood)"
                            [disabled]="settingsForm.controls.selectedChapterFood.disabled">
-            <span class="text-lg"> Дневник питания </span>
+            <span class="text-lg"> {{ FormFieldLabels.FOOD_DIARY }} </span>
           </mat-chip-option>
-        </mat-chip-listbox>
 
-        <mat-chip-listbox class="mat-mdc-chip-set-stacked w-64">
           <mat-chip-option [selected]="settingsForm.controls.selectedChapterMoney.value"
                            (click)="onSelectedChapterChipToggle(KeyOfSettings.selectedChapterMoney)"
                            [disabled]="settingsForm.controls.selectedChapterMoney.disabled">
-            <span class="text-lg"> Дневник финансов </span>
+            <span class="text-lg"> {{ FormFieldLabels.MONEY_DIARY }} </span>
           </mat-chip-option>
+
         </mat-chip-listbox>
       </div>
     </div>
 
     <div class="flex gap-4">
-      <div class="font-normal leading-[30px]"> Тёмная тема: </div>
+      <div class="font-normal leading-[30px]"> {{ FormFieldLabels.DARK_THEME }} </div>
       <div>
         <mat-slide-toggle color="primary"
                           [checked]="settingsForm.controls.darkTheme.value"
@@ -39,13 +39,13 @@
   <mat-card class="flex flex-col gap-4 p-4 mt-4 text-lg">
 
     <div>
-      <div class="font-bold text-right"> Настройки дневника питания </div>
+      <div class="font-bold text-right"> {{ FormFieldLabels.FOOD_DIARY_SETTINGS }} </div>
       <div class="w-1/3 mt-4">
         <mat-form-field appearance="outline"
                         class="field-with-progress-animations"
                         fieldStateAnimations
                         [state]="heightFieldState">
-          <mat-label> Рост </mat-label>
+          <mat-label> {{ FormFieldLabels.HEIGHT }} </mat-label>
 
           <input matInput
                  type="number"
@@ -55,9 +55,9 @@
 
           <span matTextSuffix
                 class="ml-1"
-                [class.invalid-suffix]="!isHeightValid"> см </span>
+                [class.invalid-suffix]="!isHeightValid"> {{ FormFieldLabels.HEIGHT_SUFFIX }} </span>
 
-          <mat-error *ngIf="!isHeightValid"> XXX </mat-error>
+          <mat-error *ngIf="!isHeightValid"> {{ ErrorLabels.HEIGHT }} </mat-error>
         </mat-form-field>
       </div>
     </div>

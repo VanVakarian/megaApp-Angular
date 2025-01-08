@@ -26,6 +26,21 @@ interface SettingsForm {
 
 type FormFields = keyof SettingsForm;
 
+enum FormFieldLabels {
+  MAIN_SETTINGS = 'Основные настройки',
+  CHAPTERS_SELECTION = 'Выбор разделов:',
+  FOOD_DIARY = 'Дневник питания',
+  MONEY_DIARY = 'Дневник финансов',
+  DARK_THEME = 'Тёмная тема:',
+  FOOD_DIARY_SETTINGS = 'Настройки дневника питания',
+  HEIGHT = 'Рост',
+  HEIGHT_SUFFIX = 'см',
+}
+
+enum ErrorLabels {
+  HEIGHT = 'XXX',
+}
+
 @Component({
   selector: 'app-settings-form',
   templateUrl: './settings-form.component.html',
@@ -44,6 +59,9 @@ type FormFields = keyof SettingsForm;
 })
 export class SettingsFormComponent implements OnInit {
   public readonly KeyOfSettings = KeyOfSettings;
+
+  public FormFieldLabels = FormFieldLabels;
+  public ErrorLabels = ErrorLabels;
 
   public settingsForm = new FormGroup<SettingsForm>({
     selectedChapterFood: new FormControl(false, { nonNullable: true }),
@@ -67,11 +85,11 @@ export class SettingsFormComponent implements OnInit {
     private cdr: ChangeDetectorRef,
   ) {
     effect(() => {
-      this.blockFieldsOnRequestsStatusChanes();
+      this.blockFieldsOnRequestsStatusChanges();
     });
   }
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.applySettingsToForm();
   }
 
@@ -141,8 +159,8 @@ export class SettingsFormComponent implements OnInit {
     const height = this.settingsForm.controls.height.value;
     const setting = { height: Number(height) };
 
-    const requestIsSuccess = await this.settingsService.saveSelectedChapter(setting);
-    if (requestIsSuccess) {
+    const isSuccess = await this.settingsService.saveSelectedChapter(setting);
+    if (isSuccess) {
       this.heightPreviousValue = Number(height);
     } else {
       this.settingsForm.patchValue({ height: String(this.heightPreviousValue) }, { emitEvent: false });
@@ -171,7 +189,7 @@ export class SettingsFormComponent implements OnInit {
     );
   }
 
-  private blockFieldsOnRequestsStatusChanes(): void {
+  private blockFieldsOnRequestsStatusChanges(): void {
     const selectedChapterFoodRequestStatus = this.settingsService.requestStatus.selectedChapterFood();
     if (selectedChapterFoodRequestStatus === RequestStatus.InProgress) {
       this.settingsForm.controls.selectedChapterFood.disable();

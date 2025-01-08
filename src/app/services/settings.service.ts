@@ -11,7 +11,7 @@ import {
 } from '../shared/const';
 import { cached } from '../shared/decorators/cached-request.decorator';
 
-type SettingsRequestStatus = Pick<Settings, 'selectedChapterFood' | 'selectedChapterMoney' | 'darkTheme' | 'height'>;
+type SettingsKeysForRequestTracking = 'selectedChapterFood' | 'selectedChapterMoney' | 'darkTheme' | 'height';
 
 const SETTINGS_LOCALSTORAGE_KEY = 'settings';
 
@@ -28,14 +28,14 @@ export enum RequestStatus {
 export class SettingsService {
   public settings$$: WritableSignal<Settings> = signal(this.loadSettingsFromLocalStorage());
 
-  public requestStatus: Record<keyof SettingsRequestStatus, WritableSignal<RequestStatus>> = {
+  public requestStatus: Record<SettingsKeysForRequestTracking, WritableSignal<RequestStatus>> = {
     selectedChapterFood: signal(RequestStatus.Idle),
     selectedChapterMoney: signal(RequestStatus.Idle),
     darkTheme: signal(RequestStatus.Idle),
     height: signal(RequestStatus.Idle),
   };
 
-  private requestStatusTimeouts: Record<keyof SettingsRequestStatus, ReturnType<typeof setTimeout> | null> = {
+  private requestStatusTimeouts: Record<SettingsKeysForRequestTracking, ReturnType<typeof setTimeout> | null> = {
     selectedChapterFood: null,
     selectedChapterMoney: null,
     darkTheme: null,
@@ -97,10 +97,10 @@ export class SettingsService {
     const settingKey = Object.keys(newSetting)[0] as keyof Settings;
     if (!(settingKey in this.requestStatus)) return of(false);
 
-    const currentTimeout = this.requestStatusTimeouts[settingKey as keyof SettingsRequestStatus];
+    const currentTimeout = this.requestStatusTimeouts[settingKey as SettingsKeysForRequestTracking];
     if (currentTimeout) clearTimeout(currentTimeout);
 
-    const timeoutKey = settingKey as keyof SettingsRequestStatus;
+    const timeoutKey = settingKey as SettingsKeysForRequestTracking;
     this.requestStatus[timeoutKey].set(RequestStatus.InProgress);
 
     return this.http.put<HttpResponse<any>>('/api/settings/', newSetting, { observe: 'response' }).pipe(
@@ -123,7 +123,7 @@ export class SettingsService {
     );
   }
 
-  private updateRequestStatus(settingKey: keyof SettingsRequestStatus, status: RequestStatus): void {
+  private updateRequestStatus(settingKey: SettingsKeysForRequestTracking, status: RequestStatus): void {
     this.requestStatus[settingKey].set(status);
     this.requestStatusTimeouts[settingKey] = setTimeout(() => {
       this.requestStatus[settingKey].set(RequestStatus.Idle);
