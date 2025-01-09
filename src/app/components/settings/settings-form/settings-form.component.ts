@@ -1,12 +1,16 @@
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component, effect, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+
+import { catchError, firstValueFrom, map, of } from 'rxjs';
 
 import { RequestStatus, SettingsService } from 'src/app/services/settings.service';
 import { DEFAULT_INPUT_FIELD_PROGRESS_TIMER } from 'src/app/shared/const';
@@ -26,7 +30,7 @@ interface SettingsForm {
 
 type FormFields = keyof SettingsForm;
 
-enum FormFieldLabels {
+enum Labels {
   MAIN_SETTINGS = 'Основные настройки',
   CHAPTERS_SELECTION = 'Выбор разделов:',
   FOOD_DIARY = 'Дневник питания',
@@ -35,6 +39,8 @@ enum FormFieldLabels {
   FOOD_DIARY_SETTINGS = 'Настройки дневника питания',
   HEIGHT = 'Рост',
   HEIGHT_SUFFIX = 'см',
+  TEMP_SETTINGS = 'Временные настройки', // TODO[066]: Delete this sometime
+  TEMP_GET_OLD_DATA = 'Получить старые данные', // TODO[066]: Delete this sometime
 }
 
 enum ErrorLabels {
@@ -54,13 +60,14 @@ enum ErrorLabels {
     MatChipsModule,
     MatFormFieldModule,
     MatInputModule,
+    MatButtonModule,
     FieldStateAnimationsDirective,
   ],
 })
 export class SettingsFormComponent implements OnInit {
   public readonly KeyOfSettings = KeyOfSettings;
 
-  public FormFieldLabels = FormFieldLabels;
+  public Labels = Labels;
   public ErrorLabels = ErrorLabels;
 
   public settingsForm = new FormGroup<SettingsForm>({
@@ -83,6 +90,7 @@ export class SettingsFormComponent implements OnInit {
   constructor(
     private settingsService: SettingsService,
     private cdr: ChangeDetectorRef,
+    private http: HttpClient,
   ) {
     effect(() => {
       this.blockFieldsOnRequestsStatusChanges();
@@ -222,5 +230,18 @@ export class SettingsFormComponent implements OnInit {
       this.settingsForm.controls.height.enable();
       this.heightFieldAnimationStateManager.toError();
     }
+  }
+
+  // TODO[066]: Delete this sometime
+  public isTempGetOldDataButtonDisabled = false;
+  public async onTempGetOldDataButtonClick(): Promise<void> {
+    this.isTempGetOldDataButtonDisabled = true;
+    const res = await firstValueFrom(
+      this.http.get<any>('/api/debug/transfer/').pipe(
+        catchError(() => of(false)),
+        map((response) => !!response),
+      ),
+    );
+    this.isTempGetOldDataButtonDisabled = false;
   }
 }

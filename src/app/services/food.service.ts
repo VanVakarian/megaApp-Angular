@@ -60,6 +60,10 @@ export class FoodService {
       }
     });
 
+    this.subscribe();
+  }
+
+  private subscribe(): void {
     this.fetchMoreDiaryTrigger$
       .pipe(
         debounceTime(100),
@@ -70,7 +74,7 @@ export class FoodService {
       });
   }
 
-  //                                                                        INIT
+  //                                                                                                                INIT
 
   private prepDiary(): FormattedDiary {
     const formattedDiary: FormattedDiary = {};
@@ -125,7 +129,7 @@ export class FoodService {
     return this.http.get<Diary>(`/api/food/diary-full-update?${paramsStr}`);
   }
 
-  //                                                                       DIARY
+  //                                                                                                               DIARY
 
   public createDiaryEntry(diaryEntry: DiaryEntry): Observable<ServerResponseWithDiaryId> {
     return this.http.post<ServerResponseWithDiaryId>('/api/food/diary/', diaryEntry).pipe(
@@ -210,7 +214,7 @@ export class FoodService {
     });
   }
 
-  //                                                                   CATALOGUE
+  //                                                                                                           CATALOGUE
 
   public getCatalogueEntries(): Observable<Catalogue> {
     return this.http.get<Catalogue>('/api/food/catalogue').pipe(
@@ -318,7 +322,7 @@ export class FoodService {
     this.catalogueMyIds$$.update((foodIds) => foodIds.filter((id) => id !== foodId));
   }
 
-  //                                                                      WEIGHT
+  //                                                                                                              WEIGHT
 
   public setUserBodyWeight(bodyWeight: BodyWeight): Observable<boolean> {
     return this.http.post<ServerResponseBasic>('/api/food/body_weight/', bodyWeight).pipe(
@@ -344,12 +348,11 @@ export class FoodService {
     );
   }
 
-  //                                                             AUTO DIARY LOAD
+  //                                                                                                     AUTO DIARY LOAD
 
   private shouldLoadMore(): boolean {
     const selectedDay = this.selectedDayIso$$();
     const ranges = this.loadedRanges$$();
-
     if (ranges.length === 0) return true;
 
     for (const range of ranges) {
