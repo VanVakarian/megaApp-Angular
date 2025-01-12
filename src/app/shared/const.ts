@@ -130,7 +130,7 @@ export const daysRuDeclentions: Declentions = {
   31: 'день',
 };
 
-export const monthsDeclentions: Declentions = {
+export const monthsRuDeclentions: Declentions = {
   1: 'месяц',
   2: 'месяца',
   3: 'месяца',
@@ -145,7 +145,7 @@ export const monthsDeclentions: Declentions = {
   12: 'месяцев',
 };
 
-export const yearsDeclentions: Declentions = {
+export const yearsRuDeclentions: Declentions = {
   1: 'год',
   2: 'года',
   3: 'года',
