@@ -7,7 +7,7 @@ import {
   ViewChildren,
   WritableSignal,
   computed,
-  signal
+  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -57,11 +57,6 @@ export class FoodCatalogueComponent {
   ) {
     // effect(() => { console.log('CATALOGUE FILTERED LIST SELECTED have been updated:', this.catalogueFilteredListSelected$$()); });
     // effect(() => { console.log('CATALOGUE FILTERED LIST LEFT OUT have been updated:', this.catalogueFilteredListLeftOut$$()); });
-  }
-
-  public get isAdmin(): boolean {
-    const isAdmin = this.settingsService.settings$$()?.isUserAdmin;
-    return isAdmin ? true : false;
   }
 
   private filterCatalogue(selected: boolean): CatalogueEntry[] {

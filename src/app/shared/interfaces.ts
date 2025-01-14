@@ -44,7 +44,7 @@ export interface Settings {
   darkTheme: boolean;
   height: number | null;
   userName: string;
-  isUserAdmin?: boolean;
+  isUserAdmin?: boolean; // TODO[068]: Think of a better way to work with admin privileges
 }
 
 export enum KeyOfSettings {
@@ -140,9 +140,9 @@ export interface BodyWeight {
   dateISO: string;
 }
 
-// export interface Stats {
-//   [id: string]: [number, number, number, number];
-// }
+export interface Stats {
+  [id: string]: [number, number, number, number];
+}
 
 //                                                                         MONEY
 

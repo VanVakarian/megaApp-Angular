@@ -15,8 +15,10 @@ import {
   ServerResponseBasic,
   ServerResponseWithCatalogueEntry,
   ServerResponseWithDiaryId,
+  Stats,
 } from 'src/app/shared/interfaces';
 import { getTodayIsoNoTimeNoTZ } from 'src/app/shared/utils';
+import { HttpParams } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -32,6 +34,8 @@ export class FoodService {
   public catalogueMyIds$$: WritableSignal<CatalogueIds> = signal([]);
   public catalogueSortedListSelected$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(true)); // prettier-ignore
   public catalogueSortedListLeftOut$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(false)); // prettier-ignore
+
+  public stats$$: WritableSignal<Stats> = signal({});
 
   public diaryEntryClickedFocus$ = new Subject<number>();
   public diaryEntryClickedScroll$ = new Subject<ElementRef>();
@@ -54,6 +58,10 @@ export class FoodService {
     // effect(() => { console.log('CATALOGUE MY IDS have been updated:', this.catalogueMyIds$$()); }); // prettier-ignore
     // effect(() => { console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()); }); // prettier-ignore
     // effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()); }); // prettier-ignore
+    // effect(() => { console.log('STATS have been updated:', this.stats$$()); }); // prettier-ignore
+    // effect(() => { console.log('STATS DATES have been updated:', this.statsDates$$()); }); // prettier-ignore
+    // effect(() => { console.log('STATS WEIGHTS have been updated:', this.statsWeights$$()); }); // prettier-ignore
+    // effect(() => { console.log('STATS WEIGHTS AVG have been updated:', this.statsWeightsAvg$$()); }); // prettier-ignore
     effect(() => {
       if (this.shouldLoadMore()) {
         this.fetchMoreDiaryTrigger$.next();
@@ -214,6 +222,32 @@ export class FoodService {
     });
   }
 
+  //                                                                                                              WEIGHT
+
+  public setUserBodyWeight(bodyWeight: BodyWeight): Observable<boolean> {
+    return this.http.post<ServerResponseBasic>('/api/food/body-weight/', bodyWeight).pipe(
+      map((response) => {
+        if (response.result) {
+          // console.log('response', response);
+          this.diary$$.update((diary) => {
+            return {
+              ...diary,
+              [bodyWeight.dateISO]: {
+                ...diary[bodyWeight.dateISO],
+                bodyWeight: Number(bodyWeight.bodyWeight),
+              },
+            };
+          });
+        }
+        return response.result;
+      }),
+      catchError((error) => {
+        console.warn('Error setting user body weight:', error);
+        return of(false);
+      }),
+    );
+  }
+
   //                                                                                                           CATALOGUE
 
   public getCatalogueEntries(): Observable<Catalogue> {
@@ -322,29 +356,21 @@ export class FoodService {
     this.catalogueMyIds$$.update((foodIds) => foodIds.filter((id) => id !== foodId));
   }
 
-  //                                                                                                              WEIGHT
+  //                                                                                                               STATS
 
-  public setUserBodyWeight(bodyWeight: BodyWeight): Observable<boolean> {
-    return this.http.post<ServerResponseBasic>('/api/food/body_weight/', bodyWeight).pipe(
-      map((response) => {
-        if (response.result) {
-          // console.log('response', response);
-          this.diary$$.update((diary) => {
-            return {
-              ...diary,
-              [bodyWeight.dateISO]: {
-                ...diary[bodyWeight.dateISO],
-                bodyWeight: Number(bodyWeight.bodyWeight),
-              },
-            };
-          });
-        }
-        return response.result;
-      }),
-      catchError((error) => {
-        console.warn('Error setting user body weight:', error);
-        return of(false);
-      }),
+  public getStats(): Promise<Stats> {
+    const params = new HttpParams().set('date', getTodayIsoNoTimeNoTZ());
+    return firstValueFrom(
+      this.http.get<Stats>('/api/food/stats', { params }).pipe(
+        tap((response: Stats) => {
+          console.log('response', response);
+          // this.stats$$.set(response);
+        }),
+        catchError((error) => {
+          console.error('Failed to fetch stats:', error);
+          return of({});
+        }),
+      ),
     );
   }
 

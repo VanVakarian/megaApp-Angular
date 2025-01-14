@@ -1,7 +1,7 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable, signal, WritableSignal } from '@angular/core';
 
-import { catchError, firstValueFrom, map, Observable, of } from 'rxjs';
+import { catchError, firstValueFrom, map, Observable, of, tap } from 'rxjs';
 
 import { Settings } from 'src/app/shared/interfaces';
 import {
@@ -46,36 +46,24 @@ export class SettingsService {
     // effect(() => { console.log('settings', this.settings$$()); }); // prettier-ignore
   }
 
-  public initLoadLocalSettings(): Settings {
-    return this.loadSettingsFromLocalStorage();
-  }
-
   public async initLoadSettings(): Promise<Settings> {
-    try {
-      const response = await this.fetchSettings();
-      this.settings$$.set(response);
-      this.saveSettingsToLocalStorage(response);
-      this.applyTheme(response.darkTheme);
-
-      return response;
-    } catch (error) {
-      console.error('Falling back to local storage');
-
-      const localSettings = this.loadSettingsFromLocalStorage();
-      this.settings$$.set(localSettings);
-      this.applyTheme(localSettings.darkTheme);
-
-      return localSettings;
-    }
+    const response = await this.fetchSettings();
+    this.settings$$.set(response);
+    this.saveSettingsToLocalStorage(response);
+    this.applyTheme(response.darkTheme);
+    return response;
   }
 
   @cached(DEFAULT_CACHED_REQUEST_VALIDITY_MS)
   private fetchSettings(): Promise<Settings> {
     return firstValueFrom(
       this.http.get<Settings>('/api/settings/').pipe(
+        tap((response: Settings) => {
+          console.log('fetchSettings response', response);
+        }),
         catchError((error) => {
           console.error('Failed to fetch settings:', error);
-          throw error;
+          return of(this.loadSettingsFromLocalStorage());
         }),
       ),
     );

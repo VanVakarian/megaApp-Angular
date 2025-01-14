@@ -176,12 +176,8 @@ export class SettingsFormComponent implements OnInit {
   }
 
   private async applySettingsToForm(): Promise<void> {
-    const localSettings = this.settingsService.initLoadLocalSettings();
-    this.applySettingstoForm(localSettings);
-
     const settings = await this.settingsService.initLoadSettings();
     this.applySettingstoForm(settings);
-
     this.heightPreviousValue = Number(settings.height);
   }
 

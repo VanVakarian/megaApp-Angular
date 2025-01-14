@@ -17,7 +17,17 @@ import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatSliderModule } from '@angular/material/slider';
 
-import { CategoryScale, Chart, Legend, LineController, LineElement, LinearScale, PointElement, Title, Tooltip } from 'chart.js';
+import {
+  CategoryScale,
+  Chart,
+  Legend,
+  LineController,
+  LineElement,
+  LinearScale,
+  PointElement,
+  Title,
+  Tooltip,
+} from 'chart.js';
 import { Subject, throttleTime } from 'rxjs';
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, LineController, Title, Tooltip, Legend);
@@ -135,7 +145,9 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  public ngOnInit(): void {
+  public async ngOnInit(): Promise<void> {
+    await this.foodService.getStats();
+
     this.weightChart = new Chart('WeightChart', WEIGHT_CHART_SETTINGS);
     this.kcalsChart = new Chart('KcalsChart', KCALS_CHART_SETTINGS);
     this.sliderChangeLow$.next(this.selectedDateIdxLow);
