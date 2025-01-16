@@ -30,8 +30,6 @@ import {
 } from 'chart.js';
 import { Subject, throttleTime } from 'rxjs';
 
-Chart.register(CategoryScale, LinearScale, PointElement, LineElement, LineController, Title, Tooltip, Legend);
-
 import { FoodService } from 'src/app/services/food.service';
 import {
   KCALS_CHART_SETTINGS,
@@ -40,6 +38,8 @@ import {
   monthsRuDeclentions,
   yearsRuDeclentions,
 } from 'src/app/shared/const';
+
+Chart.register(CategoryScale, LinearScale, PointElement, LineElement, LineController, Title, Tooltip, Legend);
 
 @Component({
   selector: 'app-food-stats',
@@ -76,13 +76,11 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
   private statsKcalsAvg$$: Signal<number[]> = computed(() => this.getValuesAtSpecificPosition(3));
 
   private getStatsDates() {
-    return [];
-    // return Object.keys(this.foodService.stats$$());
+    return Object.keys(this.foodService.stats$$());
   }
 
   private getValuesAtSpecificPosition(position: number): number[] {
-    return [];
-    // return Object.entries(this.foodService.stats$$()).map(([key, value]) => value[position]);
+    return Object.entries(this.foodService.stats$$()).map(([key, value]) => value[position]);
   }
 
   private chartStartIdx$$: WritableSignal<number> = signal(0); // Signals here allow clipping arrays upon slider input
@@ -105,12 +103,14 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
       this.chartEndIdx$$.set(value);
     });
 
-    // effect(() => { console.log('CHART START INDEX has been updated:', this.chartStartIdx$$()); }); // prettier-ignore
-    // effect(() => { console.log('CHART END INDEX array has been updated:', this.chartEndIdx$$()); }); // prettier-ignore
-    // effect(() => { console.log('SELECTED RANGE DESCRIPTION string has been updated:', this.selectedRangeDescription$$()); }); // prettier-ignore
-    // effect(() => { console.log('CLIPPED STATS DATES array has been updated:', this.clippedStatsDates$$()); }); // prettier-ignore
-    // effect(() => { console.log('CLIPPED STATS WEIGHTS array has been updated:', this.clippedStatsWeights$$()); }); // prettier-ignore
-    // effect(() => { console.log('CLIPPED STATS WEIGHTS AVG array has been updated:', this.clippedStatsWeightsAvg$$()); }); // prettier-ignore
+    effect(() => {
+      // console.log('CHART START INDEX has been updated:', this.chartStartIdx$$()); // prettier-ignore
+      // console.log('CHART END INDEX has been updated:', this.chartEndIdx$$()); // prettier-ignore
+      // console.log('SELECTED RANGE DESCRIPTION string has been updated:', this.selectedRangeDescription$$()); // prettier-ignore
+      // console.log('CLIPPED STATS DATES array has been updated:', this.clippedStatsDates$$()); // prettier-ignore
+      // console.log('CLIPPED STATS WEIGHTS array has been updated:', this.clippedStatsWeights$$()); // prettier-ignore
+      // console.log('CLIPPED STATS WEIGHTS AVG array has been updated:', this.clippedStatsWeightsAvg$$()); // prettier-ignore
+    });
 
     effect(() => {
       const dates = this.statsDates$$();

@@ -1,7 +1,7 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable, signal, WritableSignal } from '@angular/core';
 
-import { catchError, firstValueFrom, map, Observable, of, tap } from 'rxjs';
+import { catchError, firstValueFrom, map, Observable, of } from 'rxjs';
 
 import { Settings } from 'src/app/shared/interfaces';
 import {
@@ -58,9 +58,6 @@ export class SettingsService {
   private fetchSettings(): Promise<Settings> {
     return firstValueFrom(
       this.http.get<Settings>('/api/settings/').pipe(
-        tap((response: Settings) => {
-          console.log('fetchSettings response', response);
-        }),
         catchError((error) => {
           console.error('Failed to fetch settings:', error);
           return of(this.loadSettingsFromLocalStorage());

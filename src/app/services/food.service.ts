@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { computed, effect, ElementRef, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 
 import { catchError, debounceTime, filter, firstValueFrom, map, Observable, of, Subject, tap } from 'rxjs';
@@ -18,7 +18,6 @@ import {
   Stats,
 } from 'src/app/shared/interfaces';
 import { getTodayIsoNoTimeNoTZ } from 'src/app/shared/utils';
-import { HttpParams } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -50,18 +49,18 @@ export class FoodService {
   private fetchMoreDiaryTrigger$ = new Subject<void>();
 
   constructor(private http: HttpClient) {
-    // effect(() => { console.log('DIARY has been updated:', this.diary$$()); }); // prettier-ignore
-    // effect(() => { console.log('FORMATTED DIARY has been updated:', this.diaryFormatted$$()); }); // prettier-ignore
-    // effect(() => { console.log('SELECTED DAY has been updated:', this.selectedDayIso$$()); }); // prettier-ignore
-    // effect(() => { console.log('DAYS have been updated:', this.days$$()); }); // prettier-ignore
-    // effect(() => { console.log('CATALOGUE have been updated:', this.catalogue$$()); }); // prettier-ignore
-    // effect(() => { console.log('CATALOGUE MY IDS have been updated:', this.catalogueMyIds$$()); }); // prettier-ignore
-    // effect(() => { console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()); }); // prettier-ignore
-    // effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()); }); // prettier-ignore
-    // effect(() => { console.log('STATS have been updated:', this.stats$$()); }); // prettier-ignore
-    // effect(() => { console.log('STATS DATES have been updated:', this.statsDates$$()); }); // prettier-ignore
-    // effect(() => { console.log('STATS WEIGHTS have been updated:', this.statsWeights$$()); }); // prettier-ignore
-    // effect(() => { console.log('STATS WEIGHTS AVG have been updated:', this.statsWeightsAvg$$()); }); // prettier-ignore
+    effect(() => {
+      // console.log('DIARY has been updated:', this.diary$$()); // prettier-ignore
+      // console.log('FORMATTED DIARY has been updated:', this.diaryFormatted$$()); // prettier-ignore
+      // console.log('SELECTED DAY has been updated:', this.selectedDayIso$$()); // prettier-ignore
+      // console.log('DAYS have been updated:', this.days$$()); // prettier-ignore
+      // console.log('CATALOGUE have been updated:', this.catalogue$$()); // prettier-ignore
+      // console.log('CATALOGUE MY IDS have been updated:', this.catalogueMyIds$$()); // prettier-ignore
+      // console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()); // prettier-ignore
+      // console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()); // prettier-ignore
+      // console.log('STATS have been updated:', this.stats$$()); // prettier-ignore
+    });
+
     effect(() => {
       if (this.shouldLoadMore()) {
         this.fetchMoreDiaryTrigger$.next();
@@ -363,8 +362,7 @@ export class FoodService {
     return firstValueFrom(
       this.http.get<Stats>('/api/food/stats', { params }).pipe(
         tap((response: Stats) => {
-          console.log('response', response);
-          // this.stats$$.set(response);
+          this.stats$$.set(response);
         }),
         catchError((error) => {
           console.error('Failed to fetch stats:', error);
