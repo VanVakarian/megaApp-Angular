@@ -42,6 +42,8 @@ export class SettingsService {
     height: null,
   };
 
+  public USE_COEFFICIENTS_TEMP = true; // TODO[067] implement sometime
+
   constructor(private http: HttpClient) {
     // effect(() => { console.log('settings', this.settings$$()); }); // prettier-ignore
   }

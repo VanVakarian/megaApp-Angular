@@ -28,7 +28,7 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import { Subject, throttleTime } from 'rxjs';
+import { Subject, firstValueFrom, throttleTime } from 'rxjs';
 
 import { FoodService } from 'src/app/services/food.service';
 import {
@@ -146,7 +146,7 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public async ngOnInit(): Promise<void> {
-    await this.foodService.getStats();
+    await firstValueFrom(this.foodService.getStats());
 
     this.weightChart = new Chart('WeightChart', WEIGHT_CHART_SETTINGS);
     this.kcalsChart = new Chart('KcalsChart', KCALS_CHART_SETTINGS);

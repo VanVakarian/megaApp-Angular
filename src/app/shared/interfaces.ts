@@ -16,10 +16,14 @@ export interface IncomingMessage {
   [key: string]: string;
 }
 
-//                                                                          MISC
+//                                                                        SERVER
 
 export interface ServerResponseBasic {
   result: boolean;
+}
+
+export interface ServerResponseWithData<T> extends ServerResponseBasic {
+  data: T;
 }
 
 export interface ServerResponseWithMessage extends ServerResponseBasic {
@@ -131,9 +135,9 @@ export interface Catalogue {
   [id: number]: CatalogueEntry;
 }
 
-// export interface Coefficients {
-//   [id: number]: number;
-// }
+export interface Coefficients {
+  [id: number]: number;
+}
 
 export interface BodyWeight {
   bodyWeight: string;

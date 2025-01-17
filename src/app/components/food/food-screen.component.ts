@@ -8,6 +8,7 @@ import { FoodCatalogueComponent } from 'src/app/components/food/catalogue/food-c
 import { FoodDiaryComponent } from 'src/app/components/food/diary/food-diary.component';
 import { FoodStatsComponent } from 'src/app/components/food/stats/food-stats.component';
 import { FoodService } from 'src/app/services/food.service';
+import { SettingsService } from 'src/app/services/settings.service';
 
 @Component({
   selector: 'app-food-screen',
@@ -23,6 +24,7 @@ export class FoodScreenComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private foodService: FoodService,
+    private settingsService: SettingsService,
   ) {
     this.section = '';
     this.largeScreen = false;
@@ -33,6 +35,10 @@ export class FoodScreenComponent implements OnInit {
     firstValueFrom(this.foodService.getFoodDiaryFullUpdateRange(undefined, 2));
     firstValueFrom(this.foodService.getCatalogueEntries());
     firstValueFrom(this.foodService.getMyCatalogueEntries());
+
+    if (this.settingsService.USE_COEFFICIENTS_TEMP) {
+      firstValueFrom(this.foodService.getCoefficients());
+    }
 
     this.updateScreenSize();
     this.mediaQueryList.addEventListener('change', this.updateScreenSize.bind(this));

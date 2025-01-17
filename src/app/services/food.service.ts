@@ -8,12 +8,14 @@ import {
   Catalogue,
   CatalogueEntry,
   CatalogueIds,
+  Coefficients,
   Diary,
   DiaryEntry,
   FormattedDiary,
   FormattedDiaryEntry,
   ServerResponseBasic,
   ServerResponseWithCatalogueEntry,
+  ServerResponseWithData,
   ServerResponseWithDiaryId,
   Stats,
 } from 'src/app/shared/interfaces';
@@ -33,6 +35,8 @@ export class FoodService {
   public catalogueMyIds$$: WritableSignal<CatalogueIds> = signal([]);
   public catalogueSortedListSelected$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(true)); // prettier-ignore
   public catalogueSortedListLeftOut$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(false)); // prettier-ignore
+
+  public coefficients$$: WritableSignal<Coefficients> = signal({});
 
   public stats$$: WritableSignal<Stats> = signal({});
 
@@ -58,6 +62,7 @@ export class FoodService {
       // console.log('CATALOGUE MY IDS have been updated:', this.catalogueMyIds$$()); // prettier-ignore
       // console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()); // prettier-ignore
       // console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()); // prettier-ignore
+      // console.log('COEFFICIENTS have been updated:', this.coefficients$$()); // prettier-ignore
       // console.log('STATS have been updated:', this.stats$$()); // prettier-ignore
     });
 
@@ -98,10 +103,11 @@ export class FoodService {
 
       for (const id in this.diary$$()[dateISO].food) {
         const entry = this.diary$$()[dateISO].food[id];
-        const kcals = Math.round(
-          (this.catalogue$$()[entry.foodCatalogueId]?.kcals ?? 0) * (entry.foodWeight / 100) * 1,
-        );
-        const percent = (kcals / this.diary$$()[dateISO].targetKcals) * 100;
+        const entryWeight = entry.foodWeight / 100;
+        const catalogueKcals = this.catalogue$$()[entry.foodCatalogueId]?.kcals ?? 0;
+        const entryCoefficient = this.coefficients$$()[entry.foodCatalogueId] || 1;
+        const entryFinalKcals = Math.round(entryWeight * catalogueKcals * entryCoefficient);
+        const entryPercent = (entryFinalKcals / this.diary$$()[dateISO].targetKcals) * 100;
 
         const formattedEntry: FormattedDiaryEntry = {
           id: Number(id),
@@ -110,14 +116,14 @@ export class FoodService {
           foodWeight: entry.foodWeight,
           history: entry.history || [],
           foodName: this.catalogue$$()[entry.foodCatalogueId]?.name || '',
-          foodKcals: kcals,
-          foodPercent: `${Math.floor(percent) < 100 ? percent.toFixed(1) : Math.round(percent).toString()}`,
-          foodKcalPercentageOfDaysNorm: percent,
+          foodKcals: entryFinalKcals,
+          foodPercent: `${Math.floor(entryPercent) < 100 ? entryPercent.toFixed(1) : Math.round(entryPercent).toString()}`,
+          foodKcalPercentageOfDaysNorm: entryPercent,
         };
 
         formattedDiary[dateISO].food[id] = formattedEntry;
-        formattedDiary[dateISO].kcalsEaten += kcals;
-        formattedDiary[dateISO].kcalsPercent += percent;
+        formattedDiary[dateISO].kcalsEaten += entryFinalKcals;
+        formattedDiary[dateISO].kcalsPercent += entryPercent;
       }
     }
     return formattedDiary;
@@ -241,7 +247,7 @@ export class FoodService {
         return response.result;
       }),
       catchError((error) => {
-        console.warn('Error setting user body weight:', error);
+        console.warn('Failed setting user body weight:', error);
         return of(false);
       }),
     );
@@ -251,8 +257,13 @@ export class FoodService {
 
   public getCatalogueEntries(): Observable<Catalogue> {
     return this.http.get<Catalogue>('/api/food/catalogue').pipe(
-      tap((response: Catalogue) => {
+      map((response: Catalogue) => {
         this.catalogue$$.set(response);
+        return response;
+      }),
+      catchError((error) => {
+        console.warn('Failed getting catalogue entries:', error);
+        return of({});
       }),
     );
   }
@@ -268,7 +279,7 @@ export class FoodService {
         return null;
       }),
       catchError((error) => {
-        console.warn('Error adding user food item:', error);
+        console.warn('Failed adding user food item:', error);
         return of(null);
       }),
     );
@@ -305,7 +316,7 @@ export class FoodService {
           return response.result;
         }),
         catchError((error) => {
-          console.warn('Error updating user food item:', error);
+          console.warn('Failed updating user food item:', error);
           return of(false);
         }),
       );
@@ -313,8 +324,13 @@ export class FoodService {
 
   public getMyCatalogueEntries(): Observable<CatalogueIds> {
     return this.http.get<CatalogueIds>('/api/food/user-catalogue').pipe(
-      tap((response: CatalogueIds) => {
+      map((response: CatalogueIds) => {
         this.catalogueMyIds$$.set(response);
+        return response;
+      }),
+      catchError((error) => {
+        console.warn('Failed getting user catalogue entries:', error);
+        return of([]);
       }),
     );
   }
@@ -326,7 +342,7 @@ export class FoodService {
         return response.result;
       }),
       catchError((error) => {
-        console.warn('Error deleting user food id:', error);
+        console.warn('Failed picking user food id:', error);
         return of(false);
       }),
     );
@@ -345,7 +361,7 @@ export class FoodService {
         return response.result;
       }),
       catchError((error) => {
-        console.warn('Error deleting user food id:', error);
+        console.warn('Failed dismissing user food id:', error);
         return of(false);
       }),
     );
@@ -355,20 +371,33 @@ export class FoodService {
     this.catalogueMyIds$$.update((foodIds) => foodIds.filter((id) => id !== foodId));
   }
 
+  //                                                                                                        COEFFICIENTS
+
+  public getCoefficients(): Observable<ServerResponseWithData<Coefficients>> {
+    return this.http.get<ServerResponseWithData<Coefficients>>('/api/food/coefficients').pipe(
+      map((response) => {
+        this.coefficients$$.set(response.data);
+        return response;
+      }),
+      catchError((error) => {
+        console.error('Failed fetching coefficients:', error);
+        return of({ result: false, data: {} as Coefficients });
+      }),
+    );
+  }
+
   //                                                                                                               STATS
 
-  public getStats(): Promise<Stats> {
+  public getStats(): Observable<Stats> {
     const params = new HttpParams().set('date', getTodayIsoNoTimeNoTZ());
-    return firstValueFrom(
-      this.http.get<Stats>('/api/food/stats', { params }).pipe(
-        tap((response: Stats) => {
-          this.stats$$.set(response);
-        }),
-        catchError((error) => {
-          console.error('Failed to fetch stats:', error);
-          return of({});
-        }),
-      ),
+    return this.http.get<Stats>('/api/food/stats', { params }).pipe(
+      tap((response: Stats) => {
+        this.stats$$.set(response);
+      }),
+      catchError((error) => {
+        console.error('Failed fetching stats:', error);
+        return of({});
+      }),
     );
   }
 
