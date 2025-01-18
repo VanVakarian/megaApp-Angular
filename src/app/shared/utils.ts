@@ -1,4 +1,4 @@
-import { FETCH_DAYS_RANGE_OFFSET, USER_PREFERRED_MIDNIGHT_OFFSET_HOURS } from 'src/app/shared/const';
+import { USER_PREFERRED_MIDNIGHT_OFFSET_HOURS } from 'src/app/shared/const';
 
 export function getTodayIsoNoTimeNoTZ(): string {
   return dateToIsoNoTimeNoTZ(new Date().getTime());
@@ -30,24 +30,24 @@ export function getAdjustedDate(date: Date): Date {
   return adjustedDate;
 }
 
-export function generateDatesList(inputDateIso: string): string[] {
-  const today = new Date().setHours(0, 0, 0, 0);
-  const inputDate = new Date(inputDateIso);
-  const resultDatesList: string[] = [];
+// export function generateDatesList(inputDateIso: string): string[] {
+//   const today = new Date().setHours(0, 0, 0, 0);
+//   const inputDate = new Date(inputDateIso);
+//   const resultDatesList: string[] = [];
 
-  for (let i = -FETCH_DAYS_RANGE_OFFSET; i <= FETCH_DAYS_RANGE_OFFSET; i++) {
-    const newDate = new Date(inputDate);
-    newDate.setDate(inputDate.getDate() + i);
-    newDate.setHours(0, 0, 0, 0);
-    if (newDate.getTime() > today) {
-      break;
-    }
-    const isoDate = dateToIsoNoTimeNoTZ(newDate.getTime());
-    resultDatesList.push(isoDate);
-  }
+//   for (let i = -FETCH_DAYS_RANGE_OFFSET; i <= FETCH_DAYS_RANGE_OFFSET; i++) {
+//     const newDate = new Date(inputDate);
+//     newDate.setDate(inputDate.getDate() + i);
+//     newDate.setHours(0, 0, 0, 0);
+//     if (newDate.getTime() > today) {
+//       break;
+//     }
+//     const isoDate = dateToIsoNoTimeNoTZ(newDate.getTime());
+//     resultDatesList.push(isoDate);
+//   }
 
-  return resultDatesList;
-}
+//   return resultDatesList;
+// }
 
 export function splitNumber(numStr: string): [string, string, string] {
   let sign = '';

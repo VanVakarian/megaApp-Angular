@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Input, OnDestroy, Renderer2 } from '@angular/core';
+import { Directive, ElementRef, Input, OnDestroy } from '@angular/core';
 
 import { DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER } from 'src/app/shared/const';
 
@@ -49,11 +49,11 @@ export class FieldStateAnimationsDirective implements OnDestroy {
 
   private currentState: AnimationState = AnimationState.IDLE;
   private transitionTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private element: HTMLElement;
 
-  constructor(
-    private el: ElementRef,
-    private renderer: Renderer2,
-  ) {}
+  constructor(el: ElementRef) {
+    this.element = el.nativeElement;
+  }
 
   public ngOnDestroy() {
     this.clearTimeout();
@@ -76,11 +76,11 @@ export class FieldStateAnimationsDirective implements OnDestroy {
   }
 
   private clearStateClass(className: AnimationState) {
-    this.renderer.removeClass(this.el.nativeElement, `${className}-state`);
+    this.element.classList.remove(`${className}-state`);
   }
 
   private addStateClass(className: AnimationState) {
-    this.renderer.addClass(this.el.nativeElement, `${className}-state`);
+    this.element.classList.add(`${className}-state`);
   }
 
   private clearTimeout() {

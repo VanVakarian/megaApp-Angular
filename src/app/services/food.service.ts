@@ -230,7 +230,7 @@ export class FoodService {
   //                                                                                                              WEIGHT
 
   public setUserBodyWeight(bodyWeight: BodyWeight): Observable<boolean> {
-    return this.http.post<ServerResponseBasic>('/api/food/body-weight/', bodyWeight).pipe(
+    return this.http.post<ServerResponseBasic>('/api/food/body-weight', bodyWeight).pipe(
       map((response) => {
         if (response.result) {
           // console.log('response', response);
