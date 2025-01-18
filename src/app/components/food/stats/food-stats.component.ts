@@ -13,10 +13,9 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSliderModule } from '@angular/material/slider';
-
 import {
   BarController,
   BarElement,
@@ -30,9 +29,8 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import { Subject, firstValueFrom, throttleTime } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { FoodStatsService } from 'src/app/services/food-stats.service';
-
 import {
   KCALS_CHART_SETTINGS,
   WEIGHT_CHART_SETTINGS,
@@ -40,6 +38,7 @@ import {
   monthsRuDeclentions,
   yearsRuDeclentions,
 } from 'src/app/shared/const';
+import { debounce, throttle } from 'src/app/shared/utils';
 
 Chart.register(
   CategoryScale,
@@ -74,7 +73,7 @@ interface ChartData {
   selector: 'app-food-stats',
   templateUrl: './food-stats.component.html',
   styleUrl: './food-stats.component.scss',
-  imports: [CommonModule, MatCardModule, MatSliderModule, FormsModule],
+  imports: [CommonModule, MatCardModule, MatSliderModule, FormsModule, MatButtonModule],
   standalone: true,
 })
 export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -87,32 +86,26 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
   public weightChart: any;
   public kcalsChart: any;
 
-  public maxSliderValue: number = 1;
-
-  public selectedDateIdxLow: number = 0;
-  public selectedDateIdxHigh: number = 1;
-
-  private sliderChangeLow$: Subject<number> = new Subject();
-  private sliderChangeHigh$: Subject<number> = new Subject();
+  public selectedDateIdxLow$$: WritableSignal<number> = signal(0);
+  public selectedDateIdxHigh$$: WritableSignal<number> = signal(1);
 
   public sliderLowLabelAsDateIso: string = '';
   public sliderHighLabelAsDateIso: string = '';
 
-  private statsData$$: Signal<StatsData> = computed(() => ({
-    dates: this.getStatsDates(),
-    weights: this.getValuesAtSpecificPosition(0),
-    weightsAvg: this.getValuesAtSpecificPosition(1),
-    kcals: this.getValuesAtSpecificPosition(2),
-    kcalsAvg: this.getValuesAtSpecificPosition(3),
-  }));
+  private statsData$$: Signal<StatsData> = computed(() => this.prepStatsData());
 
-  private chartStartIdx$$: WritableSignal<number> = signal(0);
-  private chartEndIdx$$: WritableSignal<number> = signal(1);
+  private sliderConfig$$: Signal<{ maxValue: number; highValue: number }> = computed(() => {
+    const dates = this.statsData$$().dates;
+    return {
+      maxValue: dates.length - 1,
+      highValue: dates.length - 1,
+    };
+  });
 
   private chartData$$: Signal<ChartData> = computed(() => {
     const data = this.statsData$$();
-    const start = this.chartStartIdx$$();
-    const end = this.chartEndIdx$$();
+    const start = this.selectedDateIdxLow$$();
+    const end = this.selectedDateIdxHigh$$();
 
     return {
       dates: data.dates.slice(start, end).map(this.formatDateTicks),
@@ -125,45 +118,72 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
 
   public selectedRangeDescription$$: Signal<string> = computed(() => this.formatSelectedRange());
 
+  public maxSliderValue: Signal<number> = computed(() => this.sliderConfig$$().maxValue);
+
+  public get selectedDateIdxLow(): number {
+    return this.selectedDateIdxLow$$();
+  }
+
+  public set selectedDateIdxLow(value: number) {
+    this.selectedDateIdxLow$$.set(value);
+  }
+
+  public get selectedDateIdxHigh(): number {
+    return this.selectedDateIdxHigh$$();
+  }
+
+  public set selectedDateIdxHigh(value: number) {
+    this.selectedDateIdxHigh$$.set(value);
+  }
+
   constructor(private foodStatsService: FoodStatsService) {
-    this.sliderChangeLow$.pipe(throttleTime(33)).subscribe((value) => {
-      this.chartStartIdx$$.set(value);
-    });
+    const throttledUpdate = this.createThrottledChartUpdater();
+    const debouncedUpdate = this.createDebouncedChartUpdater();
 
-    this.sliderChangeHigh$.pipe(throttleTime(33)).subscribe((value) => {
-      this.chartEndIdx$$.set(value);
-    });
-
-    // Initialize slider values when data changes
     effect(() => {
       const dates = this.statsData$$().dates;
-      this.maxSliderValue = dates.length - 1;
-      this.selectedDateIdxHigh = dates.length - 1;
-      this.sliderLowLabelAsDateIso = dates[this.selectedDateIdxLow];
-      this.sliderHighLabelAsDateIso = dates[this.selectedDateIdxHigh];
+      // const config = this.sliderConfig$$();
+      this.sliderLowLabelAsDateIso = dates[this.selectedDateIdxLow$$()];
+      this.sliderHighLabelAsDateIso = dates[this.selectedDateIdxHigh$$()];
     });
 
-    // Update charts when data or range changes
     effect(() => {
       const data = this.chartData$$();
-      this.updateCharts(data);
+      throttledUpdate(data);
+      debouncedUpdate(data);
     });
   }
 
-  private updateCharts(data: ChartData) {
+  private updateWeightChart(data: ChartData, mode: 'none' | undefined = undefined) {
     if (this.weightChart?.data) {
       this.weightChart.data.labels = data.dates;
       this.weightChart.data.datasets[0].data = data.weights;
       this.weightChart.data.datasets[1].data = data.weightsAvg;
-      this.weightChart.update();
+      this.weightChart.update(mode);
     }
+  }
 
+  private updateKcalsChart(data: ChartData, mode: 'none' | undefined = undefined) {
     if (this.kcalsChart?.data) {
       this.kcalsChart.data.labels = data.dates;
       this.kcalsChart.data.datasets[0].data = data.kcals;
       this.kcalsChart.data.datasets[1].data = data.kcalsAvg;
-      this.kcalsChart.update();
+      this.kcalsChart.update(mode);
     }
+  }
+
+  private createThrottledChartUpdater() {
+    return throttle((data: ChartData) => {
+      this.updateWeightChart(data, 'none');
+      this.updateKcalsChart(data, 'none');
+    }, 100);
+  }
+
+  private createDebouncedChartUpdater() {
+    return debounce((data: ChartData) => {
+      this.updateWeightChart(data);
+      this.updateKcalsChart(data);
+    }, 100);
   }
 
   public async ngOnInit(): Promise<void> {
@@ -171,11 +191,11 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.weightChart = new Chart('WeightChart', WEIGHT_CHART_SETTINGS);
     this.kcalsChart = new Chart('KcalsChart', KCALS_CHART_SETTINGS);
-    this.sliderChangeLow$.next(this.selectedDateIdxLow);
-    this.sliderChangeHigh$.next(this.selectedDateIdxHigh);
+
+    this.selectedDateIdxHigh$$.set(this.sliderConfig$$().highValue);
+    this.sliderHighLabelAsDateIso = this.statsData$$().dates[this.sliderConfig$$().highValue];
+
     setTimeout(() => {
-      // this.weightChart.update();
-      // this.kcalsChart.update();
       this.clipDateRange(90);
     }, 0);
   }
@@ -203,38 +223,48 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
     if (n !== -1 && endIdx - n > 0) {
       starIdx = endIdx - n;
     }
-    this.chartStartIdx$$.set(starIdx);
-    this.selectedDateIdxLow = starIdx;
-    this.chartEndIdx$$.set(endIdx);
-    this.selectedDateIdxHigh = endIdx;
-    this.sliderLowLabelAsDateIso = this.statsData$$().dates[this.selectedDateIdxLow];
-    this.sliderHighLabelAsDateIso = this.statsData$$().dates[this.selectedDateIdxHigh];
+    this.selectedDateIdxLow$$.set(starIdx);
+    this.selectedDateIdxHigh$$.set(endIdx - 1);
+    this.sliderLowLabelAsDateIso = this.statsData$$().dates[starIdx];
+    this.sliderHighLabelAsDateIso = this.statsData$$().dates[endIdx - 1];
   }
 
   public sliderChangeLow(event: any) {
-    this.sliderLowLabelAsDateIso = this.statsData$$().dates[this.selectedDateIdxLow];
     const valueInt = parseInt(event.srcElement.value);
-    const delta = this.selectedDateIdxHigh - this.selectedDateIdxLow;
-    this.sliderChangeLow$.next(delta <= 0 ? valueInt - 2 : valueInt);
+    const delta = this.selectedDateIdxHigh$$() - valueInt;
+    if (delta > 0) {
+      this.selectedDateIdxLow$$.set(valueInt);
+      this.sliderLowLabelAsDateIso = this.statsData$$().dates[valueInt];
+    }
   }
 
   public sliderChangeHigh(event: any) {
-    this.sliderHighLabelAsDateIso = this.statsData$$().dates[this.selectedDateIdxHigh];
     const valueInt = parseInt(event.srcElement.value);
-    const delta = this.selectedDateIdxHigh - this.selectedDateIdxLow;
-    this.sliderChangeHigh$.next(delta <= 0 ? valueInt + 2 : valueInt);
+    const delta = valueInt - this.selectedDateIdxLow$$();
+    if (delta > 0) {
+      this.selectedDateIdxHigh$$.set(valueInt);
+      this.sliderHighLabelAsDateIso = this.statsData$$().dates[valueInt];
+    }
   }
 
-  private getStatsDates() {
-    return Object.keys(this.foodStatsService.stats$$());
-  }
+  private prepStatsData() {
+    const stats = this.foodStatsService.stats$$();
+    const result: StatsData = { dates: [], weights: [], weightsAvg: [], kcals: [], kcalsAvg: [] };
 
-  private getValuesAtSpecificPosition(position: number): number[] {
-    return Object.entries(this.foodStatsService.stats$$()).map(([key, value]) => value[position]);
+    Object.entries(stats).forEach(([date, values]) => {
+      const [weight, weightAvg, kcal, kcalAvg] = values;
+      result.dates.push(date);
+      result.weights.push(weight);
+      result.weightsAvg.push(weightAvg);
+      result.kcals.push(kcal);
+      result.kcalsAvg.push(kcalAvg);
+    });
+
+    return result;
   }
 
   private formatSelectedRange(): string {
-    let days = this.chartEndIdx$$() - this.chartStartIdx$$();
+    let days = this.selectedDateIdxHigh$$() - this.selectedDateIdxLow$$() + 1;
     const years = Math.floor(days / 360);
     days %= 360;
     const months = Math.floor(days / 30);
