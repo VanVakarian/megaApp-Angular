@@ -17,7 +17,6 @@ import {
   ServerResponseWithCatalogueEntry,
   ServerResponseWithData,
   ServerResponseWithDiaryId,
-  Stats,
 } from 'src/app/shared/interfaces';
 import { getTodayIsoNoTimeNoTZ } from 'src/app/shared/utils';
 
@@ -37,8 +36,6 @@ export class FoodService {
   public catalogueSortedListLeftOut$$: Signal<CatalogueEntry[]> = computed(() => this.prepCatalogueSortedListSeparate(false)); // prettier-ignore
 
   public coefficients$$: WritableSignal<Coefficients> = signal({});
-
-  public stats$$: WritableSignal<Stats> = signal({});
 
   public diaryEntryClickedFocus$ = new Subject<number>();
   public diaryEntryClickedScroll$ = new Subject<ElementRef>();
@@ -63,7 +60,6 @@ export class FoodService {
       // console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()); // prettier-ignore
       // console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()); // prettier-ignore
       // console.log('COEFFICIENTS have been updated:', this.coefficients$$()); // prettier-ignore
-      // console.log('STATS have been updated:', this.stats$$()); // prettier-ignore
     });
 
     effect(() => {
@@ -382,21 +378,6 @@ export class FoodService {
       catchError((error) => {
         console.error('Failed fetching coefficients:', error);
         return of({ result: false, data: {} as Coefficients });
-      }),
-    );
-  }
-
-  //                                                                                                               STATS
-
-  public getStats(): Observable<Stats> {
-    const params = new HttpParams().set('date', getTodayIsoNoTimeNoTZ());
-    return this.http.get<Stats>('/api/food/stats', { params }).pipe(
-      tap((response: Stats) => {
-        this.stats$$.set(response);
-      }),
-      catchError((error) => {
-        console.error('Failed fetching stats:', error);
-        return of({});
       }),
     );
   }

@@ -18,6 +18,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatSliderModule } from '@angular/material/slider';
 
 import {
+  BarController,
+  BarElement,
   CategoryScale,
   Chart,
   Legend,
@@ -29,8 +31,8 @@ import {
   Tooltip,
 } from 'chart.js';
 import { Subject, firstValueFrom, throttleTime } from 'rxjs';
+import { FoodStatsService } from 'src/app/services/food-stats.service';
 
-import { FoodService } from 'src/app/services/food.service';
 import {
   KCALS_CHART_SETTINGS,
   WEIGHT_CHART_SETTINGS,
@@ -39,7 +41,34 @@ import {
   yearsRuDeclentions,
 } from 'src/app/shared/const';
 
-Chart.register(CategoryScale, LinearScale, PointElement, LineElement, LineController, Title, Tooltip, Legend);
+Chart.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  LineController,
+  BarController,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+);
+
+interface StatsData {
+  dates: string[];
+  weights: number[];
+  weightsAvg: number[];
+  kcals: number[];
+  kcalsAvg: number[];
+}
+
+interface ChartData {
+  dates: string[];
+  weights: number[];
+  weightsAvg: number[];
+  kcals: number[];
+  kcalsAvg: number[];
+}
 
 @Component({
   selector: 'app-food-stats',
@@ -69,32 +98,34 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
   public sliderLowLabelAsDateIso: string = '';
   public sliderHighLabelAsDateIso: string = '';
 
-  private statsDates$$: Signal<string[]> = computed(() => this.getStatsDates());
-  private statsWeights$$: Signal<number[]> = computed(() => this.getValuesAtSpecificPosition(0));
-  private statsWeightsAvg$$: Signal<number[]> = computed(() => this.getValuesAtSpecificPosition(1));
-  private statsKcals$$: Signal<number[]> = computed(() => this.getValuesAtSpecificPosition(2));
-  private statsKcalsAvg$$: Signal<number[]> = computed(() => this.getValuesAtSpecificPosition(3));
+  private statsData$$: Signal<StatsData> = computed(() => ({
+    dates: this.getStatsDates(),
+    weights: this.getValuesAtSpecificPosition(0),
+    weightsAvg: this.getValuesAtSpecificPosition(1),
+    kcals: this.getValuesAtSpecificPosition(2),
+    kcalsAvg: this.getValuesAtSpecificPosition(3),
+  }));
 
-  private getStatsDates() {
-    return Object.keys(this.foodService.stats$$());
-  }
-
-  private getValuesAtSpecificPosition(position: number): number[] {
-    return Object.entries(this.foodService.stats$$()).map(([key, value]) => value[position]);
-  }
-
-  private chartStartIdx$$: WritableSignal<number> = signal(0); // Signals here allow clipping arrays upon slider input
+  private chartStartIdx$$: WritableSignal<number> = signal(0);
   private chartEndIdx$$: WritableSignal<number> = signal(1);
+
+  private chartData$$: Signal<ChartData> = computed(() => {
+    const data = this.statsData$$();
+    const start = this.chartStartIdx$$();
+    const end = this.chartEndIdx$$();
+
+    return {
+      dates: data.dates.slice(start, end).map(this.formatDateTicks),
+      weights: data.weights.slice(start, end),
+      weightsAvg: data.weightsAvg.slice(start, end),
+      kcals: data.kcals.slice(start, end),
+      kcalsAvg: data.kcalsAvg.slice(start, end),
+    };
+  });
 
   public selectedRangeDescription$$: Signal<string> = computed(() => this.formatSelectedRange());
 
-  private clippedStatsDates$$: Signal<string[]> = computed(() => this.sliceArrWithDatesProcess(this.statsDates$$));
-  private clippedStatsWeights$$: Signal<string[]> = computed(() => this.sliceArr(this.statsWeights$$));
-  private clippedStatsWeightsAvg$$: Signal<string[]> = computed(() => this.sliceArr(this.statsWeightsAvg$$));
-  private clippedStatsKcals$$: Signal<string[]> = computed(() => this.sliceArr(this.statsKcals$$));
-  private clippedStatsKcalsAvg$$: Signal<string[]> = computed(() => this.sliceArr(this.statsKcalsAvg$$));
-
-  constructor(private foodService: FoodService) {
+  constructor(private foodStatsService: FoodStatsService) {
     this.sliderChangeLow$.pipe(throttleTime(33)).subscribe((value) => {
       this.chartStartIdx$$.set(value);
     });
@@ -103,59 +134,50 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
       this.chartEndIdx$$.set(value);
     });
 
+    // Initialize slider values when data changes
     effect(() => {
-      // console.log('CHART START INDEX has been updated:', this.chartStartIdx$$()); // prettier-ignore
-      // console.log('CHART END INDEX has been updated:', this.chartEndIdx$$()); // prettier-ignore
-      // console.log('SELECTED RANGE DESCRIPTION string has been updated:', this.selectedRangeDescription$$()); // prettier-ignore
-      // console.log('CLIPPED STATS DATES array has been updated:', this.clippedStatsDates$$()); // prettier-ignore
-      // console.log('CLIPPED STATS WEIGHTS array has been updated:', this.clippedStatsWeights$$()); // prettier-ignore
-      // console.log('CLIPPED STATS WEIGHTS AVG array has been updated:', this.clippedStatsWeightsAvg$$()); // prettier-ignore
-    });
-
-    effect(() => {
-      const dates = this.statsDates$$();
-
+      const dates = this.statsData$$().dates;
       this.maxSliderValue = dates.length - 1;
       this.selectedDateIdxHigh = dates.length - 1;
-
       this.sliderLowLabelAsDateIso = dates[this.selectedDateIdxLow];
       this.sliderHighLabelAsDateIso = dates[this.selectedDateIdxHigh];
     });
 
+    // Update charts when data or range changes
     effect(() => {
-      const dates = this.clippedStatsDates$$();
-
-      if (this.weightChart?.data) {
-        const weights = this.clippedStatsWeights$$();
-        const weightsAvg = this.clippedStatsWeightsAvg$$();
-        this.weightChart.data.labels = dates;
-        this.weightChart.data.datasets[0].data = weights;
-        this.weightChart.data.datasets[1].data = weightsAvg;
-        this.weightChart.update();
-      }
-
-      if (this.kcalsChart?.data) {
-        const kcals = this.clippedStatsKcals$$();
-        const kcalsAvg = this.clippedStatsKcalsAvg$$();
-        this.kcalsChart.data.labels = dates;
-        this.kcalsChart.data.datasets[0].data = kcals;
-        this.kcalsChart.data.datasets[1].data = kcalsAvg;
-        this.kcalsChart.update();
-      }
+      const data = this.chartData$$();
+      this.updateCharts(data);
     });
   }
 
+  private updateCharts(data: ChartData) {
+    if (this.weightChart?.data) {
+      this.weightChart.data.labels = data.dates;
+      this.weightChart.data.datasets[0].data = data.weights;
+      this.weightChart.data.datasets[1].data = data.weightsAvg;
+      this.weightChart.update();
+    }
+
+    if (this.kcalsChart?.data) {
+      this.kcalsChart.data.labels = data.dates;
+      this.kcalsChart.data.datasets[0].data = data.kcals;
+      this.kcalsChart.data.datasets[1].data = data.kcalsAvg;
+      this.kcalsChart.update();
+    }
+  }
+
   public async ngOnInit(): Promise<void> {
-    await firstValueFrom(this.foodService.getStats());
+    await firstValueFrom(this.foodStatsService.getStats());
 
     this.weightChart = new Chart('WeightChart', WEIGHT_CHART_SETTINGS);
     this.kcalsChart = new Chart('KcalsChart', KCALS_CHART_SETTINGS);
     this.sliderChangeLow$.next(this.selectedDateIdxLow);
     this.sliderChangeHigh$.next(this.selectedDateIdxHigh);
     setTimeout(() => {
-      this.weightChart.update();
-      this.kcalsChart.update();
-    }, 1);
+      // this.weightChart.update();
+      // this.kcalsChart.update();
+      this.clipDateRange(90);
+    }, 0);
   }
 
   public ngAfterViewInit(): void {
@@ -177,7 +199,7 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
 
   public clipDateRange(n: number) {
     let starIdx = 0;
-    const endIdx = this.statsDates$$().length;
+    const endIdx = this.statsData$$().dates.length;
     if (n !== -1 && endIdx - n > 0) {
       starIdx = endIdx - n;
     }
@@ -185,28 +207,30 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.selectedDateIdxLow = starIdx;
     this.chartEndIdx$$.set(endIdx);
     this.selectedDateIdxHigh = endIdx;
+    this.sliderLowLabelAsDateIso = this.statsData$$().dates[this.selectedDateIdxLow];
+    this.sliderHighLabelAsDateIso = this.statsData$$().dates[this.selectedDateIdxHigh];
   }
 
   public sliderChangeLow(event: any) {
-    this.sliderLowLabelAsDateIso = this.statsDates$$()[this.selectedDateIdxLow];
+    this.sliderLowLabelAsDateIso = this.statsData$$().dates[this.selectedDateIdxLow];
     const valueInt = parseInt(event.srcElement.value);
     const delta = this.selectedDateIdxHigh - this.selectedDateIdxLow;
     this.sliderChangeLow$.next(delta <= 0 ? valueInt - 2 : valueInt);
   }
 
   public sliderChangeHigh(event: any) {
-    this.sliderHighLabelAsDateIso = this.statsDates$$()[this.selectedDateIdxHigh];
+    this.sliderHighLabelAsDateIso = this.statsData$$().dates[this.selectedDateIdxHigh];
     const valueInt = parseInt(event.srcElement.value);
     const delta = this.selectedDateIdxHigh - this.selectedDateIdxLow;
     this.sliderChangeHigh$.next(delta <= 0 ? valueInt + 2 : valueInt);
   }
 
-  private sliceArr(arr: Function): string[] {
-    return arr().slice(this.chartStartIdx$$(), this.chartEndIdx$$());
+  private getStatsDates() {
+    return Object.keys(this.foodStatsService.stats$$());
   }
 
-  private sliceArrWithDatesProcess(arr: Function): string[] {
-    return arr().slice(this.chartStartIdx$$(), this.chartEndIdx$$()).map(this.formatDateTicks);
+  private getValuesAtSpecificPosition(position: number): number[] {
+    return Object.entries(this.foodStatsService.stats$$()).map(([key, value]) => value[position]);
   }
 
   private formatSelectedRange(): string {

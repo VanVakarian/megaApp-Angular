@@ -2,6 +2,20 @@ import { Settings } from './interfaces';
 
 export const FETCH_DAYS_RANGE_OFFSET: number = 10; // TODO: create settings item out of this constant
 
+// export const CHART_COLORS_OLD = {
+//   primary: 'red',
+//   primaryAlpha: '#ff00004f',
+//   average: 'blue',
+//   averageAlpha: '#adadff'
+// };
+
+export const CHART_COLORS = {
+  main: '#578f92',
+  mainAlpha: '#578f9250',
+  secondary: '#345b5b',
+  secondaryAlpha: '#345b5b50',
+};
+
 export const WEIGHT_CHART_SETTINGS: any = {
   type: 'line',
   data: {
@@ -12,10 +26,10 @@ export const WEIGHT_CHART_SETTINGS: any = {
         data: [],
         order: 2,
         fill: true,
-        borderColor: 'red',
-        backgroundColor: '#ff00004f',
-        pointBorderColor: 'red',
-        pointBackgroundColor: 'red',
+        borderColor: CHART_COLORS.main,
+        backgroundColor: CHART_COLORS.mainAlpha,
+        pointBorderColor: CHART_COLORS.main,
+        pointBackgroundColor: CHART_COLORS.main,
         pointRadius: 2,
         pointHitRadius: 20,
       },
@@ -23,10 +37,10 @@ export const WEIGHT_CHART_SETTINGS: any = {
         label: 'Средний вес за 7 дней',
         data: [],
         order: 1,
-        borderColor: 'blue',
-        backgroundColor: '#adadff',
-        pointBorderColor: 'blue',
-        pointBackgroundColor: 'blue',
+        borderColor: CHART_COLORS.secondary,
+        backgroundColor: CHART_COLORS.secondaryAlpha,
+        pointBorderColor: CHART_COLORS.secondary,
+        pointBackgroundColor: CHART_COLORS.secondary,
         pointRadius: 2,
         pointHitRadius: 20,
       },
@@ -48,7 +62,7 @@ export const WEIGHT_CHART_SETTINGS: any = {
 };
 
 export const KCALS_CHART_SETTINGS: any = {
-  type: 'line',
+  type: 'bar',
   data: {
     labels: [],
     datasets: [
@@ -56,22 +70,21 @@ export const KCALS_CHART_SETTINGS: any = {
         label: 'Ккал за день',
         data: [],
         order: 2,
-        fill: true,
-        borderColor: 'red',
-        backgroundColor: '#ff00004f',
-        pointBorderColor: 'red',
-        pointBackgroundColor: 'red',
-        pointRadius: 2,
-        pointHitRadius: 20,
+        borderColor: CHART_COLORS.main,
+        backgroundColor: CHART_COLORS.main,
+        borderWidth: 1,
+        barThickness: 'flex',
+        maxBarThickness: 30,
       },
       {
         label: 'Целевое значение',
         data: [],
         order: 1,
-        borderColor: 'blue',
-        backgroundColor: '#adadff',
-        pointBorderColor: 'blue',
-        pointBackgroundColor: 'blue',
+        type: 'line',
+        borderColor: CHART_COLORS.secondary,
+        backgroundColor: CHART_COLORS.secondaryAlpha,
+        pointBorderColor: CHART_COLORS.secondary,
+        pointBackgroundColor: CHART_COLORS.secondary,
         pointRadius: 2,
         pointHitRadius: 20,
       },
@@ -79,7 +92,6 @@ export const KCALS_CHART_SETTINGS: any = {
   },
   options: {
     animation: false,
-    elements: { line: { tension: 0.5 } },
     maintainAspectRatio: false,
     scales: {
       x: {
