@@ -30,6 +30,14 @@ export function getAdjustedDate(date: Date): Date {
   return adjustedDate;
 }
 
+export function formatDateTicks(dateIso: string): string {
+  const date = new Date(dateIso);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}.${month}.${year}`;
+}
+
 // export function generateDatesList(inputDateIso: string): string[] {
 //   const today = new Date().setHours(0, 0, 0, 0);
 //   const inputDate = new Date(inputDateIso);

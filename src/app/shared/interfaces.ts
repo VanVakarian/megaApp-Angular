@@ -144,8 +144,18 @@ export interface BodyWeight {
   dateISO: string;
 }
 
+//                                                                         STATS
+
 export interface Stats {
   [id: string]: [number, number, number, number];
+}
+
+export interface StatsChartData {
+  dates: string[];
+  weights: number[];
+  weightsAvg: number[];
+  kcals: number[];
+  kcalsAvg: number[];
 }
 
 //                                                                         MONEY
