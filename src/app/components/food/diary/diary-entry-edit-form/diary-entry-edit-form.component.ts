@@ -19,10 +19,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
-import { Subscription, delay, filter, firstValueFrom, take } from 'rxjs';
+import { delay, filter, firstValueFrom, Subscription, take } from 'rxjs';
 
 import { FoodService } from 'src/app/services/food.service';
-import { KeyboardService } from 'src/app/services/keyboard.service';
+import { ScreenSizeWatcherService } from 'src/app/services/screen-size-watcher-service';
 import { ConfirmationDialogModalService } from 'src/app/shared/components/dialog-modal/mat-dialog-modal.service';
 import { DiaryEntry, HistoryEntry } from 'src/app/shared/interfaces';
 
@@ -61,7 +61,6 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
 
   private newWeightPattern = /^(?!0+$)\d+$/; // Digits only, but not zero
   private editWeightPattern = /^[-+]?\d+$/; // Digits only with or without a plus or a minus
-  private diaryEntryClickedSubscription: Subscription;
 
   public diaryEntryForm: FormGroup = new FormGroup({
     id: new FormControl(0),
@@ -72,33 +71,32 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
   });
   public foodWeightFinal: number = 0;
 
+  private subs = new Subscription();
+
+  public get selectedFoodName() {
+    return this.foodService.catalogue$$()?.[this.diaryEntry.foodCatalogueId]?.name;
+  }
+
   constructor(
     public foodService: FoodService,
     private confirmModal: ConfirmationDialogModalService,
-    private keyboardService: KeyboardService,
-  ) {
-    this.diaryEntryClickedSubscription = this.foodService.diaryEntryClickedFocus$
-      .pipe(
-        filter((diaryEntryId) => this.diaryEntryForm.value.id === diaryEntryId),
-        delay(100), // delay is the duration of the panel expansion animation, otherwise focus messes with it.
-      )
-      .subscribe(() => {
-        this.foodWeightChangeElem.nativeElement.focus();
-      });
-  }
+    private screenSizeWatcherService: ScreenSizeWatcherService,
+  ) {}
 
-  public ngOnInit(): void { }
+  public ngOnInit(): void {
+    this.subscribe();
+  }
 
   public ngOnChanges(): void {
     if (this.diaryEntry) {
       this.diaryEntryForm.patchValue(this.diaryEntry);
       this.diaryEntryForm.get('foodWeightInitial')?.setValue(this.diaryEntry.foodWeight);
-      this.previousWeightDisplay = `${ this.diaryEntry.foodWeight } г.`;
+      this.previousWeightDisplay = `${this.diaryEntry.foodWeight} г.`;
     }
   }
 
   public ngOnDestroy(): void {
-    this.diaryEntryClickedSubscription.unsubscribe();
+    this.subs.unsubscribe();
   }
 
   public isFormValid(): boolean {
@@ -109,16 +107,12 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
     );
   }
 
-  public get selectedFoodName() {
-    return this.foodService.catalogue$$()?.[this.diaryEntry.foodCatalogueId]?.name;
-  }
-
   public onNewWeightInput() {
     this.diaryEntryForm.get('foodWeightChange')?.setValue(null);
     const newWeight = this.diaryEntryForm.value.foodWeightNew;
     if (this.newWeightPattern.test(newWeight)) {
       this.foodWeightFinal = parseInt(newWeight);
-      this.previousWeightDisplay = `${ this.diaryEntryForm.value.foodWeightInitial } г.`;
+      this.previousWeightDisplay = `${this.diaryEntryForm.value.foodWeightInitial} г.`;
       this.errorMessageShow = false;
     } else {
       this.foodWeightFinal = this.diaryEntryForm.value.foodWeightInitial;
@@ -137,9 +131,9 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
     ) {
       const sign = foodWeightChangeInt < 0 ? '-' : '+';
       this.foodWeightFinal = this.diaryEntryForm.value.foodWeightInitial + foodWeightChangeInt;
-      this.previousWeightDisplay = `${ this.diaryEntryForm.value.foodWeightInitial } г. ${ sign } ${ Math.abs(
+      this.previousWeightDisplay = `${this.diaryEntryForm.value.foodWeightInitial} г. ${sign} ${Math.abs(
         foodWeightChangeInt,
-      ) } г.`;
+      )} г.`;
       this.errorMessageShow = false;
     } else if (
       this.editWeightPattern.test(foorWeightChangeStr) &&
@@ -190,19 +184,6 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
       });
   }
 
-  public deleteDiaryEntry(): void {
-    this.diaryEntryForm.disable();
-    this.foodService.deleteDiaryEntry(this.diaryEntryForm.value.id).subscribe({
-      next: () => {
-        this.diaryEntryForm.enable();
-        this.diaryEntryForm.reset();
-        this.onServerSuccessfullEditResponse.emit();
-      },
-      error: () => this.diaryEntryForm.enable(),
-    });
-  }
-
-  // HISTORY
   public toggleHistory() {
     this.showHistory = !this.showHistory;
   }
@@ -210,13 +191,13 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
   public formHistoryEntry(historyEntry: HistoryEntry) {
     switch (historyEntry.action) {
       case 'init':
-        return `Запись создана с весом ${ historyEntry.value } г.`;
+        return `Запись создана с весом ${historyEntry.value} г.`;
       case 'set':
-        return `Задан новый вес: ${ historyEntry.value } г.`;
+        return `Задан новый вес: ${historyEntry.value} г.`;
       case 'add':
-        return `Добавлено ${ historyEntry.value } г.`;
+        return `Добавлено ${historyEntry.value} г.`;
       case 'subtract':
-        return `Убрано ${ historyEntry.value } г.`;
+        return `Убрано ${historyEntry.value} г.`;
     }
   }
 
@@ -233,11 +214,33 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
     }
   }
 
-  public onFocus() {
-    this.keyboardService.setInputFocus(true); // turning off keyboard operation
+  public onFocus() {}
+
+  public onBlur() {}
+
+  private subscribe(): void {
+    this.subs.add(
+      this.foodService.diaryEntryClickedFocus$
+        .pipe(
+          filter((diaryEntryId) => this.diaryEntryForm.value.id === diaryEntryId),
+          delay(100), // delay is the duration of the panel expansion animation, otherwise focus messes with it.
+        )
+        .subscribe(() => {
+          // if (this.screenSizeWatcherService.currentScreenType === ScreenType.MOBILE) return;
+          this.foodWeightChangeElem.nativeElement.focus();
+        }),
+    );
   }
 
-  public onBlur() {
-    this.keyboardService.setInputFocus(false); // turning keyboard operation back on
+  private deleteDiaryEntry(): void {
+    this.diaryEntryForm.disable();
+    this.foodService.deleteDiaryEntry(this.diaryEntryForm.value.id).subscribe({
+      next: () => {
+        this.diaryEntryForm.enable();
+        this.diaryEntryForm.reset();
+        this.onServerSuccessfullEditResponse.emit();
+      },
+      error: () => this.diaryEntryForm.enable(),
+    });
   }
 }

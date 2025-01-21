@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 
-import { Observable } from 'rxjs';
-
 import { MatDialog } from '@angular/material/dialog';
+
+import { Observable } from 'rxjs';
 
 import { ConfirmationDialogModalComponent } from 'src/app/shared/components/dialog-modal/mat-dialog-modal.component';
 
@@ -10,7 +10,7 @@ import { ConfirmationDialogModalComponent } from 'src/app/shared/components/dial
   providedIn: 'root',
 })
 export class ConfirmationDialogModalService {
-  constructor(private dialog: MatDialog) { }
+  constructor(private dialog: MatDialog) {}
 
   openModal(question: string): Observable<boolean> {
     const dialogRef = this.dialog.open(ConfirmationDialogModalComponent, {

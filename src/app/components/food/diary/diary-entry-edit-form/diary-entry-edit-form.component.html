@@ -34,8 +34,8 @@
                     appearance="outline">
       <mat-label>Ввести новый вес:</mat-label>
 
-      <button type="button"
-              matPrefix
+      <button matPrefix
+              type="button"
               mat-icon-button
               *ngIf="diaryEntryForm.value.foodWeightNew && diaryEntryForm.value.foodWeightNew !== ''"
               aria-label="Очистить"
@@ -62,8 +62,8 @@
                     appearance="outline">
       <mat-label>Изменить на:</mat-label>
 
-      <button type="button"
-              matPrefix
+      <button matPrefix
+              type="button"
               mat-icon-button
               *ngIf="diaryEntryForm.value.foodWeightChange && diaryEntryForm.value.foodWeightChange !== ''"
               aria-label="Очистить"
@@ -71,8 +71,8 @@
         <mat-icon>close</mat-icon>
       </button>
 
-      <input #foodWeightChangeElem
-             matInput
+      <input matInput
+             #foodWeightChangeElem
              type="number"
              class="text-right"
              formControlName="foodWeightChange"

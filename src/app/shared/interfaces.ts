@@ -1,3 +1,10 @@
+//                                                                           APP
+
+export enum ScreenType {
+  MOBILE = 'mobile',
+  DESKTOP = 'desktop',
+}
+
 //                                                                          AUTH
 
 export interface UserCreds {

@@ -1,5 +1,5 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { computed, effect, ElementRef, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { computed, effect, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 
 import { catchError, debounceTime, filter, firstValueFrom, map, Observable, of, Subject, tap } from 'rxjs';
 
@@ -38,7 +38,6 @@ export class FoodService {
   public coefficients$$: WritableSignal<Coefficients> = signal({});
 
   public diaryEntryClickedFocus$ = new Subject<number>();
-  public diaryEntryClickedScroll$ = new Subject<ElementRef>();
 
   public postRequestResult$ = new Subject<ServerResponseBasic>();
 

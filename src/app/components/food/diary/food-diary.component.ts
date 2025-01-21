@@ -23,6 +23,8 @@ import { DiaryEntryEditFormComponent } from 'src/app/components/food/diary/diary
 import { DiaryEntryNewFormComponent } from 'src/app/components/food/diary/diary-entry-new-form/diary-entry-new-form.component';
 import { DiaryNavButtonsComponent } from 'src/app/components/food/diary/diary-nav/diary-nav-buttons.component';
 import { FoodService } from 'src/app/services/food.service';
+import { ScreenSizeWatcherService } from 'src/app/services/screen-size-watcher-service';
+import { ScreenType } from 'src/app/shared/interfaces';
 
 @Component({
   selector: 'app-food-diary',
@@ -91,6 +93,7 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     public foodService: FoodService,
     private ngZone: NgZone,
+    private screenSizeWatcherService: ScreenSizeWatcherService,
   ) {}
 
   public ngOnInit(): void {}
@@ -114,7 +117,15 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public diaryEntryExpanded(diaryEntry: MatExpansionPanel, diaryEntryId: number) {
     this.foodService.diaryEntryClickedFocus$.next(diaryEntryId);
-    this.foodService.diaryEntryClickedScroll$.next(diaryEntry._body);
+
+    if (this.screenSizeWatcherService.currentScreenType === ScreenType.DESKTOP) return;
+
+    setTimeout(() => {
+      window.scrollTo({
+        top: diaryEntry._body.nativeElement.getBoundingClientRect().top + window.scrollY - 70,
+        behavior: 'smooth',
+      });
+    }, 170);
   }
 
   public accordionCollapse() {
