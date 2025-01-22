@@ -1,9 +1,9 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { ConfirmationDialogModalService } from 'src/app/shared/dialog-modal/mat-dialog-modal.service';
-import { MoneyService } from 'src/app/components/refactor/service/money.service';
-import { Account, Transaction } from 'src/app/shared/interfaces';
+import { MoneyService } from '@app/components/refactor/service/money.service';
+import { ConfirmationDialogModalService } from '@app/shared/dialog-modal/mat-dialog-modal.service';
+import { Account, Transaction } from '@app/shared/interfaces';
 
 @Component({
   selector: 'app-transaction-expense-income-form',
@@ -26,7 +26,7 @@ export class TransactionExpenseIncomeForm implements OnInit, OnDestroy {
     amount: new FormControl(
       this.transaction ? this.transaction.amount : null,
       // a negaitve or a positive number with or without a decimal part, with one or two digits after a dot (or a comma)
-      [Validators.required, Validators.pattern(/^[-+]?\d+([.,]\d{1,2})?$/)]
+      [Validators.required, Validators.pattern(/^[-+]?\d+([.,]\d{1,2})?$/)],
     ),
     account_id: new FormControl(0, [Validators.min(1)]),
     category_id: new FormControl(0, [Validators.min(1)]),
@@ -35,7 +35,10 @@ export class TransactionExpenseIncomeForm implements OnInit, OnDestroy {
     notes: new FormControl(''),
   });
 
-  constructor(private confirmModal: ConfirmationDialogModalService, public moneyService: MoneyService) {}
+  constructor(
+    private confirmModal: ConfirmationDialogModalService,
+    public moneyService: MoneyService,
+  ) {}
 
   updateChosenCurrencyId(isUserInput: boolean, account: Account) {
     if (isUserInput) {

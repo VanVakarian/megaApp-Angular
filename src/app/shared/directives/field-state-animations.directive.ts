@@ -1,6 +1,6 @@
 import { Directive, ElementRef, Input, OnDestroy } from '@angular/core';
 
-import { DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER } from 'src/app/shared/const';
+import { DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER } from '@app/shared/const';
 
 export enum AnimationState {
   IDLE = 'idle',

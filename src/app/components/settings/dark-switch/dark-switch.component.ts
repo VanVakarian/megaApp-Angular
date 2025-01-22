@@ -4,8 +4,8 @@ import { Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
-import { AuthService } from 'src/app/services/auth.service';
-import { RequestStatus, SettingsService } from 'src/app/services/settings.service';
+import { AuthService } from '@app/services/auth.service';
+import { RequestStatus, SettingsService } from '@app/services/settings.service';
 
 @Component({
   selector: 'app-dark-switch',

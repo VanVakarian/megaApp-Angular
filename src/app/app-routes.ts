@@ -1,11 +1,11 @@
 import { Routes } from '@angular/router';
 
-import { isAuthed } from 'src/app/services/is-authed.guard';
-import { isChapterSelected } from 'src/app/services/is-chapter-selected.guard';
+import { isAuthed } from '@app/services/is-authed.guard';
+import { isChapterSelected } from '@app/services/is-chapter-selected.guard';
 
-import { FoodScreenComponent } from 'src/app/components/food/food-screen.component';
-import { MoneyScreenComponent } from 'src/app/components/money/money-screen.component';
-import { SettingsPageComponent } from 'src/app/components/settings/settings-page.component';
+import { FoodScreenComponent } from '@app/components/food/food-screen.component';
+import { MoneyScreenComponent } from '@app/components/money/money-screen.component';
+import { SettingsPageComponent } from '@app/components/settings/settings-page.component';
 
 export const routes: Routes = [
   { path: 'food', component: FoodScreenComponent, canActivate: [isAuthed, isChapterSelected] },

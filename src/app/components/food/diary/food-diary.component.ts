@@ -17,14 +17,14 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { combineLatest } from 'rxjs';
 
-import { BMIComponent } from 'src/app/components/food/diary/bmi/bmi.component';
-import { BodyWeightComponent } from 'src/app/components/food/diary/body-weight/body-weight.component';
-import { DiaryEntryEditFormComponent } from 'src/app/components/food/diary/diary-entry-edit-form/diary-entry-edit-form.component';
-import { DiaryEntryNewFormComponent } from 'src/app/components/food/diary/diary-entry-new-form/diary-entry-new-form.component';
-import { DiaryNavButtonsComponent } from 'src/app/components/food/diary/diary-nav/diary-nav-buttons.component';
-import { FoodService } from 'src/app/services/food.service';
-import { ScreenSizeWatcherService } from 'src/app/services/screen-size-watcher.service';
-import { ScreenType } from 'src/app/shared/interfaces';
+import { BMIComponent } from '@app/components/food/diary/bmi/bmi.component';
+import { BodyWeightComponent } from '@app/components/food/diary/body-weight/body-weight.component';
+import { DiaryEntryEditFormComponent } from '@app/components/food/diary/diary-entry-edit-form/diary-entry-edit-form.component';
+import { DiaryEntryNewFormComponent } from '@app/components/food/diary/diary-entry-new-form/diary-entry-new-form.component';
+import { DiaryNavButtonsComponent } from '@app/components/food/diary/diary-nav/diary-nav-buttons.component';
+import { FoodService } from '@app/services/food.service';
+import { ScreenSizeWatcherService } from '@app/services/screen-size-watcher.service';
+import { ScreenType } from '@app/shared/interfaces';
 
 @Component({
   selector: 'app-food-diary',

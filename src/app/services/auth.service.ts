@@ -6,7 +6,7 @@ import jwt_decode from 'jwt-decode';
 import { Observable } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 
-import { AuthResponse, UserCreds } from 'src/app/shared/interfaces';
+import { AuthResponse, UserCreds } from '@app/shared/interfaces';
 
 @Injectable({
   providedIn: 'root',
@@ -19,7 +19,7 @@ export class AuthService {
   constructor(
     private readonly http: HttpClient,
     private router: Router,
-  ) { }
+  ) {}
 
   get isAuthenticated() {
     return this.authenticationStatus$$();
@@ -83,7 +83,7 @@ export class AuthService {
   public initCheckToken(): void {
     const token = localStorage.getItem(this.ACCESS_TOKEN_KEY);
     if (token) {
-      const decodedToken = jwt_decode(token) as { exp: number; };
+      const decodedToken = jwt_decode(token) as { exp: number };
       const currentTime = Math.round(new Date().getTime() / 1000);
       if (decodedToken.exp > currentTime) {
         this.authenticationStatus$$.set(true);

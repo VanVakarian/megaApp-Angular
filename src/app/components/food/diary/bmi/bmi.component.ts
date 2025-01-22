@@ -15,8 +15,8 @@ import {
 
 import { MatIconModule } from '@angular/material/icon';
 
-import { FoodService } from 'src/app/services/food.service';
-import { SettingsService } from 'src/app/services/settings.service';
+import { FoodService } from '@app/services/food.service';
+import { SettingsService } from '@app/services/settings.service';
 
 interface BmiSegment {
   divClasses: string;

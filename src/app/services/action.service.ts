@@ -3,7 +3,7 @@ import { Injectable, effect } from '@angular/core';
 
 import { firstValueFrom } from 'rxjs';
 
-import { NetworkMonitor } from 'src/app/services/network-monitor.service';
+import { NetworkMonitor } from '@app/services/network-monitor.service';
 
 type ActionQueue = {
   [key: string | number]: {
@@ -77,5 +77,5 @@ export class ActionService {
     return firstValueFrom(this.http.request(method, url, { body: payload }));
   }
 
-  public initService() { } // refactor later
+  public initService() {} // refactor later
 }

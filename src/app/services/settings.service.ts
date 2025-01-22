@@ -3,7 +3,7 @@ import { Injectable, signal, WritableSignal } from '@angular/core';
 
 import { catchError, firstValueFrom, map, Observable, of } from 'rxjs';
 
-import { Settings } from 'src/app/shared/interfaces';
+import { Settings } from '@app/shared/interfaces';
 import {
   DEFAULT_CACHED_REQUEST_VALIDITY_MS,
   DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER,

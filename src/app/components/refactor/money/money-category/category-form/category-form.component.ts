@@ -1,12 +1,12 @@
 import { Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Subscription } from 'rxjs';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
-import { DataSharingService } from 'src/app/components/refactor/service/data-sharing.service';
-import { ConfirmationDialogModalService } from 'src/app/shared/dialog-modal/mat-dialog-modal.service';
-import { UtilsService } from 'src/app/components/refactor/service/utils.service';
-import { Category } from 'src/app/shared/interfaces';
-import { MoneyService } from 'src/app/components/refactor/service/money.service';
+import { DataSharingService } from '@app/components/refactor/service/data-sharing.service';
+import { MoneyService } from '@app/components/refactor/service/money.service';
+import { UtilsService } from '@app/components/refactor/service/utils.service';
+import { ConfirmationDialogModalService } from '@app/shared/dialog-modal/mat-dialog-modal.service';
+import { Category } from '@app/shared/interfaces';
 
 @Component({
   selector: 'app-category-form',
@@ -24,14 +24,14 @@ export class CategoryFormComponent implements OnInit, OnChanges, OnDestroy {
     title: new FormControl('', Validators.required),
     kind: new FormControl(''),
   });
-  
+
   private categoryClickedSubscription: Subscription;
 
   constructor(
     private dataSharingService: DataSharingService,
     private confirmModal: ConfirmationDialogModalService,
     private utils: UtilsService,
-    public moneyService: MoneyService
+    public moneyService: MoneyService,
   ) {
     this.categoryClickedSubscription = this.dataSharingService.categoryClicked$.subscribe(async (categoryId) => {
       if (this.categoryForm.value.id === categoryId) {

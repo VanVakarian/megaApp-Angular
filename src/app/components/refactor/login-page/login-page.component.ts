@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { UserLogin } from 'src/app/shared/interfaces';
-import { ActivatedRoute, Params, Router } from '@angular/router';
-import { AuthService } from 'src/app/components/refactor/service/auth/auth.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '@app/components/refactor/service/auth/auth.service';
+import { UserLogin } from '@app/shared/interfaces';
 
 @Component({
   selector: 'app-login-page',
@@ -12,7 +12,11 @@ export class LoginPageComponent implements OnInit {
   loginForm: FormGroup;
   submitted = false;
 
-  constructor(public auth: AuthService, private router: Router, public route: ActivatedRoute) {
+  constructor(
+    public auth: AuthService,
+    private router: Router,
+    public route: ActivatedRoute,
+  ) {
     this.loginForm = new FormGroup({
       // username: new FormControl(null, [Validators.required, Validators.username]),
       username: new FormControl(null, [Validators.required]),

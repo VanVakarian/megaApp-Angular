@@ -18,11 +18,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
-import { FoodCatalogueFormComponent } from 'src/app/components/food/catalogue/forms/food-catalogue-form.component';
-import { FoodService } from 'src/app/services/food.service';
-import { SettingsService } from 'src/app/services/settings.service';
-import { enRuTranslation } from 'src/app/shared/const';
-import { CatalogueEntry } from 'src/app/shared/interfaces';
+import { FoodCatalogueFormComponent } from '@app/components/food/catalogue/forms/food-catalogue-form.component';
+import { FoodService } from '@app/services/food.service';
+import { SettingsService } from '@app/services/settings.service';
+import { enRuTranslation } from '@app/shared/const';
+import { CatalogueEntry } from '@app/shared/interfaces';
 
 @Component({
   selector: 'app-food-catalogue',

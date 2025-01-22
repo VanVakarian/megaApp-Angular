@@ -4,6 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSliderModule } from '@angular/material/slider';
+import { FoodStatsService } from '@app/services/food-stats.service';
+import {
+  KCALS_CHART_SETTINGS,
+  WEIGHT_CHART_SETTINGS,
+  daysRuDeclentions,
+  monthsRuDeclentions,
+  yearsRuDeclentions,
+} from '@app/shared/const';
+import { debounce, formatDateTicks, throttle } from '@app/shared/utils';
 import {
   BarController,
   BarElement,
@@ -18,15 +27,6 @@ import {
   Tooltip,
 } from 'chart.js';
 import { firstValueFrom } from 'rxjs';
-import { FoodStatsService } from 'src/app/services/food-stats.service';
-import {
-  KCALS_CHART_SETTINGS,
-  WEIGHT_CHART_SETTINGS,
-  daysRuDeclentions,
-  monthsRuDeclentions,
-  yearsRuDeclentions,
-} from 'src/app/shared/const';
-import { debounce, formatDateTicks, throttle } from 'src/app/shared/utils';
 
 Chart.register(
   CategoryScale,

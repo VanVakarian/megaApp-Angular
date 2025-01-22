@@ -8,9 +8,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
-import { AuthService } from 'src/app/services/auth.service';
-import { FoodService } from 'src/app/services/food.service';
-import { dateToIsoNoTimeNoTZ, getAdjustedDate } from 'src/app/shared/utils';
+import { AuthService } from '@app/services/auth.service';
+import { FoodService } from '@app/services/food.service';
+import { dateToIsoNoTimeNoTZ, getAdjustedDate } from '@app/shared/utils';
 
 @Component({
   selector: 'app-diary-nav-buttons',

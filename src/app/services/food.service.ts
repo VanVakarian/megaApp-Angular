@@ -3,7 +3,6 @@ import { computed, effect, Injectable, Signal, signal, WritableSignal } from '@a
 
 import { catchError, debounceTime, filter, firstValueFrom, map, Observable, of, Subject, tap } from 'rxjs';
 
-import { getTodayIsoNoTimeNoTZ } from '@app/shared/utils';
 import {
   BodyWeight,
   Catalogue,
@@ -18,7 +17,8 @@ import {
   ServerResponseWithCatalogueEntry,
   ServerResponseWithData,
   ServerResponseWithDiaryId,
-} from 'src/app/shared/interfaces';
+} from '@app/shared/interfaces';
+import { getTodayIsoNoTimeNoTZ } from '@app/shared/utils';
 
 @Injectable({
   providedIn: 'root',

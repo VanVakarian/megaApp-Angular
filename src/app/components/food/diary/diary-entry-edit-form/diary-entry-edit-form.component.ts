@@ -21,11 +21,11 @@ import { MatInputModule } from '@angular/material/input';
 
 import { delay, filter, firstValueFrom, Subscription, take } from 'rxjs';
 
-import { FoodStatsService } from 'src/app/services/food-stats.service';
-import { FoodService } from 'src/app/services/food.service';
-import { ScreenSizeWatcherService } from 'src/app/services/screen-size-watcher.service';
-import { ConfirmationDialogModalService } from 'src/app/shared/components/dialog-modal/mat-dialog-modal.service';
-import { DiaryEntry, HistoryEntry } from 'src/app/shared/interfaces';
+import { FoodStatsService } from '@app/services/food-stats.service';
+import { FoodService } from '@app/services/food.service';
+import { ScreenSizeWatcherService } from '@app/services/screen-size-watcher.service';
+import { ConfirmationDialogModalService } from '@app/shared/components/dialog-modal/mat-dialog-modal.service';
+import { DiaryEntry, HistoryEntry } from '@app/shared/interfaces';
 
 @Component({
   selector: 'app-diary-entry-edit-form',

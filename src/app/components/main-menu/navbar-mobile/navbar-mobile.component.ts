@@ -6,8 +6,8 @@ import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
-import { AuthService } from 'src/app/services/auth.service';
-import { MainMenuService } from 'src/app/services/main-menu.service';
+import { AuthService } from '@app/services/auth.service';
+import { MainMenuService } from '@app/services/main-menu.service';
 
 @Component({
   selector: 'app-navbar-mobile',
@@ -35,7 +35,7 @@ export class NavbarMobileComponent {
   constructor(
     public authService: AuthService,
     private mainMenuService: MainMenuService,
-  ) { }
+  ) {}
 
   public closeMenu(): void {
     this.menuOpened = false;

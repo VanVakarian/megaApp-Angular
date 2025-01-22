@@ -1,22 +1,22 @@
-import { computed, effect, ElementRef, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { computed, ElementRef, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { Subject } from 'rxjs';
 
+import { AuthService } from '@app/components/refactor/service/auth/auth.service';
+import { NotificationsService } from '@app/components/refactor/service/notifications.service';
 import {
+  BMI,
+  BodyWeight,
   Catalogue,
+  CatalogueEntry,
   Coefficients,
   Diary,
-  FormattedDiary,
-  Stats,
-  BodyWeight,
-  CatalogueEntry,
-  ServerResponse,
   DiaryEntry,
-  BMI,
-} from 'src/app/shared/interfaces';
-import { NotificationsService } from 'src/app/components/refactor/service/notifications.service';
-import { AuthService } from 'src/app/components/refactor/service/auth/auth.service';
-import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
+  FormattedDiary,
+  ServerResponse,
+  Stats,
+} from '@app/shared/interfaces';
+import { dateToIsoNoTimeNoTZ } from '@app/shared/utils';
 
 enum HttpMethod {
   GET = 'GET',
@@ -57,7 +57,11 @@ export class FoodService {
   diaryEntryClickedFocus$ = new Subject<number>();
   diaryEntryClickedScroll$ = new Subject<ElementRef>();
 
-  constructor(private auth: AuthService, private http: HttpClient, private notificationsService: NotificationsService) {
+  constructor(
+    private auth: AuthService,
+    private http: HttpClient,
+    private notificationsService: NotificationsService,
+  ) {
     // effect(() => { console.log('DIARY has been updated:', this.diary$$()); }); // prettier-ignore
     // effect(() => { console.log('DIARY FORMATTED has been updated:', this.diaryFormatted$$()); }); // prettier-ignore
     // effect(() => { console.log('CATALOGUE has been updated:', this.catalogue$$()); }); // prettier-ignore
@@ -90,7 +94,7 @@ export class FoodService {
         const kcals = Math.round(
           this.catalogue$$()[entry.food_catalogue_id].kcals *
             (entry.food_weight / 100) *
-            (this.coefficients$$()[entry.food_catalogue_id] || 1) // Without this check you can not add recently added to catalogue food to the diary
+            (this.coefficients$$()[entry.food_catalogue_id] || 1), // Without this check you can not add recently added to catalogue food to the diary
         );
         const percent = (kcals / this.diary$$()[date].target_kcals) * 100;
 
@@ -111,7 +115,7 @@ export class FoodService {
   prepCatalogueSortedListSeparate(selected: boolean): CatalogueEntry[] {
     return Object.values(this.catalogue$$())
       .filter((item) =>
-        selected ? this.catalogueSelectedIds$$().includes(item.id) : !this.catalogueSelectedIds$$().includes(item.id)
+        selected ? this.catalogueSelectedIds$$().includes(item.id) : !this.catalogueSelectedIds$$().includes(item.id),
       )
       .sort((a, b) => a.name.localeCompare(b.name));
   }
@@ -146,7 +150,7 @@ export class FoodService {
     responsePropertyNames: string[] | null,
     successMessage: string,
     errorMessage: string,
-    callback?: () => void
+    callback?: () => void,
   ): void {
     if (!this.token) {
       // this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
@@ -204,7 +208,7 @@ export class FoodService {
       [this.diary$$, this.catalogue$$, this.coefficients$$, this.catalogueSelectedIds$$, this.height$$],
       ['diary', 'catalogue', 'coefficients', 'personal_catalogue_ids', 'height'],
       'Полное обновление получено',
-      'Ошибка при запросе полного обновления'
+      'Ошибка при запросе полного обновления',
     );
   }
 
@@ -218,7 +222,7 @@ export class FoodService {
       [],
       [],
       'Вес сохранён успешно',
-      'Ошибка при сохранении веса'
+      'Ошибка при сохранении веса',
     );
   }
 
@@ -232,7 +236,7 @@ export class FoodService {
       [],
       [],
       'Запись в дневник питания добавлена успешно',
-      'Ошибка при добавлении записи в дневник питания'
+      'Ошибка при добавлении записи в дневник питания',
     );
   }
 
@@ -244,7 +248,7 @@ export class FoodService {
       [],
       [],
       'Запись в дневнике питания обновлена успешно',
-      'Ошибка при обновлении записи в дневнике питания'
+      'Ошибка при обновлении записи в дневнике питания',
     );
   }
 
@@ -256,7 +260,7 @@ export class FoodService {
       [],
       [],
       'Запись из дневника питания удалена успешно',
-      'Ошибка при удалении записи из дневника питания'
+      'Ошибка при удалении записи из дневника питания',
     );
   }
 
@@ -270,7 +274,7 @@ export class FoodService {
       [],
       [],
       'Еда в каталог сохранёна успешно',
-      'Ошибка при сохранении еды в каталог'
+      'Ошибка при сохранении еды в каталог',
     );
   }
 
@@ -284,7 +288,7 @@ export class FoodService {
       [],
       [],
       'Еда в пользовательский каталог добавлена успешно',
-      'Ошибка при сохранении еды в пользовательский каталог'
+      'Ошибка при сохранении еды в пользовательский каталог',
     );
   }
 
@@ -296,7 +300,7 @@ export class FoodService {
       [],
       [],
       'Еда из пользовательского каталога удалена успешно',
-      'Ошибка при удалении еды из пользовательского каталога'
+      'Ошибка при удалении еды из пользовательского каталога',
     );
   }
 
@@ -310,7 +314,7 @@ export class FoodService {
       [this.stats$$],
       ['stats'],
       'Статистика получена',
-      'Ошибка при запросе статистики'
+      'Ошибка при запросе статистики',
     );
   }
 }

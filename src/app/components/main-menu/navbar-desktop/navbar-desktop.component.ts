@@ -5,9 +5,9 @@ import { MatButtonModule } from '@angular/material/button';
 
 import { debounceTime, fromEvent, merge, Subscription, throttleTime } from 'rxjs';
 
-import { DarkSwitchComponent } from 'src/app/components/settings/dark-switch/dark-switch.component';
-import { AuthService } from 'src/app/services/auth.service';
-import { MainMenuService } from 'src/app/services/main-menu.service';
+import { DarkSwitchComponent } from '@app/components/settings/dark-switch/dark-switch.component';
+import { AuthService } from '@app/services/auth.service';
+import { MainMenuService } from '@app/services/main-menu.service';
 
 @Component({
   selector: 'app-navbar-desktop',

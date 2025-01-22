@@ -6,14 +6,14 @@ import { MatInputModule } from '@angular/material/input';
 
 import { firstValueFrom } from 'rxjs';
 
-import { FoodService } from 'src/app/services/food.service';
-import { DEFAULT_INPUT_FIELD_PROGRESS_TIMER } from 'src/app/shared/const';
+import { FoodService } from '@app/services/food.service';
+import { DEFAULT_INPUT_FIELD_PROGRESS_TIMER } from '@app/shared/const';
 import {
   AnimationState,
   AnimationStateManager,
   FieldStateAnimationsDirective,
-} from 'src/app/shared/directives/field-state-animations.directive';
-import { BodyWeight } from 'src/app/shared/interfaces';
+} from '@app/shared/directives/field-state-animations.directive';
+import { BodyWeight } from '@app/shared/interfaces';
 
 interface BodyWeightForm {
   bodyWeight: FormControl<string | null>;

@@ -2,10 +2,10 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 
-import { Transaction } from 'src/app/shared/interfaces';
-import { slideInOutAnimation } from 'src/app/shared/animations';
-import { MoneyService } from 'src/app/components/refactor/service/money.service';
-import { dateToIsoNoTimeNoTZ, generateDatesList, divideNumberWithWhitespaces, splitNumber } from 'src/app/shared/utils';
+import { MoneyService } from '@app/components/refactor/service/money.service';
+import { slideInOutAnimation } from '@app/shared/animations';
+import { Transaction } from '@app/shared/interfaces';
+import { dateToIsoNoTimeNoTZ, divideNumberWithWhitespaces, generateDatesList, splitNumber } from '@app/shared/utils';
 
 @Component({
   selector: 'app-money-transactions',
@@ -22,7 +22,10 @@ export class MoneyTransactionsComponent implements OnInit {
   selectedDateISO: string = dateToIsoNoTimeNoTZ(this.today.getTime());
   daysList: string[] = [];
 
-  constructor(private cdRef: ChangeDetectorRef, public moneyService: MoneyService) {}
+  constructor(
+    private cdRef: ChangeDetectorRef,
+    public moneyService: MoneyService,
+  ) {}
 
   getCategoryTitle(transaction: Transaction) {
     const categoryId = transaction.category_id;

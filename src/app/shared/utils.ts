@@ -1,4 +1,4 @@
-import { USER_PREFERRED_MIDNIGHT_OFFSET_HOURS } from 'src/app/shared/const';
+import { USER_PREFERRED_MIDNIGHT_OFFSET_HOURS } from '@app/shared/const';
 
 export function getTodayIsoNoTimeNoTZ(): string {
   return dateToIsoNoTimeNoTZ(new Date().getTime());

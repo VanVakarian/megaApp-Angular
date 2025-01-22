@@ -1,11 +1,11 @@
-import { computed, effect, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { computed, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 
-import { AuthService } from 'src/app/components/refactor/service/auth/auth.service';
-import { Account, Bank, Category, Currency, Transaction } from 'src/app/shared/interfaces';
-import { NotificationsService } from 'src/app/components/refactor/service/notifications.service';
+import { AuthService } from '@app/components/refactor/service/auth/auth.service';
+import { NotificationsService } from '@app/components/refactor/service/notifications.service';
+import { Account, Bank, Category, Currency, Transaction } from '@app/shared/interfaces';
+import { dateToIsoNoTimeNoTZ } from '@app/shared/utils';
 import { DataSharingService } from './data-sharing.service';
-import { dateToIsoNoTimeNoTZ } from 'src/app/shared/utils';
 
 enum HttpMethod {
   GET = 'GET',
@@ -41,7 +41,7 @@ export class MoneyService {
     private auth: AuthService,
     private http: HttpClient,
     private notificationsService: NotificationsService,
-    private dataSharingService: DataSharingService
+    private dataSharingService: DataSharingService,
   ) {
     // effect(() => { console.log('CURRENCIES have been updated:', this.currencies$$()); }); // prettier-ignore
     // effect(() => { console.log('BANKS have been updated:', this.banks$$()); }); // prettier-ignore
@@ -83,7 +83,7 @@ export class MoneyService {
     responsePropertyName: string | null,
     successMessage: string,
     errorMessage: string,
-    callback?: () => void
+    callback?: () => void,
   ): void {
     if (!this.token) {
       // this.notificationsService.addNotification('Токен не найден. Пользователь не авторизован.', 'error');
@@ -142,7 +142,7 @@ export class MoneyService {
       this.currencies$$,
       'currencies_list',
       'Валюты получены',
-      'Ошибка при запросе валют'
+      'Ошибка при запросе валют',
     );
   }
 
@@ -155,7 +155,7 @@ export class MoneyService {
       null,
       'Валюта успешно cоздана',
       'Ошибка при создании валюты',
-      this.currenciesChanged.bind(this)
+      this.currenciesChanged.bind(this),
     );
   }
 
@@ -168,7 +168,7 @@ export class MoneyService {
       null,
       'Валюта успешно изменена',
       'Ошибка при изменении валюты',
-      this.currenciesChanged.bind(this)
+      this.currenciesChanged.bind(this),
     );
   }
 
@@ -181,7 +181,7 @@ export class MoneyService {
       null,
       'Валюта успешно удалена',
       'Ошибка при удалении валюты',
-      this.currenciesChanged.bind(this)
+      this.currenciesChanged.bind(this),
     );
   }
 
@@ -200,7 +200,7 @@ export class MoneyService {
       this.banks$$,
       'banks_list',
       'Банки получены',
-      'Ошибка при запросе банков'
+      'Ошибка при запросе банков',
     );
   }
 
@@ -213,7 +213,7 @@ export class MoneyService {
       null,
       'Банк успешно cоздан',
       'Ошибка при создании банка',
-      this.banksChanged.bind(this)
+      this.banksChanged.bind(this),
     );
   }
 
@@ -226,7 +226,7 @@ export class MoneyService {
       null,
       'Банк успешно изменён',
       'Ошибка при изменении банка',
-      this.banksChanged.bind(this)
+      this.banksChanged.bind(this),
     );
   }
 
@@ -239,7 +239,7 @@ export class MoneyService {
       null,
       'Банк успешно удалён',
       'Ошибка при удалении валюты',
-      this.banksChanged.bind(this)
+      this.banksChanged.bind(this),
     );
   }
 
@@ -258,7 +258,7 @@ export class MoneyService {
       this.accounts$$,
       'accounts_list',
       'Счета получены',
-      'Ошибка при запросе счетов'
+      'Ошибка при запросе счетов',
     );
   }
 
@@ -271,7 +271,7 @@ export class MoneyService {
       null,
       'Счёт успешно cоздан',
       'Ошибка при создании счёта',
-      this.accountsChanged.bind(this)
+      this.accountsChanged.bind(this),
     );
   }
 
@@ -284,7 +284,7 @@ export class MoneyService {
       null,
       'Счёт успешно изменён',
       'Ошибка при изменении счёта',
-      this.accountsChanged.bind(this)
+      this.accountsChanged.bind(this),
     );
   }
 
@@ -297,7 +297,7 @@ export class MoneyService {
       null,
       'Счёт успешно удалён',
       'Ошибка при удалении счёта',
-      this.accountsChanged.bind(this)
+      this.accountsChanged.bind(this),
     );
   }
 
@@ -316,7 +316,7 @@ export class MoneyService {
       this.categories$$,
       'categories_list',
       'Категории получены',
-      'Ошибка при запросе категорий'
+      'Ошибка при запросе категорий',
     );
   }
 
@@ -329,7 +329,7 @@ export class MoneyService {
       null,
       'Категория успешно cоздана',
       'Ошибка при создании категории',
-      this.categoriesChanged.bind(this)
+      this.categoriesChanged.bind(this),
     );
   }
 
@@ -342,7 +342,7 @@ export class MoneyService {
       null,
       'Категория успешно изменена',
       'Ошибка при изменении категории',
-      this.categoriesChanged.bind(this)
+      this.categoriesChanged.bind(this),
     );
   }
 
@@ -355,7 +355,7 @@ export class MoneyService {
       null,
       'Категория успешно удаленa',
       'Ошибка при удалении категории',
-      this.categoriesChanged.bind(this)
+      this.categoriesChanged.bind(this),
     );
   }
 
@@ -374,7 +374,7 @@ export class MoneyService {
       this.transactions$$,
       'transactions_list',
       'Транзакции получены',
-      'Ошибка при запросе транзакций'
+      'Ошибка при запросе транзакций',
     );
   }
 
@@ -387,7 +387,7 @@ export class MoneyService {
       null,
       'Транзакция успешно cоздана',
       'Ошибка при создании транзакции',
-      this.transactionsChanged.bind(this)
+      this.transactionsChanged.bind(this),
     );
   }
 
@@ -400,7 +400,7 @@ export class MoneyService {
       null,
       'Транзакция успешно изменена',
       'Ошибка при изменении транзакции',
-      this.transactionsChanged.bind(this)
+      this.transactionsChanged.bind(this),
     );
   }
 
@@ -413,7 +413,7 @@ export class MoneyService {
       null,
       'Транзакция успешно удаленa',
       'Ошибка при удалении транзакции',
-      this.transactionsChanged.bind(this)
+      this.transactionsChanged.bind(this),
     );
   }
 

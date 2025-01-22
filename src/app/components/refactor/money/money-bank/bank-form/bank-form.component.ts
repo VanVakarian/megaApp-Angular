@@ -1,12 +1,12 @@
-import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, OnChanges } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
-import { Bank } from 'src/app/shared/interfaces';
-import { DataSharingService } from 'src/app/components/refactor/service/data-sharing.service';
-import { ConfirmationDialogModalService } from 'src/app/shared/dialog-modal/mat-dialog-modal.service';
-import { UtilsService } from 'src/app/components/refactor/service/utils.service';
-import { MoneyService } from 'src/app/components/refactor/service/money.service';
+import { DataSharingService } from '@app/components/refactor/service/data-sharing.service';
+import { MoneyService } from '@app/components/refactor/service/money.service';
+import { UtilsService } from '@app/components/refactor/service/utils.service';
+import { ConfirmationDialogModalService } from '@app/shared/dialog-modal/mat-dialog-modal.service';
+import { Bank } from '@app/shared/interfaces';
 
 @Component({
   selector: 'app-bank-form',
@@ -29,7 +29,7 @@ export class BankFormComponent implements OnInit, OnChanges, OnDestroy {
     private dataSharingService: DataSharingService,
     private confirmModal: ConfirmationDialogModalService,
     private utils: UtilsService,
-    public moneyService: MoneyService
+    public moneyService: MoneyService,
   ) {
     this.bankClickedSubscription = this.dataSharingService.bankClicked$.subscribe(async (bankId) => {
       if (this.bankForm.value.id === bankId) {

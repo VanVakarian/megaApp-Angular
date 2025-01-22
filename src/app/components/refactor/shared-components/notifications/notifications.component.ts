@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
+import { Notification } from '@app/shared/interfaces';
 import { NotificationsService } from '../../../services/notifications.service';
 import { slideInOutAnimation } from './notifications.animations';
-import { Notification } from 'src/app/shared/interfaces';
 
 @Component({
   selector: 'app-notifications',

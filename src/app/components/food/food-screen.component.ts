@@ -4,11 +4,11 @@ import { ActivatedRoute } from '@angular/router';
 
 import { firstValueFrom } from 'rxjs';
 
-import { FoodCatalogueComponent } from 'src/app/components/food/catalogue/food-catalogue.component';
-import { FoodDiaryComponent } from 'src/app/components/food/diary/food-diary.component';
-import { FoodStatsComponent } from 'src/app/components/food/stats/food-stats.component';
-import { FoodService } from 'src/app/services/food.service';
-import { SettingsService } from 'src/app/services/settings.service';
+import { FoodCatalogueComponent } from '@app/components/food/catalogue/food-catalogue.component';
+import { FoodDiaryComponent } from '@app/components/food/diary/food-diary.component';
+import { FoodStatsComponent } from '@app/components/food/stats/food-stats.component';
+import { FoodService } from '@app/services/food.service';
+import { SettingsService } from '@app/services/settings.service';
 
 @Component({
   selector: 'app-food-screen',

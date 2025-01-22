@@ -8,9 +8,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import { AuthService } from 'src/app/services/auth.service';
-import { SettingsService } from 'src/app/services/settings.service';
-import { UserCreds } from 'src/app/shared/interfaces';
+import { AuthService } from '@app/services/auth.service';
+import { SettingsService } from '@app/services/settings.service';
+import { UserCreds } from '@app/shared/interfaces';
 
 @Component({
   selector: 'app-auth-form',
@@ -43,7 +43,7 @@ export class AuthFormComponent implements OnInit {
     });
   }
 
-  ngOnInit() { }
+  ngOnInit() {}
 
   toggleMode() {
     this.isLoginMode = !this.isLoginMode;

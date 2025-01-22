@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 
-import { RouterService } from 'src/app/services/router.service';
-import { SettingsService } from 'src/app/services/settings.service';
-import { SettingsChapterNames } from 'src/app/shared/interfaces';
+import { RouterService } from '@app/services/router.service';
+import { SettingsService } from '@app/services/settings.service';
+import { SettingsChapterNames } from '@app/shared/interfaces';
 
 interface MenuButton {
   label: string;

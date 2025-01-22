@@ -1,9 +1,9 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatAccordion } from '@angular/material/expansion';
 
-import { DataSharingService } from 'src/app/components/refactor/service/data-sharing.service';
-import { MoneyService } from 'src/app/components/refactor/service/money.service';
+import { DataSharingService } from '@app/components/refactor/service/data-sharing.service';
+import { MoneyService } from '@app/components/refactor/service/money.service';
 
 @Component({
   selector: 'app-money-bank',
@@ -19,7 +19,10 @@ import { MoneyService } from 'src/app/components/refactor/service/money.service'
 export class MoneyBankComponent implements OnInit {
   @ViewChild(MatAccordion) accordion!: MatAccordion;
 
-  constructor(private dataSharingService: DataSharingService, public moneyService: MoneyService) {}
+  constructor(
+    private dataSharingService: DataSharingService,
+    public moneyService: MoneyService,
+  ) {}
 
   closeAllPanels() {
     this.accordion.closeAll();

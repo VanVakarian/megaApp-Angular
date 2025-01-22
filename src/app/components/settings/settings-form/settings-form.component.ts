@@ -12,14 +12,14 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { catchError, firstValueFrom, map, of } from 'rxjs';
 
-import { RequestStatus, SettingsService } from 'src/app/services/settings.service';
-import { DEFAULT_INPUT_FIELD_PROGRESS_TIMER } from 'src/app/shared/const';
+import { RequestStatus, SettingsService } from '@app/services/settings.service';
+import { DEFAULT_INPUT_FIELD_PROGRESS_TIMER } from '@app/shared/const';
 import {
   AnimationState,
   AnimationStateManager,
   FieldStateAnimationsDirective,
-} from 'src/app/shared/directives/field-state-animations.directive';
-import { KeyOfSettings, Settings } from 'src/app/shared/interfaces';
+} from '@app/shared/directives/field-state-animations.directive';
+import { KeyOfSettings, Settings } from '@app/shared/interfaces';
 
 interface SettingsForm {
   selectedChapterFood: FormControl<boolean>;

@@ -1,12 +1,12 @@
-import { Component, Input, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
-import { Currency } from 'src/app/shared/interfaces';
-import { DataSharingService } from 'src/app/components/refactor/service/data-sharing.service';
-import { ConfirmationDialogModalService } from 'src/app/shared/dialog-modal/mat-dialog-modal.service';
-import { UtilsService } from 'src/app/components/refactor/service/utils.service';
-import { MoneyService } from 'src/app/components/refactor/service/money.service';
+import { DataSharingService } from '@app/components/refactor/service/data-sharing.service';
+import { MoneyService } from '@app/components/refactor/service/money.service';
+import { UtilsService } from '@app/components/refactor/service/utils.service';
+import { ConfirmationDialogModalService } from '@app/shared/dialog-modal/mat-dialog-modal.service';
+import { Currency } from '@app/shared/interfaces';
 
 @Component({
   selector: 'app-currency-form',
@@ -33,7 +33,7 @@ export class CurrencyFormComponent implements OnInit, OnDestroy {
     private dataSharingService: DataSharingService,
     private confirmModal: ConfirmationDialogModalService,
     private utils: UtilsService,
-    public moneyService: MoneyService
+    public moneyService: MoneyService,
   ) {
     this.currencyClickedSubscription = this.dataSharingService.currencyClicked$.subscribe(async (currencyId) => {
       if (this.currencyForm.value.id === currencyId) {

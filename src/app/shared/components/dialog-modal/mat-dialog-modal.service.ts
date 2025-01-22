@@ -4,7 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 
 import { Observable } from 'rxjs';
 
-import { ConfirmationDialogModalComponent } from 'src/app/shared/components/dialog-modal/mat-dialog-modal.component';
+import { ConfirmationDialogModalComponent } from '@app/shared/components/dialog-modal/mat-dialog-modal.component';
 
 @Injectable({
   providedIn: 'root',

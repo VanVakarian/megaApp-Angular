@@ -5,8 +5,8 @@ import { BehaviorSubject, EMPTY, Subscription, of, timer } from 'rxjs';
 import { catchError, retry, switchMap } from 'rxjs/operators';
 import { WebSocketSubject, webSocket } from 'rxjs/webSocket';
 
-import { tokenGetter } from 'src/app/services/auth.service';
-import { IncomingMessage } from 'src/app/shared/interfaces';
+import { tokenGetter } from '@app/services/auth.service';
+import { IncomingMessage } from '@app/shared/interfaces';
 
 @Injectable({
   providedIn: 'root',
@@ -51,7 +51,7 @@ export class NetworkService implements OnDestroy {
         .pipe(
           retry({
             delay: (error, retryCount) => {
-              console.log(`Retry attempt #${ retryCount }`);
+              console.log(`Retry attempt #${retryCount}`);
               return timer(this.reconnectDelaySec * 1000);
             },
           }),

@@ -37,6 +37,11 @@
             "customWebpackConfig": {
               "path": "./extra-webpack.config.js",
               "replaceDuplicatePlugins": true
+            },
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src"
+              ]
             }
           },
           "configurations": {

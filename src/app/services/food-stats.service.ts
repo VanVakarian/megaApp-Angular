@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { computed, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { catchError, Observable, of, tap } from 'rxjs';
 
-import { Stats, StatsChartData } from 'src/app/shared/interfaces';
+import { Stats, StatsChartData } from '@app/shared/interfaces';
 import { formatDateTicks } from '../shared/utils';
 
 @Injectable({

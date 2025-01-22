@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 
-import { SettingsService } from 'src/app/services/settings.service';
+import { SettingsService } from '@app/services/settings.service';
 
 export const isChapterSelected: CanActivateFn = (route, state) => {
   const settingsService = inject(SettingsService);

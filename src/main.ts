@@ -9,10 +9,10 @@ import { MatDialogModule } from '@angular/material/dialog';
 
 import { JwtModule } from '@auth0/angular-jwt';
 
-import { routes } from 'src/app/app-routes';
-import { MainAppComponent } from 'src/app/app.component';
-import { AuthInterceptor } from 'src/app/services/auth.interceptor';
-import { tokenGetter } from 'src/app/services/auth.service';
+import { routes } from '@app/app-routes';
+import { MainAppComponent } from '@app/app.component';
+import { AuthInterceptor } from '@app/services/auth.interceptor';
+import { tokenGetter } from '@app/services/auth.service';
 
 bootstrapApplication(MainAppComponent, {
   providers: [

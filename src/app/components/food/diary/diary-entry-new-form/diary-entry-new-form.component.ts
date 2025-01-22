@@ -35,9 +35,9 @@ import { MatInputModule } from '@angular/material/input';
 
 import { firstValueFrom, Subject, Subscription } from 'rxjs';
 
-import { FoodStatsService } from 'src/app/services/food-stats.service';
-import { FoodService } from 'src/app/services/food.service';
-import { CatalogueEntry, DiaryEntry } from 'src/app/shared/interfaces';
+import { FoodStatsService } from '@app/services/food-stats.service';
+import { FoodService } from '@app/services/food.service';
+import { CatalogueEntry, DiaryEntry } from '@app/shared/interfaces';
 
 @Component({
   selector: 'app-diary-entry-new-form',
