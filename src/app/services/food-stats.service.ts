@@ -1,10 +1,9 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { computed, effect, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { computed, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { catchError, Observable, of, tap } from 'rxjs';
 
 import { Stats, StatsChartData } from 'src/app/shared/interfaces';
-import { formatDateTicks, getTodayIsoNoTimeNoTZ } from 'src/app/shared/utils';
-import { emptyStatsChartData } from '../shared/const';
+import { formatDateTicks } from '../shared/utils';
 
 @Injectable({
   providedIn: 'root',
@@ -12,38 +11,23 @@ import { emptyStatsChartData } from '../shared/const';
 export class FoodStatsService {
   public stats$$: WritableSignal<Stats> = signal({});
   public statsChartData$$: Signal<StatsChartData> = computed(() => this.prepareChartData());
+  public StatsChartDataClipped$$: Signal<StatsChartData> = computed(() => this.prepareChartDataClipped());
 
   public forceUpdateTrigger$$ = signal(0);
 
   public selectedDateIdxStart$$: WritableSignal<number> = signal(-1);
   public selectedDateIdxEnd$$: WritableSignal<number> = signal(Infinity);
 
-  public StatsChartData$$: Signal<StatsChartData> = computed(() => {
-    const data = this.statsChartData$$();
-    const start = this.selectedDateIdxStart$$();
-    const end = this.selectedDateIdxEnd$$();
-
-    return {
-      dates: data.dates.slice(start, end + 1).map(formatDateTicks),
-      weights: data.weights.slice(start, end + 1),
-      weightsAvg: data.weightsAvg.slice(start, end + 1),
-      kcals: data.kcals.slice(start, end + 1),
-      kcalsAvg: data.kcalsAvg.slice(start, end + 1),
-    };
-  });
-
   constructor(private http: HttpClient) {
-    effect(() => {
-      // console.log('STATS has been updated:', this.stats$$()); // prettier-ignore
-      // console.log('STATS CHART DATA has been updated:', this.statsChartData$$()); // prettier-ignore
-      // console.log('SELECTED DATE IDX LOW has been updated:', this.selectedDateIdxStart$$()); // prettier-ignore
-      // console.log('SELECTED DATE IDX HIGH has been updated:', this.selectedDateIdxEnd$$()); // prettier-ignore
-    });
+    // effect(() => { console.log('STATS has been updated:', this.stats$$(), Object.keys(this.stats$$()).length) }); // prettier-ignore
+    // effect(() => { console.log('STATS CHART DATA has been updated:', this.statsChartData$$(), Object.keys(this.statsChartData$$()).length) }); // prettier-ignore
+    // effect(() => { console.log('STATS CHART DATA SLICED has been updated:', this.StatsChartDataClipped$$(), Object.keys(this.StatsChartDataClipped$$()).length) }); // prettier-ignore
+    // effect(() => { console.log('SELECTED DATE IDX LOW has been updated:', this.selectedDateIdxStart$$()) }); // prettier-ignore
+    // effect(() => { console.log('SELECTED DATE IDX HIGH has been updated:', this.selectedDateIdxEnd$$()) }); // prettier-ignore
   }
 
   public getStats(): Observable<Stats> {
-    const params = new HttpParams().set('date', getTodayIsoNoTimeNoTZ());
-    return this.http.get<Stats>('/api/food/stats', { params }).pipe(
+    return this.http.get<Stats>('/api/food/stats').pipe(
       tap((statsData: Stats) => {
         this.setupInitialData(statsData);
       }),
@@ -52,6 +36,19 @@ export class FoodStatsService {
         return of({});
       }),
     );
+  }
+
+  public updateStats(dateIso: string, kcalsDelta: number) {
+    const stats = this.stats$$();
+    const dateStats = stats[dateIso];
+    console.log('updateStats', dateIso, kcalsDelta, dateStats);
+
+    if (dateStats) {
+      this.stats$$.set({
+        ...stats,
+        [dateIso]: [dateStats[0], dateStats[1], dateStats[2] + kcalsDelta, dateStats[3]],
+      });
+    }
   }
 
   private setupInitialData(statsData: Stats) {
@@ -64,20 +61,40 @@ export class FoodStatsService {
     }, 0);
   }
 
-  private prepareChartData(inputData?: Stats): StatsChartData {
-    const stats = this.stats$$() || inputData || {};
-    const result: StatsChartData = { ...emptyStatsChartData };
+  private prepareChartData(): StatsChartData {
+    const stats = this.stats$$() || {};
+    const result: StatsChartData = {
+      dates: [],
+      weights: [],
+      weightsAvg: [],
+      kcals: [],
+      kcalsTarget: [],
+    };
 
     Object.entries(stats).forEach(([date, values]) => {
-      const [weight, weightAvg, kcal, kcalAvg] = values;
+      const [weight, weightAvg, kcal, kcalTarget] = values;
       result.dates.push(date);
       result.weights.push(weight);
       result.weightsAvg.push(weightAvg);
       result.kcals.push(kcal);
-      result.kcalsAvg.push(kcalAvg);
+      result.kcalsTarget.push(kcalTarget);
     });
 
     return result;
+  }
+
+  private prepareChartDataClipped(): StatsChartData {
+    const data = this.statsChartData$$();
+    const start = this.selectedDateIdxStart$$();
+    const end = this.selectedDateIdxEnd$$();
+
+    return {
+      dates: data.dates.slice(start, end + 1).map(formatDateTicks),
+      weights: data.weights.slice(start, end + 1),
+      weightsAvg: data.weightsAvg.slice(start, end + 1),
+      kcals: data.kcals.slice(start, end + 1),
+      kcalsTarget: data.kcalsTarget.slice(start, end + 1),
+    };
   }
 
   public clipDateRange(daysAmtToShow: number) {

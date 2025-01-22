@@ -46,7 +46,7 @@ interface StatsChartData {
   weights: number[];
   weightsAvg: number[];
   kcals: number[];
-  kcalsAvg: number[];
+  kcalsTarget: number[];
 }
 
 @Component({
@@ -96,7 +96,7 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     effect(() => {
-      const data = this.foodStatsService.StatsChartData$$();
+      const data = this.foodStatsService.StatsChartDataClipped$$();
       throttledUpdate(data);
       debouncedUpdate(data);
     });
@@ -157,12 +157,13 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.kcalsChart?.data) {
       this.kcalsChart.data.labels = data.dates;
       this.kcalsChart.data.datasets[0].data = data.kcals;
-      this.kcalsChart.data.datasets[1].data = data.kcalsAvg;
+      this.kcalsChart.data.datasets[1].data = data.kcalsTarget;
       this.kcalsChart.update(chartUpdateMode);
     }
   }
 
   private createThrottledChartUpdater() {
+    console.log('createThrottledChartUpdater');
     return throttle((data: StatsChartData) => {
       this.updateWeightChart(data, 'none');
       this.updateKcalsChart(data, 'none');
@@ -170,6 +171,7 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private createDebouncedChartUpdater() {
+    console.log('createDebouncedChartUpdater');
     return debounce((data: StatsChartData) => {
       this.updateWeightChart(data);
       this.updateKcalsChart(data);
@@ -178,8 +180,8 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private formatSelectedRange(): string {
     // caluclating total selected days
-    const lastSelectedDay = this.foodStatsService.selectedDateIdxEnd$$();
     const firstSelectedDay = this.foodStatsService.selectedDateIdxStart$$();
+    const lastSelectedDay = this.foodStatsService.selectedDateIdxEnd$$();
     const selectedDaysCount = lastSelectedDay - firstSelectedDay + 1;
 
     const DAYS_IN_YEAR = 360;

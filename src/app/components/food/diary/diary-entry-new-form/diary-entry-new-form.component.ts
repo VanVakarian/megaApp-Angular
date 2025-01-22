@@ -1,17 +1,32 @@
 import { AsyncPipe } from '@angular/common';
 import {
-  AfterViewInit, Component, computed, ElementRef, EventEmitter, Input,
-  OnChanges, OnDestroy, OnInit, Output, Signal, SimpleChanges, ViewChild,
+  AfterViewInit,
+  Component,
+  computed,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  Signal,
+  SimpleChanges,
+  ViewChild,
 } from '@angular/core';
 import {
-  AbstractControl, FormControl, FormGroup, FormGroupDirective, FormsModule,
-  ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators,
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  FormGroupDirective,
+  FormsModule,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
 } from '@angular/forms';
 
-import {
-  MatAutocompleteModule,
-  MatAutocompleteSelectedEvent
-} from '@angular/material/autocomplete';
+import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,9 +35,9 @@ import { MatInputModule } from '@angular/material/input';
 
 import { firstValueFrom, Subject, Subscription } from 'rxjs';
 
+import { FoodStatsService } from 'src/app/services/food-stats.service';
 import { FoodService } from 'src/app/services/food.service';
 import { CatalogueEntry, DiaryEntry } from 'src/app/shared/interfaces';
-
 
 @Component({
   selector: 'app-diary-entry-new-form',
@@ -41,7 +56,6 @@ import { CatalogueEntry, DiaryEntry } from 'src/app/shared/interfaces';
   templateUrl: './diary-entry-new-form.component.html',
 })
 export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
-
   @Input()
   public expanded = false;
 
@@ -72,17 +86,14 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
 
   public diaryEntryForm: FormGroup = new FormGroup({
     foodCatalogueId: new FormControl(0),
-    foodName: new FormControl('', [
-      Validators.required,
-      this.catalogueNameValidator(),
-    ]),
+    foodName: new FormControl('', [Validators.required, this.catalogueNameValidator()]),
     foodWeight: new FormControl(null, [
       Validators.required,
       Validators.pattern(/^\d+$/), // Digits only
     ]),
   });
 
-  private subscription = new Subscription();
+  private subs = new Subscription();
 
   public get foodName() {
     return this.diaryEntryForm.get('foodName');
@@ -92,7 +103,10 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
     return this.diaryEntryForm.get('foodWeight');
   }
 
-  constructor(public foodService: FoodService) {
+  constructor(
+    private foodService: FoodService,
+    private foodStatsService: FoodStatsService,
+  ) {
     // effect(() => { console.log('CATALOGUE NAMES have been updated:', this.catalogueNames$$()); }); // prettier-ignore
   }
 
@@ -108,10 +122,10 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
     }
   }
 
-  public ngAfterViewInit(): void { }
+  public ngAfterViewInit(): void {}
 
   public ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+    this.subs.unsubscribe();
   }
 
   public isFormValid(): boolean {
@@ -133,17 +147,20 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
   public async onSubmit(): Promise<void> {
     this.diaryEntryForm.disable();
     const foodWeight = parseInt(this.diaryEntryForm.value.foodWeight);
+    const foodId = this.diaryEntryForm.get('foodCatalogueId')!.value;
+    const foodKcals = this.foodService.catalogue$$()?.[foodId].kcals;
+    const foodCoefficient = this.foodService.coefficients$$()?.[foodId] ?? 1;
+    const kcalsDelta = (foodWeight / 100) * foodKcals * foodCoefficient;
+
     const preppedDiaryEntry: DiaryEntry = {
       id: 0,
       dateISO: this.foodService.selectedDayIso$$(),
-      foodCatalogueId: this.diaryEntryForm.get('foodCatalogueId')!.value,
+      foodCatalogueId: foodId,
       foodWeight: foodWeight,
       history: [{ action: 'init', value: foodWeight }],
     };
 
-    const response = await firstValueFrom(
-      this.foodService.createDiaryEntry(preppedDiaryEntry),
-    );
+    const response = await firstValueFrom(this.foodService.createDiaryEntry(preppedDiaryEntry));
 
     if (response?.result) {
       if (response.diaryId) {
@@ -157,6 +174,9 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
         foodWeight: null,
       });
 
+      if (kcalsDelta) {
+        this.foodStatsService.updateStats(this.foodService.selectedDayIso$$(), kcalsDelta);
+      }
     } else {
       this.diaryEntryForm.enable();
     }
@@ -167,14 +187,11 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
   }
 
   public shouldShowClearButton(): boolean {
-    return (
-      this.diaryEntryForm.get('foodName')!.value &&
-      this.diaryEntryForm.get('foodName')!.value.length > 0
-    );
+    return this.diaryEntryForm.get('foodName')!.value && this.diaryEntryForm.get('foodName')!.value.length > 0;
   }
 
   private subscribe(): void {
-    this.subscription.add(
+    this.subs.add(
       this.diaryEntryForm.get('foodName')!.valueChanges.subscribe((value) => {
         this.filteredCatalogue$.next(this._filter(value || ''));
       }),

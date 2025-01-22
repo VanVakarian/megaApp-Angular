@@ -162,7 +162,7 @@ export interface StatsChartData {
   weights: number[];
   weightsAvg: number[];
   kcals: number[];
-  kcalsAvg: number[];
+  kcalsTarget: number[];
 }
 
 //                                                                         MONEY

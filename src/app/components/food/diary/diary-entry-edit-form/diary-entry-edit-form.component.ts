@@ -21,8 +21,9 @@ import { MatInputModule } from '@angular/material/input';
 
 import { delay, filter, firstValueFrom, Subscription, take } from 'rxjs';
 
+import { FoodStatsService } from 'src/app/services/food-stats.service';
 import { FoodService } from 'src/app/services/food.service';
-import { ScreenSizeWatcherService } from 'src/app/services/screen-size-watcher-service';
+import { ScreenSizeWatcherService } from 'src/app/services/screen-size-watcher.service';
 import { ConfirmationDialogModalService } from 'src/app/shared/components/dialog-modal/mat-dialog-modal.service';
 import { DiaryEntry, HistoryEntry } from 'src/app/shared/interfaces';
 
@@ -78,7 +79,8 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
   }
 
   constructor(
-    public foodService: FoodService,
+    private foodService: FoodService,
+    private foodStatsService: FoodStatsService,
     private confirmModal: ConfirmationDialogModalService,
     private screenSizeWatcherService: ScreenSizeWatcherService,
   ) {}
@@ -150,9 +152,9 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
   }
 
   public async onSubmit(): Promise<void> {
-    const weightChange = this.diaryEntryForm.value.foodWeightChange;
-    this.historyAction = weightChange ? (String(weightChange).includes('-') ? 'subtract' : 'add') : 'set';
-    const history = { action: this.historyAction, value: Math.abs(weightChange) };
+    const weightIfChange = this.diaryEntryForm.value.foodWeightChange;
+    this.historyAction = weightIfChange ? (String(weightIfChange).includes('-') ? 'subtract' : 'add') : 'set';
+    const history = { action: this.historyAction, value: Math.abs(weightIfChange) };
     this.diaryEntryForm.disable();
 
     const preppedFormValues: DiaryEntry = {
@@ -163,11 +165,22 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
       history: [history],
     };
 
+    const weightIfSet = this.diaryEntryForm.value.foodWeightNew - this.diaryEntryForm.value.foodWeightInitial;
+    const foodWeight = weightIfChange ?? weightIfSet;
+    const foodId = this.diaryEntry.foodCatalogueId;
+    const foodKcals = this.foodService.catalogue$$()?.[foodId].kcals;
+    const foodCoefficient = this.foodService.coefficients$$()?.[foodId] ?? 1;
+    const kcalsDelta = (foodWeight / 100) * foodKcals * foodCoefficient;
+
     try {
-      await firstValueFrom(this.foodService.editDiaryEntry(preppedFormValues));
+      const res = await firstValueFrom(this.foodService.editDiaryEntry(preppedFormValues));
       this.diaryEntryForm.enable();
       this.diaryEntryForm.reset();
       this.onServerSuccessfullEditResponse.emit();
+
+      if (res.result && kcalsDelta) {
+        this.foodStatsService.updateStats(this.foodService.selectedDayIso$$(), kcalsDelta);
+      }
     } catch {
       this.diaryEntryForm.enable();
     }
@@ -232,15 +245,24 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
     );
   }
 
-  private deleteDiaryEntry(): void {
+  private async deleteDiaryEntry(): Promise<void> {
+    const foodId = this.diaryEntry.foodCatalogueId;
+    const foodKcals = this.foodService.catalogue$$()?.[foodId].kcals;
+    const foodCoefficient = this.foodService.coefficients$$()?.[foodId] ?? 1;
+    const kcalsDelta = -(this.diaryEntry.foodWeight / 100) * foodKcals * foodCoefficient;
+
     this.diaryEntryForm.disable();
-    this.foodService.deleteDiaryEntry(this.diaryEntryForm.value.id).subscribe({
-      next: () => {
-        this.diaryEntryForm.enable();
-        this.diaryEntryForm.reset();
-        this.onServerSuccessfullEditResponse.emit();
-      },
-      error: () => this.diaryEntryForm.enable(),
-    });
+    try {
+      const res = await firstValueFrom(this.foodService.deleteDiaryEntry(this.diaryEntryForm.value.id));
+      this.diaryEntryForm.enable();
+      this.diaryEntryForm.reset();
+      this.onServerSuccessfullEditResponse.emit();
+
+      if (res.result && kcalsDelta) {
+        this.foodStatsService.updateStats(this.foodService.selectedDayIso$$(), kcalsDelta);
+      }
+    } catch {
+      this.diaryEntryForm.enable();
+    }
   }
 }

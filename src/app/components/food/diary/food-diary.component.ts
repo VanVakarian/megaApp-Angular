@@ -23,7 +23,7 @@ import { DiaryEntryEditFormComponent } from 'src/app/components/food/diary/diary
 import { DiaryEntryNewFormComponent } from 'src/app/components/food/diary/diary-entry-new-form/diary-entry-new-form.component';
 import { DiaryNavButtonsComponent } from 'src/app/components/food/diary/diary-nav/diary-nav-buttons.component';
 import { FoodService } from 'src/app/services/food.service';
-import { ScreenSizeWatcherService } from 'src/app/services/screen-size-watcher-service';
+import { ScreenSizeWatcherService } from 'src/app/services/screen-size-watcher.service';
 import { ScreenType } from 'src/app/shared/interfaces';
 
 @Component({

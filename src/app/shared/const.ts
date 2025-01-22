@@ -1,14 +1,6 @@
-import { Settings, StatsChartData } from './interfaces';
+import { Settings } from './interfaces';
 
 export const FETCH_DAYS_RANGE_OFFSET: number = 10; // TODO: create settings item out of this constant
-
-export const emptyStatsChartData: StatsChartData = {
-  dates: [],
-  weights: [],
-  weightsAvg: [],
-  kcals: [],
-  kcalsAvg: [],
-};
 
 // export const CHART_COLORS_OLD = {
 //   primary: 'red',
