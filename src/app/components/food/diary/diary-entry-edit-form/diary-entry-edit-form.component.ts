@@ -179,7 +179,7 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
       this.onServerSuccessfullEditResponse.emit();
 
       if (res.result && kcalsDelta) {
-        this.foodStatsService.updateStats(this.foodService.selectedDayIso$$(), kcalsDelta);
+        this.foodStatsService.updateStats(this.foodService.selectedDayIso$$(), 0, kcalsDelta);
       }
     } catch {
       this.diaryEntryForm.enable();
@@ -259,7 +259,7 @@ export class DiaryEntryEditFormComponent implements OnInit, OnChanges, OnDestroy
       this.onServerSuccessfullEditResponse.emit();
 
       if (res.result && kcalsDelta) {
-        this.foodStatsService.updateStats(this.foodService.selectedDayIso$$(), kcalsDelta);
+        this.foodStatsService.updateStats(this.foodService.selectedDayIso$$(), 0, kcalsDelta);
       }
     } catch {
       this.diaryEntryForm.enable();

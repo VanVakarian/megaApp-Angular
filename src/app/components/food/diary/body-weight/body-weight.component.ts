@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 
 import { firstValueFrom } from 'rxjs';
 
+import { FoodStatsService } from '@app/services/food-stats.service';
 import { FoodService } from '@app/services/food.service';
 import { DEFAULT_INPUT_FIELD_PROGRESS_TIMER } from '@app/shared/const';
 import {
@@ -47,7 +48,9 @@ export class BodyWeightComponent {
   });
 
   public currentState: AnimationState = AnimationState.IDLE;
+
   private previousValue: string = '';
+
   private weightSubmitDelay: ReturnType<typeof setTimeout> | null = null;
 
   private weightFieldAnimationStateManager = new AnimationStateManager(AnimationState.IDLE, (state) => {
@@ -57,6 +60,7 @@ export class BodyWeightComponent {
 
   constructor(
     private foodService: FoodService,
+    private foodStatsService: FoodStatsService,
     private cdRef: ChangeDetectorRef,
   ) {
     effect(() => {
@@ -101,7 +105,9 @@ export class BodyWeightComponent {
   }
 
   private async submitValue(): Promise<void> {
+    const selectedDateISO = this.foodService.selectedDayIso$$();
     const weightValue = this.form.controls.bodyWeight.value;
+    const weightDelta = Number(weightValue) - Number(this.previousValue);
     if (!weightValue) return;
 
     this.weightFieldAnimationStateManager.toSubmitting();
@@ -110,7 +116,7 @@ export class BodyWeightComponent {
     try {
       const weight: BodyWeight = {
         bodyWeight: weightValue.replace(',', '.'),
-        dateISO: this.foodService.selectedDayIso$$(),
+        dateISO: selectedDateISO,
       };
 
       const result = await firstValueFrom(this.foodService.setUserBodyWeight(weight));
@@ -118,6 +124,8 @@ export class BodyWeightComponent {
 
       this.previousValue = weightValue;
       this.weightFieldAnimationStateManager.toSuccess();
+
+      this.foodStatsService.updateStats(selectedDateISO, weightDelta, 0);
     } catch {
       this.weightFieldAnimationStateManager.toError();
     } finally {

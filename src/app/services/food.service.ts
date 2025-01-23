@@ -49,17 +49,15 @@ export class FoodService {
   private fetchMoreDiaryTrigger$ = new Subject<void>();
 
   constructor(private http: HttpClient) {
-    effect(() => {
-      // console.log('DIARY has been updated:', this.diary$$()); // prettier-ignore
-      // console.log('FORMATTED DIARY has been updated:', this.diaryFormatted$$()); // prettier-ignore
-      // console.log('SELECTED DAY has been updated:', this.selectedDayIso$$()); // prettier-ignore
-      // console.log('DAYS have been updated:', this.days$$()); // prettier-ignore
-      // console.log('CATALOGUE have been updated:', this.catalogue$$()); // prettier-ignore
-      // console.log('CATALOGUE MY IDS have been updated:', this.catalogueMyIds$$()); // prettier-ignore
-      // console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()); // prettier-ignore
-      // console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()); // prettier-ignore
-      // console.log('COEFFICIENTS have been updated:', this.coefficients$$()); // prettier-ignore
-    });
+    // effect(() => { console.log('DIARY has been updated:', this.diary$$()) }); // prettier-ignore
+    // effect(() => { console.log('DIARY FORMATTED has been updated:', this.diaryFormatted$$()) }); // prettier-ignore
+    // effect(() => { console.log('SELECTED DAY has been updated:', this.selectedDayIso$$()) }); // prettier-ignore
+    // effect(() => { console.log('DAYS have been updated:', this.days$$()) }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE have been updated:', this.catalogue$$()) }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE MY IDS have been updated:', this.catalogueMyIds$$()) }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()) }); // prettier-ignore
+    // effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()) }); // prettier-ignore
+    // effect(() => { console.log('COEFFICIENTS have been updated:', this.coefficients$$()) }); // prettier-ignore
 
     effect(() => {
       if (this.shouldLoadMore()) {

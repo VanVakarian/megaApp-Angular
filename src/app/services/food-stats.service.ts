@@ -38,15 +38,16 @@ export class FoodStatsService {
     );
   }
 
-  public updateStats(dateIso: string, kcalsDelta: number) {
+  public updateStats(dateIso: string, weightDelta: number, kcalsDelta: number) {
+    if (!weightDelta && !kcalsDelta) return;
+
     const stats = this.stats$$();
     const dateStats = stats[dateIso];
-    console.log('updateStats', dateIso, kcalsDelta, dateStats);
 
     if (dateStats) {
       this.stats$$.set({
         ...stats,
-        [dateIso]: [dateStats[0], dateStats[1], dateStats[2] + kcalsDelta, dateStats[3]],
+        [dateIso]: [dateStats[0] + weightDelta, dateStats[1], dateStats[2] + kcalsDelta, dateStats[3]],
       });
     }
   }

@@ -175,7 +175,7 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
       });
 
       if (kcalsDelta) {
-        this.foodStatsService.updateStats(this.foodService.selectedDayIso$$(), kcalsDelta);
+        this.foodStatsService.updateStats(this.foodService.selectedDayIso$$(), 0, kcalsDelta);
       }
     } else {
       this.diaryEntryForm.enable();

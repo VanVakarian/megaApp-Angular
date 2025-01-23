@@ -1,9 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSliderModule } from '@angular/material/slider';
+
+import { firstValueFrom } from 'rxjs';
+
 import { FoodStatsService } from '@app/services/food-stats.service';
 import {
   KCALS_CHART_SETTINGS,
@@ -26,7 +30,6 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import { firstValueFrom } from 'rxjs';
 
 Chart.register(
   CategoryScale,
@@ -163,7 +166,6 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private createThrottledChartUpdater() {
-    console.log('createThrottledChartUpdater');
     return throttle((data: StatsChartData) => {
       this.updateWeightChart(data, 'none');
       this.updateKcalsChart(data, 'none');
@@ -171,7 +173,6 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private createDebouncedChartUpdater() {
-    console.log('createDebouncedChartUpdater');
     return debounce((data: StatsChartData) => {
       this.updateWeightChart(data);
       this.updateKcalsChart(data);
