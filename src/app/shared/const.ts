@@ -1,3 +1,5 @@
+import { ChartConfiguration } from 'chart.js';
+
 import { Settings } from './interfaces';
 
 export const FETCH_DAYS_RANGE_OFFSET: number = 10; // TODO: create settings item out of this constant
@@ -9,14 +11,21 @@ export const FETCH_DAYS_RANGE_OFFSET: number = 10; // TODO: create settings item
 //   averageAlpha: '#adadff'
 // };
 
-export const CHART_COLORS = {
+interface ChartColors {
+  main: string;
+  mainAlpha: string;
+  secondary: string;
+  secondaryAlpha: string;
+}
+
+export const CHART_COLORS: ChartColors = {
   main: '#578f92',
   mainAlpha: '#578f9250',
   secondary: '#345b5b',
   secondaryAlpha: '#345b5b50',
 };
 
-export const WEIGHT_CHART_SETTINGS: any = {
+export const WEIGHT_CHART_SETTINGS: ChartConfiguration = {
   type: 'line',
   data: {
     labels: [],
@@ -27,9 +36,7 @@ export const WEIGHT_CHART_SETTINGS: any = {
         order: 2,
         fill: true,
         borderColor: CHART_COLORS.main,
-        backgroundColor: CHART_COLORS.mainAlpha,
-        pointBorderColor: CHART_COLORS.main,
-        pointBackgroundColor: CHART_COLORS.main,
+        backgroundColor: CHART_COLORS.main,
         pointRadius: 2,
         pointHitRadius: 20,
       },
@@ -38,9 +45,7 @@ export const WEIGHT_CHART_SETTINGS: any = {
         data: [],
         order: 1,
         borderColor: CHART_COLORS.secondary,
-        backgroundColor: CHART_COLORS.secondaryAlpha,
-        pointBorderColor: CHART_COLORS.secondary,
-        pointBackgroundColor: CHART_COLORS.secondary,
+        backgroundColor: CHART_COLORS.secondary,
         pointRadius: 2,
         pointHitRadius: 20,
       },
@@ -61,7 +66,7 @@ export const WEIGHT_CHART_SETTINGS: any = {
   },
 };
 
-export const KCALS_CHART_SETTINGS: any = {
+export const KCALS_CHART_SETTINGS: ChartConfiguration = {
   type: 'bar',
   data: {
     labels: [],
@@ -82,9 +87,7 @@ export const KCALS_CHART_SETTINGS: any = {
         order: 1,
         type: 'line',
         borderColor: CHART_COLORS.secondary,
-        backgroundColor: CHART_COLORS.secondaryAlpha,
-        pointBorderColor: CHART_COLORS.secondary,
-        pointBackgroundColor: CHART_COLORS.secondary,
+        backgroundColor: CHART_COLORS.secondary,
         pointRadius: 2,
         pointHitRadius: 20,
       },
@@ -102,72 +105,6 @@ export const KCALS_CHART_SETTINGS: any = {
       },
     },
   },
-};
-
-interface Declentions {
-  [key: number]: string;
-}
-
-export const daysRuDeclentions: Declentions = {
-  1: 'день',
-  2: 'дня',
-  3: 'дня',
-  4: 'дня',
-  5: 'дней',
-  6: 'дней',
-  7: 'дней',
-  8: 'дней',
-  9: 'дней',
-  10: 'дней',
-  11: 'дней',
-  12: 'дней',
-  13: 'дней',
-  14: 'дней',
-  15: 'дней',
-  16: 'дней',
-  17: 'дней',
-  18: 'дней',
-  19: 'дней',
-  20: 'дней',
-  21: 'день',
-  22: 'дня',
-  23: 'дня',
-  24: 'дня',
-  25: 'дней',
-  26: 'дней',
-  27: 'дней',
-  28: 'дней',
-  29: 'дней',
-  30: 'дней',
-  31: 'день',
-};
-
-export const monthsRuDeclentions: Declentions = {
-  1: 'месяц',
-  2: 'месяца',
-  3: 'месяца',
-  4: 'месяца',
-  5: 'месяцев',
-  6: 'месяцев',
-  7: 'месяцев',
-  8: 'месяцев',
-  9: 'месяцев',
-  10: 'месяцев',
-  11: 'месяцев',
-  12: 'месяцев',
-};
-
-export const yearsRuDeclentions: Declentions = {
-  1: 'год',
-  2: 'года',
-  3: 'года',
-  4: 'года',
-  5: 'лет',
-  6: 'лет',
-  7: 'лет',
-  8: 'лет',
-  9: 'лет',
-  10: 'лет',
 };
 
 export const enRuTranslation: { [key: string]: string } = {
@@ -206,10 +143,10 @@ export const enRuTranslation: { [key: string]: string } = {
   '.': 'ю',
 };
 
-export const USER_PREFERRED_MIDNIGHT_OFFSET_HOURS = 5;
+export const USER_PREFERRED_MIDNIGHT_OFFSET_HOURS: number = 5;
 
-export const DEFAULT_INPUT_FIELD_PROGRESS_TIMER = 2000;
-export const DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER = 3000;
+export const DEFAULT_INPUT_FIELD_PROGRESS_TIMER: number = 2000;
+export const DEFAULT_REQUEST_STATUS_FADE_OUT_TIMER: number = 3000;
 
 export const DEFAULT_SETTINGS: Settings = {
   selectedChapterFood: false,
@@ -219,4 +156,4 @@ export const DEFAULT_SETTINGS: Settings = {
   userName: '',
 };
 
-export const DEFAULT_CACHED_REQUEST_VALIDITY_MS = 1000;
+export const DEFAULT_CACHED_REQUEST_VALIDITY_MS: number = 1000;

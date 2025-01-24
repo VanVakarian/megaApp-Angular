@@ -8,15 +8,6 @@ import { MatSliderModule } from '@angular/material/slider';
 
 import { firstValueFrom } from 'rxjs';
 
-import { FoodStatsService } from '@app/services/food-stats.service';
-import {
-  KCALS_CHART_SETTINGS,
-  WEIGHT_CHART_SETTINGS,
-  daysRuDeclentions,
-  monthsRuDeclentions,
-  yearsRuDeclentions,
-} from '@app/shared/const';
-import { debounce, formatDateTicks, throttle } from '@app/shared/utils';
 import {
   BarController,
   BarElement,
@@ -30,6 +21,10 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
+
+import { FoodStatsService } from '@app/services/food-stats.service';
+import { KCALS_CHART_SETTINGS, WEIGHT_CHART_SETTINGS } from '@app/shared/const';
+import { debounce, formatDateTicks, getRuDeclension, throttle } from '@app/shared/utils';
 
 Chart.register(
   CategoryScale,
@@ -198,19 +193,19 @@ export class FoodStatsComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // building human readable description
     if (years > 0) {
-      const yearText = `${years} ${yearsRuDeclentions[years]}`;
+      const yearText = `${years} ${getRuDeclension(years, 'год', 'года', 'лет')}`;
       const hasRemainingUnits = months > 0 || remainingDays > 0;
       parts.push(yearText + (hasRemainingUnits ? ',' : ''));
     }
 
     if (months > 0) {
-      const monthText = `${months} ${monthsRuDeclentions[months]}`;
+      const monthText = `${months} ${getRuDeclension(months, 'месяц', 'месяца', 'месяцев')}`;
       const hasRemainingDays = remainingDays > 0;
       parts.push(monthText + (hasRemainingDays ? ',' : ''));
     }
 
     if (remainingDays > 0) {
-      parts.push(`${remainingDays} ${daysRuDeclentions[remainingDays]}`);
+      parts.push(`${remainingDays} ${getRuDeclension(remainingDays, 'день', 'дня', 'дней')}`);
     }
 
     return parts.join(' ');

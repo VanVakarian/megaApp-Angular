@@ -109,3 +109,23 @@ export function debounce<T extends (...args: any[]) => any>(fn: T, delay: number
     timeoutId = setTimeout(() => fn(...args), delay);
   };
 }
+
+// USAGE: getRuDeclension(1, 'день', 'дня', 'дней');
+export function getRuDeclension(number: number, one: string, few: string, many: string): string {
+  // Corner cases first: numbers from 11 to 14
+  const numberAsString = String(number);
+  const lastTwoDigits = numberAsString.slice(-2);
+
+  if (['11', '12', '13', '14'].includes(lastTwoDigits)) return many;
+
+  // Next, we check only the last digit
+  const lastDigit = numberAsString.slice(-1);
+
+  if (['0', '5', '6', '7', '8', '9'].includes(lastDigit)) return many;
+
+  if (['2', '3', '4'].includes(lastDigit)) return few;
+
+  if (lastDigit === '1') return one;
+
+  return many;
+}
