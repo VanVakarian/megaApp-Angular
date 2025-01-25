@@ -32,7 +32,7 @@ export class FoodScreenComponent implements OnInit {
   }
 
   ngOnInit() {
-    firstValueFrom(this.foodService.getFoodDiaryFullUpdateRange(undefined, 2));
+    firstValueFrom(this.foodService.getFoodDiaryFullUpdateRange());
     firstValueFrom(this.foodService.getCatalogueEntries());
     firstValueFrom(this.foodService.getMyCatalogueEntries());
 

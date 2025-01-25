@@ -45,7 +45,7 @@ export class FoodService {
   private FETCH_THRESHOLD = 3; // TODO[063]: move to settings
 
   private loadedRanges$$: WritableSignal<{ start: string; end: string }[]> = signal([]);
-  private isLoading$$: WritableSignal<boolean> = signal(false);
+  private isFullUpdateLoading$$: WritableSignal<boolean> = signal(false);
   private fetchMoreDiaryTrigger$ = new Subject<void>();
 
   constructor(private http: HttpClient) {
@@ -58,6 +58,7 @@ export class FoodService {
     // effect(() => { console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()) }); // prettier-ignore
     // effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()) }); // prettier-ignore
     // effect(() => { console.log('COEFFICIENTS have been updated:', this.coefficients$$()) }); // prettier-ignore
+    // effect(() => { console.log('IS FULL UPDATE LOADING has been updated:', this.isFullUpdateLoading$$()) }); // prettier-ignore
 
     effect(() => {
       if (this.shouldLoadMore()) {
@@ -72,9 +73,10 @@ export class FoodService {
     this.fetchMoreDiaryTrigger$
       .pipe(
         debounceTime(100),
-        filter(() => !this.isLoading$$()),
+        filter(() => !this.isFullUpdateLoading$$()),
       )
       .subscribe(() => {
+        console.log('Loading more data?');
         this.loadMoreData();
       });
   }
@@ -131,8 +133,17 @@ export class FoodService {
   }
 
   public getFoodDiaryFullUpdateRange(dateIso?: string, offset?: number): Observable<Diary> {
-    const paramsStr = `date=${dateIso ?? getTodayIsoNoTimeNoTZ()}&offset=${offset ?? this.FETCH_OFFSET}`;
-    return this.http.get<Diary>(`/api/food/diary-full-update?${paramsStr}`);
+    this.isFullUpdateLoading$$.set(true);
+    const date = dateIso ?? getTodayIsoNoTimeNoTZ();
+    const paramsStr = `date=${date}&offset=${offset ?? this.FETCH_OFFSET}`;
+    return this.http.get<Diary>(`/api/food/diary-full-update?${paramsStr}`).pipe(
+      map((response) => {
+        this.diary$$.update((diary) => ({ ...diary, ...response }));
+        this.updateLoadedRanges(date);
+        this.isFullUpdateLoading$$.set(false);
+        return response;
+      }),
+    );
   }
 
   //                                                                                                               DIARY
@@ -402,38 +413,30 @@ export class FoodService {
   }
 
   private async loadMoreData(): Promise<void> {
-    this.isLoading$$.set(true);
+    const selectedDay = this.selectedDayIso$$();
+    const ranges = this.loadedRanges$$();
 
-    try {
-      const selectedDay = this.selectedDayIso$$();
-      const ranges = this.loadedRanges$$();
+    let dateToLoad = selectedDay;
+    if (ranges.length > 0) {
+      const nearestRange = this.findNearestRange(selectedDay);
+      if (nearestRange) {
+        const selected = new Date(selectedDay);
+        const start = new Date(nearestRange.start);
+        const end = new Date(nearestRange.end);
 
-      let dateToLoad = selectedDay;
-      if (ranges.length > 0) {
-        const nearestRange = this.findNearestRange(selectedDay);
-        if (nearestRange) {
-          const selected = new Date(selectedDay);
-          const start = new Date(nearestRange.start);
-          const end = new Date(nearestRange.end);
-
-          if (Math.abs(selected.getTime() - start.getTime()) < Math.abs(selected.getTime() - end.getTime())) {
-            const newStart = new Date(start);
-            newStart.setDate(start.getDate() - this.FETCH_OFFSET);
-            dateToLoad = newStart.toISOString().split('T')[0];
-          } else {
-            const newEnd = new Date(end);
-            newEnd.setDate(end.getDate() + this.FETCH_OFFSET);
-            dateToLoad = newEnd.toISOString().split('T')[0];
-          }
+        if (Math.abs(selected.getTime() - start.getTime()) < Math.abs(selected.getTime() - end.getTime())) {
+          const newStart = new Date(start);
+          newStart.setDate(start.getDate() - this.FETCH_OFFSET);
+          dateToLoad = newStart.toISOString().split('T')[0];
+        } else {
+          const newEnd = new Date(end);
+          newEnd.setDate(end.getDate() + this.FETCH_OFFSET);
+          dateToLoad = newEnd.toISOString().split('T')[0];
         }
       }
-
-      const response = await firstValueFrom(this.getFoodDiaryFullUpdateRange(dateToLoad));
-      this.diary$$.update((diary) => ({ ...diary, ...response }));
-      this.updateLoadedRanges(dateToLoad);
-    } finally {
-      this.isLoading$$.set(false);
     }
+
+    await firstValueFrom(this.getFoodDiaryFullUpdateRange(dateToLoad));
   }
 
   private findNearestRange(date: string): { start: string; end: string } | null {

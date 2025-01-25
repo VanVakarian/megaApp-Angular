@@ -118,7 +118,7 @@ export function getRuDeclension(number: number, one: string, few: string, many: 
 
   if (['11', '12', '13', '14'].includes(lastTwoDigits)) return many;
 
-  // Next, we check only the last digit
+  // Next, checking only the last digit
   const lastDigit = numberAsString.slice(-1);
 
   if (['0', '5', '6', '7', '8', '9'].includes(lastDigit)) return many;
