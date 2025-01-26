@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, effect, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 
-import { catchError, debounceTime, filter, firstValueFrom, map, Observable, of, Subject, tap } from 'rxjs';
+import { catchError, firstValueFrom, map, Observable, of, Subject, tap } from 'rxjs';
 
+import { exhaustRequest } from '@app/shared/decorators/exhaust-request.decorator';
 import {
   BodyWeight,
   Catalogue,
@@ -45,7 +46,6 @@ export class FoodService {
   private FETCH_THRESHOLD = 3; // TODO[063]: move to settings
 
   private loadedRanges$$: WritableSignal<{ start: string; end: string }[]> = signal([]);
-  private isFullUpdateLoading$$: WritableSignal<boolean> = signal(false);
   private fetchMoreDiaryTrigger$ = new Subject<void>();
 
   constructor(private http: HttpClient) {
@@ -58,7 +58,6 @@ export class FoodService {
     // effect(() => { console.log('CATALOGUE SORTED LIST SELECTED have been updated:', this.catalogueSortedListSelected$$()) }); // prettier-ignore
     // effect(() => { console.log('CATALOGUE SORTED LIST LEFT OUT have been updated:', this.catalogueSortedListLeftOut$$()) }); // prettier-ignore
     // effect(() => { console.log('COEFFICIENTS have been updated:', this.coefficients$$()) }); // prettier-ignore
-    // effect(() => { console.log('IS FULL UPDATE LOADING has been updated:', this.isFullUpdateLoading$$()) }); // prettier-ignore
 
     effect(() => {
       if (this.shouldLoadMore()) {
@@ -70,15 +69,9 @@ export class FoodService {
   }
 
   private subscribe(): void {
-    this.fetchMoreDiaryTrigger$
-      .pipe(
-        debounceTime(100),
-        filter(() => !this.isFullUpdateLoading$$()),
-      )
-      .subscribe(() => {
-        console.log('Loading more data?');
-        this.loadMoreData();
-      });
+    this.fetchMoreDiaryTrigger$.subscribe(() => {
+      this.loadMoreData();
+    });
   }
 
   //                                                                                                                INIT
@@ -132,15 +125,14 @@ export class FoodService {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
+  @exhaustRequest()
   public getFoodDiaryFullUpdateRange(dateIso?: string, offset?: number): Observable<Diary> {
-    this.isFullUpdateLoading$$.set(true);
     const date = dateIso ?? getTodayIsoNoTimeNoTZ();
     const paramsStr = `date=${date}&offset=${offset ?? this.FETCH_OFFSET}`;
     return this.http.get<Diary>(`/api/food/diary-full-update?${paramsStr}`).pipe(
       map((response) => {
         this.diary$$.update((diary) => ({ ...diary, ...response }));
         this.updateLoadedRanges(date);
-        this.isFullUpdateLoading$$.set(false);
         return response;
       }),
     );
@@ -237,7 +229,6 @@ export class FoodService {
     return this.http.post<ServerResponseBasic>('/api/food/body-weight', bodyWeight).pipe(
       map((response) => {
         if (response.result) {
-          // console.log('response', response);
           this.diary$$.update((diary) => {
             return {
               ...diary,
@@ -251,7 +242,7 @@ export class FoodService {
         return response.result;
       }),
       catchError((error) => {
-        console.warn('Failed setting user body weight:', error);
+        console.error('Failed setting user body weight:', error);
         return of(false);
       }),
     );
@@ -266,7 +257,7 @@ export class FoodService {
         return response;
       }),
       catchError((error) => {
-        console.warn('Failed getting catalogue entries:', error);
+        console.error('Failed getting catalogue entries:', error);
         return of({});
       }),
     );
@@ -283,7 +274,7 @@ export class FoodService {
         return null;
       }),
       catchError((error) => {
-        console.warn('Failed adding user food item:', error);
+        console.error('Failed adding user food item:', error);
         return of(null);
       }),
     );
@@ -320,7 +311,7 @@ export class FoodService {
           return response.result;
         }),
         catchError((error) => {
-          console.warn('Failed updating user food item:', error);
+          console.error('Failed updating user food item:', error);
           return of(false);
         }),
       );
@@ -333,7 +324,7 @@ export class FoodService {
         return response;
       }),
       catchError((error) => {
-        console.warn('Failed getting user catalogue entries:', error);
+        console.error('Failed getting user catalogue entries:', error);
         return of([]);
       }),
     );
@@ -346,7 +337,7 @@ export class FoodService {
         return response.result;
       }),
       catchError((error) => {
-        console.warn('Failed picking user food id:', error);
+        console.error('Failed picking user food id:', error);
         return of(false);
       }),
     );
@@ -365,7 +356,7 @@ export class FoodService {
         return response.result;
       }),
       catchError((error) => {
-        console.warn('Failed dismissing user food id:', error);
+        console.error('Failed dismissing user food id:', error);
         return of(false);
       }),
     );
