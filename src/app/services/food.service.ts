@@ -45,7 +45,7 @@ export class FoodService {
   private FETCH_OFFSET = 7; // TODO[063]: move to settings
   private FETCH_THRESHOLD = 3; // TODO[063]: move to settings
 
-  private loadedRanges$$: WritableSignal<{ start: string; end: string }[]> = signal([]);
+  private loadedRange$$: WritableSignal<{ start: string; end: string } | null> = signal(null);
   private fetchMoreDiaryTrigger$ = new Subject<void>();
 
   constructor(private http: HttpClient) {
@@ -132,7 +132,7 @@ export class FoodService {
     return this.http.get<Diary>(`/api/food/diary-full-update?${paramsStr}`).pipe(
       map((response) => {
         this.diary$$.update((diary) => ({ ...diary, ...response }));
-        this.updateLoadedRanges(date);
+        this.updateLoadedRange(date);
         return response;
       }),
     );
@@ -385,80 +385,44 @@ export class FoodService {
 
   private shouldLoadMore(): boolean {
     const selectedDay = this.selectedDayIso$$();
-    const ranges = this.loadedRanges$$();
-    if (ranges.length === 0) return true;
+    const range = this.loadedRange$$();
+    if (!range) return true;
 
-    for (const range of ranges) {
-      const start = new Date(range.start);
-      const end = new Date(range.end);
-      const selected = new Date(selectedDay);
+    const start = new Date(range.start);
+    const end = new Date(range.end);
+    const selected = new Date(selectedDay);
 
-      const daysToStart = Math.floor((selected.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-      const daysToEnd = Math.floor((end.getTime() - selected.getTime()) / (1000 * 60 * 60 * 24));
+    const daysToStart = Math.floor((selected.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    const daysToEnd = Math.floor((end.getTime() - selected.getTime()) / (1000 * 60 * 60 * 24));
 
-      if (daysToStart <= this.FETCH_THRESHOLD || daysToEnd <= this.FETCH_THRESHOLD) {
-        return true;
-      }
-    }
-    return false;
+    return daysToStart <= this.FETCH_THRESHOLD || daysToEnd <= this.FETCH_THRESHOLD;
   }
 
   private async loadMoreData(): Promise<void> {
     const selectedDay = this.selectedDayIso$$();
-    const ranges = this.loadedRanges$$();
+    const loadedRange = this.loadedRange$$();
 
     let dateToLoad = selectedDay;
-    if (ranges.length > 0) {
-      const nearestRange = this.findNearestRange(selectedDay);
-      if (nearestRange) {
-        const selected = new Date(selectedDay);
-        const start = new Date(nearestRange.start);
-        const end = new Date(nearestRange.end);
+    if (loadedRange) {
+      const selected = new Date(selectedDay);
+      const start = new Date(loadedRange.start);
+      const end = new Date(loadedRange.end);
 
-        if (Math.abs(selected.getTime() - start.getTime()) < Math.abs(selected.getTime() - end.getTime())) {
-          const newStart = new Date(start);
-          newStart.setDate(start.getDate() - this.FETCH_OFFSET);
-          dateToLoad = newStart.toISOString().split('T')[0];
-        } else {
-          const newEnd = new Date(end);
-          newEnd.setDate(end.getDate() + this.FETCH_OFFSET);
-          dateToLoad = newEnd.toISOString().split('T')[0];
-        }
+      if (Math.abs(selected.getTime() - start.getTime()) < Math.abs(selected.getTime() - end.getTime())) {
+        const newStart = new Date(start);
+        newStart.setDate(start.getDate() - this.FETCH_OFFSET);
+        dateToLoad = newStart.toISOString().split('T')[0];
+      } else {
+        const newEnd = new Date(end);
+        newEnd.setDate(end.getDate() + this.FETCH_OFFSET);
+        dateToLoad = newEnd.toISOString().split('T')[0];
       }
     }
 
     await firstValueFrom(this.getFoodDiaryFullUpdateRange(dateToLoad));
   }
 
-  private findNearestRange(date: string): { start: string; end: string } | null {
-    const ranges = this.loadedRanges$$();
-    if (ranges.length === 0) return null;
-
-    const targetDate = new Date(date).getTime();
-
-    return ranges.reduce(
-      (nearest, range) => {
-        const startDiff = Math.abs(new Date(range.start).getTime() - targetDate);
-        const endDiff = Math.abs(new Date(range.end).getTime() - targetDate);
-        const minDiff = Math.min(startDiff, endDiff);
-
-        if (
-          !nearest ||
-          minDiff <
-            Math.min(
-              Math.abs(new Date(nearest.start).getTime() - targetDate),
-              Math.abs(new Date(nearest.end).getTime() - targetDate),
-            )
-        ) {
-          return range;
-        }
-        return nearest;
-      },
-      null as { start: string; end: string } | null,
-    );
-  }
-
-  private updateLoadedRanges(centerDate: string): void {
+  private updateLoadedRange(centerDate: string): void {
     const center = new Date(centerDate);
     const start = new Date(center);
     const end = new Date(center);
@@ -471,34 +435,18 @@ export class FoodService {
       end: end.toISOString().split('T')[0],
     };
 
-    this.loadedRanges$$.update((ranges) => {
-      const mergedRanges = this.mergeRanges([...ranges, newRange]);
-      return mergedRanges;
-    });
-  }
-
-  private mergeRanges(ranges: { start: string; end: string }[]): { start: string; end: string }[] {
-    if (ranges.length <= 1) return ranges;
-
-    const sortedRanges = ranges.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-
-    const result: { start: string; end: string }[] = [sortedRanges[0]];
-
-    for (const range of sortedRanges.slice(1)) {
-      const lastRange = result[result.length - 1];
-      const lastEnd = new Date(lastRange.end);
-      const currentStart = new Date(range.start);
-
-      lastEnd.setDate(lastEnd.getDate() + 1);
-
-      if (lastEnd.getTime() >= currentStart.getTime()) {
-        const newEnd = new Date(Math.max(new Date(lastRange.end).getTime(), new Date(range.end).getTime()));
-        lastRange.end = newEnd.toISOString().split('T')[0];
-      } else {
-        result.push(range);
-      }
+    const currentRange = this.loadedRange$$();
+    if (!currentRange) {
+      this.loadedRange$$.set(newRange);
+      return;
     }
 
-    return result;
+    const newStart = new Date(Math.min(new Date(currentRange.start).getTime(), start.getTime()));
+    const newEnd = new Date(Math.max(new Date(currentRange.end).getTime(), end.getTime()));
+
+    this.loadedRange$$.set({
+      start: newStart.toISOString().split('T')[0],
+      end: newEnd.toISOString().split('T')[0],
+    });
   }
 }

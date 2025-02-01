@@ -43,3 +43,4 @@ testem.log
 Thumbs.db
 
 build-info.js
+*.project_src
