@@ -10,7 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 
 import { AuthService } from '@app/services/auth.service';
 import { FoodService } from '@app/services/food.service';
-import { dateToIsoNoTimeNoTZ, getAdjustedDate } from '@app/shared/utils';
+import { dateToIsoNoTimeNoTZ, epochToIsoNoTimeNoTZ, getAdjustedDate } from '@app/shared/utils';
 
 @Component({
   selector: 'app-diary-nav-buttons',
@@ -73,32 +73,23 @@ export class DiaryNavButtonsComponent implements OnInit, OnDestroy {
   }
 
   public nextDay() {
-    if (!this.isLastDay()) {
-      this.switchCurrentDay(1);
-    }
+    this.switchCurrentDay(1);
   }
 
   private switchCurrentDay(shift: number) {
     const newDate = new Date(this.selectedDateMs);
     newDate.setDate(newDate.getDate() + shift);
     this.selectedDateMs = newDate.getTime();
-    const newDateIso = dateToIsoNoTimeNoTZ(this.selectedDateMs);
+    const newDateIso = epochToIsoNoTimeNoTZ(this.selectedDateMs);
     this.foodService.selectedDayIso$$.set(newDateIso);
     this.calendarSelectedDay.setValue(getAdjustedDate(newDate));
-    // this.regenerateDaysList();
   }
 
   public onDatePicked(event: MatDatepickerInputEvent<Date>) {
-    if (!event.value) {
-      return;
-    }
-    this.selectedDateMs = event.value.getTime();
-    const newDateIso = dateToIsoNoTimeNoTZ(this.selectedDateMs);
-    this.foodService.selectedDayIso$$.set(newDateIso);
-    // this.regenerateDaysList();
-  }
+    if (!event.value) return;
 
-  public isLastDay(): boolean {
-    return this.today.getTime() === this.selectedDateMs;
+    this.selectedDateMs = event.value.getTime();
+    const newDateIso = dateToIsoNoTimeNoTZ(event.value);
+    this.foodService.selectedDayIso$$.set(newDateIso);
   }
 }

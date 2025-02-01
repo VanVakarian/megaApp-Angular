@@ -1,7 +1,7 @@
 import { USER_PREFERRED_MIDNIGHT_OFFSET_HOURS } from '@app/shared/const';
 
 export function getTodayIsoNoTimeNoTZ(): string {
-  return dateToIsoNoTimeNoTZ(new Date().getTime());
+  return epochToIsoNoTimeNoTZ(new Date().getTime());
 }
 
 // export function getTodayIsoNoTimeNoTZ(): string {
@@ -12,7 +12,11 @@ export function getTodayIsoNoTimeNoTZ(): string {
 //   return dateToIsoNoTimeNoTZ(adjustedDate.getTime());
 // }
 
-export function dateToIsoNoTimeNoTZ(milliseconds: number): string {
+export function dateToIsoNoTimeNoTZ(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+export function epochToIsoNoTimeNoTZ(milliseconds: number): string {
   const date = new Date(milliseconds);
   date.setHours(date.getHours() - USER_PREFERRED_MIDNIGHT_OFFSET_HOURS);
   return date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);

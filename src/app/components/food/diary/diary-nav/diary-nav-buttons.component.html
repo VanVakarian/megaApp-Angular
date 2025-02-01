@@ -1,4 +1,4 @@
-<div class="flex w-full gap-2">
+<div class="flex gap-2 w-full">
   <div class="lg:block hidden">
     <button class="diary-day-switch-button w-9"
             mat-raised-button
@@ -14,7 +14,7 @@
     <!-- {{ formatDate("2024-12-30") }} -->
   </div>
 
-  <div class="lg:flex flex-col hidden">
+  <div class="lg:flex hidden flex-col">
     <button class="diary-day-switch-button w-9"
             mat-raised-button
             color="primary"
@@ -37,15 +37,14 @@
     <button class="diary-day-switch-button w-9"
             mat-raised-button
             color="primary"
-            (click)="nextDay()"
-            [disabled]="isLastDay()">
+            (click)="nextDay()">
       <mat-icon class="diary-day-switch-button-icon scale-125">chevron_right</mat-icon>
     </button>
   </div>
 </div>
 
 <div *ngIf="isAuthenticated"
-     class="lg:hidden fixed bottom-0 left-0 flex justify-between w-full gap-5 px-4 pb-4"
+     class="lg:hidden flex fixed bottom-0 left-0 gap-5 justify-between px-4 pb-4 w-full"
      style="z-index: 10">
   <button class="scale-100"
           mat-fab
@@ -64,12 +63,11 @@
   <button class="scale-100"
           mat-fab
           color="primary"
-          (click)="nextDay()"
-          [disabled]="isLastDay()">
+          (click)="nextDay()">
     <mat-icon class="scale-150">chevron_right</mat-icon>
   </button>
 
-  <div class="h-14 w-14">
+  <div class="w-14 h-14">
     <!-- placeholder for hamburger menu -->
   </div>
 </div>
