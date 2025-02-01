@@ -115,7 +115,7 @@ export class BodyWeightComponent {
 
     try {
       const weight: BodyWeight = {
-        bodyWeight: weightValue.replace(',', '.'),
+        bodyWeight: weightValue,
         dateISO: selectedDateISO,
       };
 
