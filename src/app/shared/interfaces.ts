@@ -1,8 +1,8 @@
 //                                                                           APP
 
 export enum ScreenType {
-  MOBILE = 'mobile',
-  DESKTOP = 'desktop',
+  MOBILE = 'MOBILE',
+  DESKTOP = 'DESKTOP',
 }
 
 //                                                                          AUTH

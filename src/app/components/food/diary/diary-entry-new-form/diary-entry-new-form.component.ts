@@ -1,13 +1,10 @@
-import { AsyncPipe } from '@angular/common';
 import {
-  AfterViewInit,
   Component,
   computed,
   ElementRef,
   EventEmitter,
   Input,
   OnChanges,
-  OnDestroy,
   OnInit,
   Output,
   Signal,
@@ -19,32 +16,31 @@ import {
   FormControl,
   FormGroup,
   FormGroupDirective,
-  FormsModule,
   ReactiveFormsModule,
   ValidationErrors,
   ValidatorFn,
   Validators,
 } from '@angular/forms';
 
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
-import { firstValueFrom, Subject, Subscription } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 import { FoodStatsService } from '@app/services/food-stats.service';
 import { FoodService } from '@app/services/food.service';
-import { CatalogueEntry, DiaryEntry } from '@app/shared/interfaces';
+import { ScreenSizeWatcherService } from '@app/services/screen-size-watcher.service';
+import { CatalogueEntry, DiaryEntry, ScreenType } from '@app/shared/interfaces';
+import { FoodSelectDropdownComponent } from './food-select-dropdown/food-select-dropdown.component';
 
 @Component({
   selector: 'app-diary-entry-new-form',
   standalone: true,
   imports: [
-    AsyncPipe,
-    FormsModule,
     ReactiveFormsModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -52,10 +48,11 @@ import { CatalogueEntry, DiaryEntry } from '@app/shared/interfaces';
     MatOptionModule,
     MatIconModule,
     MatAutocompleteModule,
+    FoodSelectDropdownComponent,
   ],
   templateUrl: './diary-entry-new-form.component.html',
 })
-export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
+export class DiaryEntryNewFormComponent implements OnInit, OnChanges {
   @Input()
   public expanded = false;
 
@@ -71,7 +68,10 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
   @ViewChild('weightInputElem')
   public weightInputElem!: ElementRef;
 
-  public filteredCatalogue$: Subject<CatalogueEntry[]> = new Subject<CatalogueEntry[]>();
+  @ViewChild(FoodSelectDropdownComponent)
+  private foodSelectDropdownComponent!: FoodSelectDropdownComponent;
+
+  private isModalOpen = false;
 
   private catalogueNames$$: Signal<string[]> = computed(() =>
     this.foodService.catalogueSortedListSelected$$().map((food) => food.name),
@@ -93,55 +93,55 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
     ]),
   });
 
-  private subs = new Subscription();
-
-  public get foodName() {
-    return this.diaryEntryForm.get('foodName');
-  }
-
   public get foodWeight() {
     return this.diaryEntryForm.get('foodWeight');
+  }
+
+  public get isMobile(): boolean {
+    return this.screenSizeWatcherService.currentScreenType === ScreenType.MOBILE;
+  }
+
+  public get isModalOpened(): boolean {
+    return this.isModalOpen;
+  }
+
+  public set isModalOpened(value: boolean) {
+    this.isModalOpen = value;
   }
 
   constructor(
     private foodService: FoodService,
     private foodStatsService: FoodStatsService,
+    private screenSizeWatcherService: ScreenSizeWatcherService,
   ) {
     // effect(() => { console.log('CATALOGUE NAMES have been updated:', this.catalogueNames$$()); }); // prettier-ignore
   }
 
-  public ngOnInit(): void {
-    this.subscribe();
-  }
+  public ngOnInit(): void {}
 
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes['expanded'] && changes['expanded'].currentValue) {
       setTimeout(() => {
         this.foodInputElem?.nativeElement?.focus();
+        this.openModal();
       }, 125);
+      // }, 50);
     }
-  }
-
-  public ngAfterViewInit(): void {}
-
-  public ngOnDestroy(): void {
-    this.subs.unsubscribe();
   }
 
   public isFormValid(): boolean {
     return this.diaryEntryForm.valid;
   }
 
-  public onFoodSelected(event: MatAutocompleteSelectedEvent) {
-    const selectedFood = this.foodService
-      .catalogueSortedListSelected$$()
-      .find((food) => food.name === event.option.value);
-    if (selectedFood) {
-      this.diaryEntryForm.get('foodCatalogueId')!.setValue(selectedFood.id);
+  public onFoodSelected(food: CatalogueEntry | null): void {
+    if (food) {
+      this.diaryEntryForm.get('foodCatalogueId')!.setValue(food.id);
+      this.diaryEntryForm.get('foodName')!.setValue(food.name);
+      this.isModalOpened = false;
     }
     setTimeout(() => {
       this.weightInputElem.nativeElement.focus();
-    }, 100); // Waiting for panel expansion animation for the focus to work
+    }, 0); // Waiting for panel expansion animation for the focus to work
   }
 
   public async onSubmit(): Promise<void> {
@@ -182,26 +182,10 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges, AfterViewI
     }
   }
 
-  public foodNameReset(): void {
-    this.diaryEntryForm.get('foodName')!.setValue('');
-  }
-
-  public shouldShowClearButton(): boolean {
-    return this.diaryEntryForm.get('foodName')!.value && this.diaryEntryForm.get('foodName')!.value.length > 0;
-  }
-
-  private subscribe(): void {
-    this.subs.add(
-      this.diaryEntryForm.get('foodName')!.valueChanges.subscribe((value) => {
-        this.filteredCatalogue$.next(this._filter(value || ''));
-      }),
-    );
-  }
-
-  private _filter(value: string): CatalogueEntry[] {
-    const filterValue = value.toLowerCase();
-    return this.foodService
-      .catalogueSortedListSelected$$()
-      .filter((food) => food.name.toLowerCase().includes(filterValue));
+  public openModal(): void {
+    this.isModalOpened = true;
+    setTimeout(() => {
+      this.foodSelectDropdownComponent.focusInput();
+    }, 0);
   }
 }

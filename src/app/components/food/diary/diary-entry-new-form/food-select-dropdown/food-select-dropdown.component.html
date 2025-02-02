@@ -1,0 +1,41 @@
+<form (submit)="onSubmit()"
+      [formGroup]="diaryEntryForm"
+      #formGroupDirective="ngForm">
+
+  <mat-form-field appearance="outline"
+                  class="w-full">
+    <mat-label>Еда:</mat-label>
+
+    <input #foodInputElem
+           type="text"
+           required
+           [matAutocomplete]="autoGroup"
+           formControlName="foodName"
+           matInput />
+
+    @if (shouldShowClearButton()) {
+      <button type="button"
+              (click)="foodNameReset()"
+              mat-icon-button
+              matSuffix>
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+
+    <mat-autocomplete #autoGroup="matAutocomplete"
+                      (optionSelected)="onOptionSelected($event)">
+      @for (food of filteredCatalogue(); track food.name) {
+        <mat-option [value]="food.name">
+          {{ food.name }}
+        </mat-option>
+      }
+    </mat-autocomplete>
+
+    @if (foodName?.value !== '' && (foodName?.errors?.['required'] || foodName?.errors?.['notInCatalogue'])) {
+      <mat-error>
+        Выберите еду из списка
+      </mat-error>
+    }
+  </mat-form-field>
+
+</form>
