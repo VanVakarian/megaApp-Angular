@@ -1,12 +1,12 @@
 <div class="lg:block hidden mb-4">
   <mat-card>
-    <div class="w-full my-2 text-xl font-semibold text-center">Дневник</div>
+    <div class="my-2 w-full text-xl font-semibold text-center">Дневник</div>
   </mat-card>
 </div>
 
 <mat-accordion>
   <div class="flex gap-2">
-    <div class="w-full mb-2">
+    <div class="mb-2 w-full">
       <app-diary-nav-buttons />
     </div>
   </div>
@@ -15,7 +15,7 @@
                        class="sub-expansion-panel-38px-50px expansion-panel-rounded panel-body-weight">
     <mat-expansion-panel-header class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease"
                                 [ngStyle]="setBackgroundStyle(todaysKcalsPercent)">
-      <div class="whitespace-nowrap overflow-hidden text-center">
+      <div class="overflow-hidden text-center whitespace-nowrap">
         Съедено {{ todaysKcalsEaten }} ккал. от нормы
         {{ todaysTargetKcals }}
         ({{ formatSelectedDaysEatenPercent }}%)
@@ -30,9 +30,9 @@
   <div class="mb-1"></div>
 
   <div #foodCont
-       class="tw-bg-color whitespace-nowrap flex w-full gap-1 overflow-hidden text-base font-normal">
+       class="tw-bg-color flex overflow-hidden gap-1 w-full text-base font-normal whitespace-nowrap">
     <div #foodName
-         class="tw-card-food-entry grow whitespace-nowrap overflow-hidden text-center">
+         class="tw-card-food-entry grow overflow-hidden text-center whitespace-nowrap">
       Блюдо:
     </div>
 
@@ -62,9 +62,9 @@
                                   [ngStyle]="setBackgroundStyle(food.foodKcalPercentageOfDaysNorm)">
         <mat-panel-title class="mat-panel-title-margin-remove">
           <div #foodCont
-               class="whitespace-nowrap flex w-full gap-1 overflow-hidden text-base font-normal">
+               class="flex overflow-hidden gap-1 w-full text-base font-normal whitespace-nowrap">
             <div #foodName
-                 class="tw-card-food-entry grow whitespace-nowrap overflow-hidden">
+                 class="tw-card-food-entry grow overflow-hidden whitespace-nowrap">
               {{ food.foodName }}
             </div>
 
@@ -95,9 +95,10 @@
 
   <div class="mb-2"></div>
 
-  <mat-expansion-panel #newEntryPanel="matExpansionPanel"
+  <mat-expansion-panel #newDiaryEntryPanel
                        color="primary"
-                       class="sub-expansion-panel-38px-50px expansion-panel-rounded">
+                       class="sub-expansion-panel-38px-50px expansion-panel-rounded"
+                       (opened)="newDiaryEntryExpanded()">
     <mat-expansion-panel-header
                                 class="expansion-panel-arrow-indiactor-remove mat-expansion-panel-header-margins-decrease add-panel-header">
       <!-- TODO: Think of a way to put text here upon panel expanding -->
@@ -107,7 +108,7 @@
       </div>
     </mat-expansion-panel-header>
 
-    <app-diary-entry-new-form [expanded]="newEntryPanel.expanded"
+    <app-diary-entry-new-form [expanded]="newDiaryEntryPanel.expanded"
                               (onServerSuccessfullResponse)="accordionCollapse()" />
   </mat-expansion-panel>
 </mat-accordion>

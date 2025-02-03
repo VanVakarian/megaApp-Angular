@@ -47,6 +47,9 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatAccordion)
   public foodAccordion!: MatAccordion;
 
+  @ViewChild('newDiaryEntryPanel')
+  public newDiaryEntryPanel!: MatExpansionPanel;
+
   @ViewChild('foodCont')
   public contDiv!: ElementRef;
 
@@ -123,6 +126,15 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => {
       window.scrollTo({
         top: diaryEntry._body.nativeElement.getBoundingClientRect().top + window.scrollY - 70,
+        behavior: 'smooth',
+      });
+    }, 170);
+  }
+
+  public newDiaryEntryExpanded() {
+    setTimeout(() => {
+      window.scrollTo({
+        top: this.newDiaryEntryPanel._body.nativeElement.getBoundingClientRect().top + window.scrollY - 70,
         behavior: 'smooth',
       });
     }, 170);

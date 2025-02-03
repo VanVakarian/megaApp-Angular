@@ -98,10 +98,6 @@ export class FoodSelectDropdownComponent implements OnInit {
     this.diaryEntryForm.controls.foodName.valueChanges.subscribe((value) => {
       this.searchQuery.set(value || '');
     });
-
-    // setTimeout(() => {
-    //   this.foodInputElem?.nativeElement?.focus();
-    // }, 125);
   }
 
   public shouldShowClearButton(): boolean {
@@ -129,7 +125,8 @@ export class FoodSelectDropdownComponent implements OnInit {
   }
 
   public focusInput(): void {
-    // console.log('focus input', this.foodInputElem.nativeElement);
-    this.foodInputElem?.nativeElement?.focus();
+    setTimeout(() => {
+      this.foodInputElem?.nativeElement?.focus();
+    }, 0);
   }
 }

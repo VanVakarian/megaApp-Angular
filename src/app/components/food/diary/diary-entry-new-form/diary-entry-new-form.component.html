@@ -2,7 +2,8 @@
   <div class="h-dvh p-2"
        [class.hidden]="!isModalOpened">
     <div class="bg-white">
-      <app-food-select-dropdown (onFoodSelected)="onFoodSelected($event)" />
+      <app-food-select-dropdown #mobileFoodSelect
+                                (onFoodSelected)="onFoodSelected($event)" />
     </div>
 
     <div class="h-full"
@@ -26,7 +27,8 @@
              (click)="openModal()" />
     </mat-form-field>
   } @else {
-    <app-food-select-dropdown (onFoodSelected)="onFoodSelected($event)" />
+    <app-food-select-dropdown #desktopFoodSelect
+                              (onFoodSelected)="onFoodSelected($event)" />
   }
 
   <mat-form-field appearance="outline"

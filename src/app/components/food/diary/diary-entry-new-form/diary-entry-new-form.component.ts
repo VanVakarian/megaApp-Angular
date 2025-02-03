@@ -62,14 +62,14 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges {
   @ViewChild('formGroupDirective')
   public formDirective!: FormGroupDirective;
 
-  @ViewChild('foodInputElem')
-  public foodInputElem!: ElementRef;
+  @ViewChild('mobileFoodSelect')
+  public mobileFoodSelect!: FoodSelectDropdownComponent;
+
+  @ViewChild('desktopFoodSelect')
+  public desktopFoodSelect!: FoodSelectDropdownComponent;
 
   @ViewChild('weightInputElem')
   public weightInputElem!: ElementRef;
-
-  @ViewChild(FoodSelectDropdownComponent)
-  private foodSelectDropdownComponent!: FoodSelectDropdownComponent;
 
   private isModalOpen = false;
 
@@ -122,10 +122,13 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges {
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes['expanded'] && changes['expanded'].currentValue) {
       setTimeout(() => {
-        this.foodInputElem?.nativeElement?.focus();
-        this.openModal();
-      }, 125);
-      // }, 50);
+        if (this.isMobile) {
+          this.openModal();
+          this.mobileFoodSelect.focusInput();
+        } else {
+          this.desktopFoodSelect.focusInput();
+        }
+      }, 125); // roughly the expansion animation duration
     }
   }
 
@@ -184,8 +187,6 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges {
 
   public openModal(): void {
     this.isModalOpened = true;
-    setTimeout(() => {
-      this.foodSelectDropdownComponent.focusInput();
-    }, 0);
+    this.mobileFoodSelect.focusInput();
   }
 }
