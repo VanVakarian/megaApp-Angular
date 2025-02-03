@@ -7,15 +7,16 @@
     <mat-label>Еда:</mat-label>
 
     <input #foodInputElem
-           type="text"
+           matInput
            required
-           [matAutocomplete]="autoGroup"
+           type="text"
            formControlName="foodName"
-           matInput />
+           [(ngModel)]="searchQuery"
+           [matAutocomplete]="autoGroup" />
 
     @if (shouldShowClearButton()) {
       <button type="button"
-              (click)="foodNameReset()"
+              (click)="searchQuery = ''"
               mat-icon-button
               matSuffix>
         <mat-icon>close</mat-icon>

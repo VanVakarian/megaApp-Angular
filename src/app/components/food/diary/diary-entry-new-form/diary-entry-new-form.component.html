@@ -1,7 +1,7 @@
 <div class="lg:hidden bg-slate-950/80 fixed top-0 left-0 z-20 w-full">
   <div class="h-dvh p-2"
        [class.hidden]="!isModalOpened">
-    <div class="bg-white">
+    <div class="rounded-[4px] p-2 bg-white">
       <app-food-select-dropdown #mobileFoodSelect
                                 (onFoodSelected)="onFoodSelected($event)" />
     </div>

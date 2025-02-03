@@ -21,8 +21,8 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { FoodCatalogueFormComponent } from '@app/components/food/catalogue/forms/food-catalogue-form.component';
 import { FoodService } from '@app/services/food.service';
 import { SettingsService } from '@app/services/settings.service';
-import { enRuTranslation } from '@app/shared/const';
 import { CatalogueEntry } from '@app/shared/interfaces';
+import { transliterateEnToRu } from '@app/shared/utils';
 
 @Component({
   selector: 'app-food-catalogue',
@@ -69,13 +69,6 @@ export class FoodCatalogueComponent {
     return catalogue.filter((entry) => query.every((word) => entry.name.toLowerCase().includes(word)));
   }
 
-  private translateToRussian(text: string): string {
-    return text
-      .split('')
-      .map((char) => enRuTranslation[char.toLowerCase()] || char)
-      .join('');
-  }
-
   public get usersInput(): string {
     return this.usersSearchQuery$$();
   }
@@ -99,8 +92,8 @@ export class FoodCatalogueComponent {
   }
 
   public onSearchInput(value: string): void {
-    const translatedValue = this.translateToRussian(value);
-    this.usersSearchQuery$$.set(translatedValue.toLowerCase());
+    const transliteratedValue = transliterateEnToRu(value);
+    this.usersSearchQuery$$.set(transliteratedValue);
     this.pageIndexSelected = 0;
     this.pageIndexLeftOut = 0;
   }

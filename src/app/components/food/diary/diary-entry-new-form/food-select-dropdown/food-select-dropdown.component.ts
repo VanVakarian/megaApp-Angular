@@ -29,6 +29,7 @@ import { MatInputModule } from '@angular/material/input';
 
 import { FoodService } from '@app/services/food.service';
 import { CatalogueEntry } from '@app/shared/interfaces';
+import { transliterateEnToRu } from '@app/shared/utils';
 
 interface FoodSelectForm {
   foodName: FormControl<string>;
@@ -47,9 +48,7 @@ interface FoodSelectForm {
     MatFormFieldModule,
     MatInputModule,
   ],
-  host: {
-    // class: 'p-2',
-  },
+  host: {},
 })
 export class FoodSelectDropdownComponent implements OnInit {
   @Output()
@@ -58,18 +57,18 @@ export class FoodSelectDropdownComponent implements OnInit {
   @ViewChild('foodInputElem')
   public foodInputElem!: ElementRef;
 
-  private searchQuery: WritableSignal<string> = signal('');
+  private searchQuery$$: WritableSignal<string> = signal('');
 
   public filteredCatalogue: Signal<CatalogueEntry[]> = computed(() => {
-    const filterValue = this.searchQuery().toLowerCase();
+    const searchTerms = this.searchQuery$$()
+      .toLowerCase()
+      .split(' ')
+      .filter((term) => term.length > 0);
+
     return this.foodService
       .catalogueSortedListSelected$$()
-      .filter((food) => food.name.toLowerCase().includes(filterValue));
+      .filter((food) => searchTerms.every((term) => food.name.toLowerCase().includes(term)));
   });
-
-  private catalogueNames$$: Signal<string[]> = computed(() =>
-    this.foodService.catalogueSortedListSelected$$().map((food) => food.name),
-  );
 
   private catalogueNameValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
@@ -89,6 +88,15 @@ export class FoodSelectDropdownComponent implements OnInit {
     return this.diaryEntryForm.controls.foodName;
   }
 
+  public get searchQuery() {
+    return this.searchQuery$$();
+  }
+
+  public set searchQuery(value: string) {
+    const transliteratedValue = transliterateEnToRu(value);
+    this.searchQuery$$.set(transliteratedValue);
+  }
+
   constructor(
     private foodService: FoodService,
     private fb: NonNullableFormBuilder,
@@ -96,16 +104,12 @@ export class FoodSelectDropdownComponent implements OnInit {
 
   public ngOnInit() {
     this.diaryEntryForm.controls.foodName.valueChanges.subscribe((value) => {
-      this.searchQuery.set(value || '');
+      this.searchQuery$$.set(value || '');
     });
   }
 
   public shouldShowClearButton(): boolean {
     return this.diaryEntryForm.controls.foodName.value.length > 0;
-  }
-
-  public foodNameReset(): void {
-    this.diaryEntryForm.controls.foodName.setValue('');
   }
 
   public onOptionSelected(event: MatAutocompleteSelectedEvent): void {

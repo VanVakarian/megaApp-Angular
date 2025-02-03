@@ -1,4 +1,4 @@
-import { USER_PREFERRED_MIDNIGHT_OFFSET_HOURS } from '@app/shared/const';
+import { enToRuTransliterationRules, USER_PREFERRED_MIDNIGHT_OFFSET_HOURS } from '@app/shared/const';
 
 export function getTodayIsoNoTimeNoTZ(): string {
   return epochToIsoNoTimeNoTZ(new Date().getTime());
@@ -132,4 +132,11 @@ export function getRuDeclension(number: number, one: string, few: string, many: 
   if (lastDigit === '1') return one;
 
   return many;
+}
+
+export function transliterateEnToRu(text: string): string {
+  return text
+    .split('')
+    .map((char) => enToRuTransliterationRules[char.toLowerCase()] || char)
+    .join('');
 }

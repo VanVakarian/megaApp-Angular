@@ -107,7 +107,7 @@ export const KCALS_CHART_SETTINGS: ChartConfiguration = {
   },
 };
 
-export const enRuTranslation: { [key: string]: string } = {
+export const enToRuTransliterationRules: { [key: string]: string } = {
   '`': 'ё',
   q: 'й',
   w: 'ц',
