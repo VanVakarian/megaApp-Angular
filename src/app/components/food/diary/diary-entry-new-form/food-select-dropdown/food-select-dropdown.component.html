@@ -1,6 +1,6 @@
-<form (submit)="onSubmit()"
+<form #formGroupDirective="ngForm"
       [formGroup]="diaryEntryForm"
-      #formGroupDirective="ngForm">
+      (submit)="onSubmit()">
 
   <mat-form-field appearance="outline"
                   class="w-full">

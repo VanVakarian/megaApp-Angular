@@ -11,9 +11,9 @@
   </div>
 </div>
 
-<form (submit)="onSubmit()"
+<form #formGroupDirective="ngForm"
       [formGroup]="diaryEntryForm"
-      #formGroupDirective="ngForm">
+      (submit)="onSubmit()">
 
   @if (isMobile) {
     <mat-form-field appearance="outline"

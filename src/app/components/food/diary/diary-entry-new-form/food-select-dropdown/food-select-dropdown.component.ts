@@ -35,6 +35,14 @@ interface FoodSelectForm {
   foodName: FormControl<string>;
 }
 
+function catalogueNameValidator(catalogue: CatalogueEntry[]): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    const catalogueItem = catalogue.find((food) => food.name === value);
+    return catalogueItem ? null : { notInCatalogue: true };
+  };
+}
+
 @Component({
   selector: 'app-food-select-dropdown',
   templateUrl: './food-select-dropdown.component.html',
@@ -70,17 +78,9 @@ export class FoodSelectDropdownComponent implements OnInit {
       .filter((food) => searchTerms.every((term) => food.name.toLowerCase().includes(term)));
   });
 
-  private catalogueNameValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const value = control.value;
-      const catalogueItem = this.foodService.catalogueSortedListSelected$$().find((food) => food.name === value);
-      return catalogueItem ? null : { notInCatalogue: true };
-    };
-  }
-
   public diaryEntryForm = this.fb.group<FoodSelectForm>({
     foodName: this.fb.control('', {
-      validators: [Validators.required, this.catalogueNameValidator()],
+      validators: [Validators.required, catalogueNameValidator(this.foodService.catalogueSortedListSelected$$())],
     }),
   });
 

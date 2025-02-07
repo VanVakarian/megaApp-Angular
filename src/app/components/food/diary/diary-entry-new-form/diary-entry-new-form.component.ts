@@ -60,7 +60,7 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges {
   public onServerSuccessfullResponse = new EventEmitter<void>();
 
   @ViewChild('formGroupDirective')
-  public formDirective!: FormGroupDirective;
+  public formGroupDirective!: FormGroupDirective;
 
   @ViewChild('mobileFoodSelect')
   public mobileFoodSelect!: FoodSelectDropdownComponent;
@@ -171,7 +171,7 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges {
       }
 
       this.diaryEntryForm.enable();
-      this.formDirective.resetForm({
+      this.formGroupDirective.resetForm({
         foodCatalogueId: 0,
         foodName: '',
         foodWeight: null,
