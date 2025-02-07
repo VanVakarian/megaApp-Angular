@@ -132,6 +132,8 @@ export class FoodDiaryComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public newDiaryEntryExpanded() {
+    if (this.screenSizeWatcherService.currentScreenType === ScreenType.DESKTOP) return;
+
     setTimeout(() => {
       window.scrollTo({
         top: this.newDiaryEntryPanel._body.nativeElement.getBoundingClientRect().top + window.scrollY - 70,
