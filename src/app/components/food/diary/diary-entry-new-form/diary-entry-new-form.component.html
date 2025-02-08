@@ -3,6 +3,8 @@
        [class.hidden]="!isModalOpened">
     <div class="rounded-[4px] p-2 bg-white">
       <app-food-select-dropdown #mobileFoodSelect
+                                [parentForm]="diaryEntryForm"
+                                [foodNameControl]="foodNameControl"
                                 (onFoodSelected)="onFoodSelected($event)" />
     </div>
 
@@ -23,11 +25,13 @@
       <input type="text"
              matInput
              required
-             formControlName="foodName"
+             [formControl]="foodNameControl"
              (click)="openModal()" />
     </mat-form-field>
   } @else {
     <app-food-select-dropdown #desktopFoodSelect
+                              [parentForm]="diaryEntryForm"
+                              [foodNameControl]="foodNameControl"
                               (onFoodSelected)="onFoodSelected($event)" />
   }
 
@@ -37,16 +41,14 @@
 
     <input #weightInputElem
            type="number"
-           formControlName="foodWeight"
+           [formControl]="foodWeightControl"
            matInput
            class="text-right" />
 
     <span matSuffix
-          class="mx-2">
-      г.
-    </span>
+          class="mx-2">г.</span>
 
-    @if (foodWeight?.value !== '' && (foodWeight?.errors?.['required'] || foodWeight?.errors?.['pattern'])) {
+    @if (foodWeightControl.value !== null && (foodWeightControl.errors?.['required'] || foodWeightControl.errors?.['pattern'])) {
       <mat-error>
         Положительное целое число
       </mat-error>

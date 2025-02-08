@@ -1,42 +1,36 @@
-<form #formGroupDirective="ngForm"
-      [formGroup]="diaryEntryForm"
-      (submit)="onSubmit()">
+<mat-form-field appearance="outline"
+                class="w-full">
 
-  <mat-form-field appearance="outline"
-                  class="w-full">
-    <mat-label>Еда:</mat-label>
+  <mat-label>Еда:</mat-label>
 
-    <input #foodInputElem
-           matInput
-           required
-           type="text"
-           formControlName="foodName"
-           [(ngModel)]="searchQuery"
-           [matAutocomplete]="autoGroup" />
+  <input #foodInputElem
+         matInput
+         required
+         type="text"
+         [formControl]="foodNameControl"
+         [(ngModel)]="searchQuery"
+         [matAutocomplete]="autoGroup" />
 
-    @if (shouldShowClearButton()) {
-      <button type="button"
-              (click)="searchQuery = ''"
-              mat-icon-button
-              matSuffix>
-        <mat-icon>close</mat-icon>
-      </button>
+  @if (shouldShowClearButton()) {
+    <button type="button"
+            (click)="searchQuery = ''"
+            mat-icon-button
+            matSuffix>
+      <mat-icon>close</mat-icon>
+    </button>
+  }
+
+  <mat-autocomplete #autoGroup="matAutocomplete"
+                    (optionSelected)="onOptionSelected($event)">
+    @for (food of filteredCatalogue(); track food.name) {
+      <mat-option [value]="food.name">
+        {{ food.name }}
+      </mat-option>
     }
+  </mat-autocomplete>
 
-    <mat-autocomplete #autoGroup="matAutocomplete"
-                      (optionSelected)="onOptionSelected($event)">
-      @for (food of filteredCatalogue(); track food.name) {
-        <mat-option [value]="food.name">
-          {{ food.name }}
-        </mat-option>
-      }
-    </mat-autocomplete>
+  @if (foodNameControl.value !== '' && (foodNameControl.errors?.['required'] || foodNameControl.errors?.['notInCatalogue'])) {
+    <mat-error>Выберите еду из списка</mat-error>
+  }
 
-    @if (foodName?.value !== '' && (foodName?.errors?.['required'] || foodName?.errors?.['notInCatalogue'])) {
-      <mat-error>
-        Выберите еду из списка
-      </mat-error>
-    }
-  </mat-form-field>
-
-</form>
+</mat-form-field>

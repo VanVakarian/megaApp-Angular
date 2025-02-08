@@ -5,7 +5,6 @@ import {
   EventEmitter,
   Input,
   OnChanges,
-  OnInit,
   Output,
   Signal,
   SimpleChanges,
@@ -24,9 +23,7 @@ import {
 
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
 import { firstValueFrom } from 'rxjs';
@@ -45,14 +42,12 @@ import { FoodSelectDropdownComponent } from './food-select-dropdown/food-select-
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatOptionModule,
-    MatIconModule,
     MatAutocompleteModule,
     FoodSelectDropdownComponent,
   ],
   templateUrl: './diary-entry-new-form.component.html',
 })
-export class DiaryEntryNewFormComponent implements OnInit, OnChanges {
+export class DiaryEntryNewFormComponent implements OnChanges {
   @Input()
   public expanded = false;
 
@@ -74,7 +69,7 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges {
   private isModalOpen = false;
 
   private catalogueNames$$: Signal<string[]> = computed(() =>
-    this.foodService.catalogueSortedListSelected$$().map((food) => food.name),
+    this.foodService.catalogueSortedListSelected$$().map((food: CatalogueEntry) => food.name),
   );
 
   private catalogueNameValidator(): ValidatorFn {
@@ -85,13 +80,21 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges {
   }
 
   public diaryEntryForm: FormGroup = new FormGroup({
-    foodCatalogueId: new FormControl(0),
-    foodName: new FormControl('', [Validators.required, this.catalogueNameValidator()]),
-    foodWeight: new FormControl(null, [
+    foodCatalogueId: new FormControl<number>(0),
+    foodName: new FormControl<string>('', [Validators.required, this.catalogueNameValidator()]),
+    foodWeight: new FormControl<number | null>(null, [
       Validators.required,
       Validators.pattern(/^\d+$/), // Digits only
     ]),
   });
+
+  get foodNameControl() {
+    return this.diaryEntryForm.get('foodName') as FormControl<string>;
+  }
+
+  get foodWeightControl() {
+    return this.diaryEntryForm.get('foodWeight') as FormControl<number | null>;
+  }
 
   public get foodWeight() {
     return this.diaryEntryForm.get('foodWeight');
@@ -138,8 +141,10 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges {
 
   public onFoodSelected(food: CatalogueEntry | null): void {
     if (food) {
-      this.diaryEntryForm.get('foodCatalogueId')!.setValue(food.id);
-      this.diaryEntryForm.get('foodName')!.setValue(food.name);
+      this.diaryEntryForm.patchValue({
+        foodCatalogueId: food.id,
+        foodName: food.name,
+      });
       this.isModalOpened = false;
     }
     setTimeout(() => {
@@ -147,23 +152,31 @@ export class DiaryEntryNewFormComponent implements OnInit, OnChanges {
     }, 0); // Waiting for panel expansion animation for the focus to work
   }
 
-  public async onSubmit(): Promise<void> {
-    this.diaryEntryForm.disable();
-    const foodWeight = parseInt(this.diaryEntryForm.value.foodWeight);
-    const foodId = this.diaryEntryForm.get('foodCatalogueId')!.value;
-    const foodKcals = this.foodService.catalogue$$()?.[foodId].kcals;
-    const foodCoefficient = this.foodService.coefficients$$()?.[foodId] ?? 1;
-    const kcalsDelta = (foodWeight / 100) * foodKcals * foodCoefficient;
+  async onSubmit(): Promise<void> {
+    if (!this.diaryEntryForm.valid) return;
 
-    const preppedDiaryEntry: DiaryEntry = {
+    this.diaryEntryForm.disable();
+    const { foodCatalogueId, foodWeight } = this.diaryEntryForm.value;
+
+    const catalogue = this.foodService.catalogue$$();
+    if (!catalogue || !foodCatalogueId) {
+      this.diaryEntryForm.enable();
+      return;
+    }
+
+    const foodKcals = catalogue[foodCatalogueId].kcals;
+    const foodCoefficient = this.foodService.coefficients$$()?.[foodCatalogueId] ?? 1;
+    const kcalsDelta = ((foodWeight || 0) / 100) * foodKcals * foodCoefficient;
+
+    const entry: DiaryEntry = {
       id: 0,
       dateISO: this.foodService.selectedDayIso$$(),
-      foodCatalogueId: foodId,
-      foodWeight: foodWeight,
-      history: [{ action: 'init', value: foodWeight }],
+      foodCatalogueId: foodCatalogueId,
+      foodWeight: foodWeight || 0,
+      history: [{ action: 'init', value: foodWeight || 0 }],
     };
 
-    const response = await firstValueFrom(this.foodService.createDiaryEntry(preppedDiaryEntry));
+    const response = await firstValueFrom(this.foodService.createDiaryEntry(entry));
 
     if (response?.result) {
       if (response.diaryId) {
