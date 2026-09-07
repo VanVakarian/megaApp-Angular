@@ -325,7 +325,8 @@
              [isTextarea]="true"
              [rows]="2"
              [ngModel]="notes$$()"
-             (ngModelChange)="notes$$.set($event)" />
+             (ngModelChange)="notes$$.set($event)"
+             (onEnterPressed)="save()" />
 
     <div class="flex flex-wrap gap-1 overflow-hidden max-h-[75px]">
       @for (note of topNoteItems$$(); track note) {

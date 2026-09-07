@@ -69,7 +69,7 @@
     }
 
     @if (activeTab$$() === MoneyTab.Transactions) {
-      <v-expand>
+      <v-expand [isChevronVisible]="true">
         <div v-header
              class="flex items-center gap-2 p-2">
           <v-icon [name]="Icon.Settings"

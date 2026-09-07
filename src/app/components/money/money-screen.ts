@@ -182,10 +182,10 @@ export class MoneyScreen implements OnInit {
     const startedAt = performance.now();
     const months = this.allChartMonths$$();
     const [startIdx, endIdx] = range;
-    const isFullRange = startIdx === 0 && endIdx === months.length - 1;
+    const maxIdx = months.length - 1;
     this.moneyService.setChartRange(
-      isFullRange ? null : (months[startIdx] ?? null),
-      isFullRange ? null : (months[endIdx] ?? null),
+      startIdx <= 0 ? null : (months[startIdx] ?? null),
+      endIdx >= maxIdx ? null : (months[endIdx] ?? null),
     );
     void this.performanceMetrics.recordAfterPaint('money.range_change', startedAt, { months: endIdx - startIdx + 1 });
   }
