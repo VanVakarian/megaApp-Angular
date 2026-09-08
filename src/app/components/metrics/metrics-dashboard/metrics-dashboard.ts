@@ -1,4 +1,16 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { CompositeMetricsSettingsService } from '@app/services/composite-metrics-settings.service';
 import { DeviceInfoService } from '@app/services/device-info.service';
 import { MetricCardExpansionService } from '@app/services/metric-card-expansion.service';
@@ -60,6 +72,7 @@ import {
 } from '../metric-card-grid/metric-card-grid';
 
 const NOW_TICK_INTERVAL_MS = 30_000;
+const STICKY_LABEL_GAP_PX = 8;
 const SETTINGS_PANEL_KEY = '__settings__';
 const DASHBOARD_PANEL_KEY = '__dashboard__';
 const DEFAULT_COMPOSITE_LABEL = 'Составные метрики';
@@ -115,7 +128,7 @@ interface MetricsServiceOption {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MetricsDashboard implements OnInit, OnDestroy {
+export class MetricsDashboard implements OnInit, AfterViewInit, OnDestroy {
   protected readonly metricsService = inject(MetricsService);
   protected readonly metricsHealthService = inject(MetricsHealthService);
   protected readonly deviceInfoService = inject(DeviceInfoService);
@@ -165,6 +178,22 @@ export class MetricsDashboard implements OnInit, OnDestroy {
       ? 'sticky top-0 z-10 shadow-[0_10px_15px_-10px_rgba(0,0,0,0.3)]'
       : 'sticky top-0 z-10';
   });
+
+  // Real measured height, not a guessed constant — the header bar wraps to more
+  // than one line once enough services are visible, and a hardcoded offset would
+  // silently drift out of sync with that. Only matters where the header is
+  // actually sticky (desktop, see stickyBarClasses$$ above) — on mobile the
+  // header scrolls away normally, so row/group labels below it never need to
+  // dodge it and can stick starting right at the viewport top.
+  private readonly stickyHeaderElem = viewChild<ElementRef<HTMLElement>>('stickyHeaderElem');
+  private readonly stickyHeaderHeightPx$$ = signal(0);
+  private stickyHeaderResizeObserver: ResizeObserver | null = null;
+  // A few px of breathing room below the sticky point (header's bottom edge, or
+  // the viewport top on mobile where the header isn't sticky) — without it the
+  // label sits flush against that edge, which reads as visually "stuck to" it.
+  protected readonly stickyLabelTopPx$$ = computed(
+    () => (this.deviceInfoService.isDesktopScreen$$() ? this.stickyHeaderHeightPx$$() : 0) + STICKY_LABEL_GAP_PX,
+  );
 
   // Which panel is expanded is transient UI state, not persisted anywhere (see
   // metrics-settings.service.ts) — every page load opens on the Dashboard panel.
@@ -549,12 +578,24 @@ export class MetricsDashboard implements OnInit, OnDestroy {
     });
   }
 
+  public ngAfterViewInit(): void {
+    const headerElement = this.stickyHeaderElem()?.nativeElement;
+    if (!headerElement) return;
+    this.stickyHeaderHeightPx$$.set(headerElement.offsetHeight);
+    this.stickyHeaderResizeObserver = new ResizeObserver(([entry]) => {
+      this.stickyHeaderHeightPx$$.set(entry.borderBoxSize?.[0]?.blockSize ?? headerElement.offsetHeight);
+    });
+    this.stickyHeaderResizeObserver.observe(headerElement);
+  }
+
   public ngOnDestroy(): void {
     this.metricsService.unsubscribe();
     if (this.nowTickIntervalId !== null) {
       clearInterval(this.nowTickIntervalId);
     }
     window.removeEventListener('scroll', this.onWindowScroll);
+    this.stickyHeaderResizeObserver?.disconnect();
+    this.stickyHeaderResizeObserver = null;
   }
 
   protected resolvedServiceLabel(service: string): string {

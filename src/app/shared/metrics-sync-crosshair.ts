@@ -16,7 +16,7 @@ declare module 'chart.js' {
 
 const CROSSHAIR_LINE_COLOR = 'rgba(239, 68, 68, 0.9)';
 const CROSSHAIR_LINE_DASH = [4, 4];
-const CROSSHAIR_LINE_WIDTH = 2;
+const CROSSHAIR_LINE_WIDTH = 1;
 
 const registeredCharts = new Set<Chart>();
 

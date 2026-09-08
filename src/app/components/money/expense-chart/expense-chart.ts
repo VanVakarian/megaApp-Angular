@@ -14,6 +14,8 @@ import {
 import { ChartThemeService } from '@app/services/chart-theme.service';
 import { MoneyService } from '@app/services/money.service';
 import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
+import { CATEGORY_DIM_ALPHA } from '@app/shared/categorical-palette';
+import { createCategoryHoverHighlight } from '@app/shared/category-hover-highlight';
 import {
   ChartColors,
   EXPENSE_CATEGORY_CONFIG,
@@ -96,6 +98,7 @@ export class ExpenseChart implements AfterViewInit, OnDestroy {
   private lastColors: ChartColors | null = null;
 
   private yearBoundaries: { year: string; startIdx: number; endIdx: number }[] = [];
+  private readonly categoryHighlight = createCategoryHoverHighlight();
 
   protected readonly viewToggleItems: VToggleItem[] = [
     { id: 'monthly', label: 'Monthly' },
@@ -209,7 +212,10 @@ export class ExpenseChart implements AfterViewInit, OnDestroy {
   private createChart(colors: ChartColors): Chart | null {
     const ctx = this.chartCanvas().nativeElement.getContext('2d');
     if (!ctx) return null;
-    const chart = new Chart(ctx, { ...createExpenseChartConfig(colors), plugins: [this.yearSeparatorPlugin] });
+    const chart = new Chart(ctx, {
+      ...createExpenseChartConfig(colors),
+      plugins: [this.yearSeparatorPlugin, this.categoryHighlight],
+    });
     if (chart.options.plugins?.tooltip?.callbacks) {
       chart.options.plugins.tooltip.callbacks.label = (ctx) => {
         if (!ctx.parsed.y) return '';
@@ -358,6 +364,8 @@ export class ExpenseChart implements AfterViewInit, OnDestroy {
 
     const datasets: ChartDataset<'bar'>[] = activeSeries.map((series) => {
       const color = expenseCategoricalPalette.getColor(series.categoryName, colors);
+      const dimColor = expenseCategoricalPalette.getColor(series.categoryName, colors, CATEGORY_DIM_ALPHA);
+      const resolveColor = () => this.categoryHighlight.colorFor(series.categoryName, color, dimColor);
       const seriesValues: number[] = yearly
         ? yearlyValues!.get(series.categoryId)!
         : months.map((_, i) =>
@@ -368,7 +376,8 @@ export class ExpenseChart implements AfterViewInit, OnDestroy {
       return {
         label: series.categoryName,
         data: seriesValues,
-        backgroundColor: color,
+        backgroundColor: resolveColor,
+        hoverBackgroundColor: resolveColor,
         borderColor: color,
         borderWidth: 0,
         stack: 'expense',

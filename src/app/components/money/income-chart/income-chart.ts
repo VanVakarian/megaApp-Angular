@@ -14,6 +14,8 @@ import {
 import { ChartThemeService } from '@app/services/chart-theme.service';
 import { MoneyService } from '@app/services/money.service';
 import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
+import { CATEGORY_DIM_ALPHA } from '@app/shared/categorical-palette';
+import { createCategoryHoverHighlight } from '@app/shared/category-hover-highlight';
 import {
   ChartColors,
   createIncomeChartConfig,
@@ -63,6 +65,7 @@ export class IncomeChart implements AfterViewInit, OnDestroy {
   // cheap in-place mutation.
   private lastColors: ChartColors | null = null;
   private yearBoundaries: { year: string; startIdx: number; endIdx: number }[] = [];
+  private readonly categoryHighlight = createCategoryHoverHighlight();
 
   protected readonly activeCategorySeries$$ = computed(() => {
     const series = this.dataInput().categorySeries;
@@ -155,7 +158,10 @@ export class IncomeChart implements AfterViewInit, OnDestroy {
   private createChart(colors: ChartColors): Chart | null {
     const ctx = this.chartCanvas().nativeElement.getContext('2d');
     if (!ctx) return null;
-    const chart = new Chart(ctx, { ...createIncomeChartConfig(colors), plugins: [this.yearSeparatorPlugin] });
+    const chart = new Chart(ctx, {
+      ...createIncomeChartConfig(colors),
+      plugins: [this.yearSeparatorPlugin, this.categoryHighlight],
+    });
     if (chart.options.plugins?.tooltip?.callbacks) {
       chart.options.plugins.tooltip.callbacks.label = (ctx) => {
         if (!ctx.parsed.y) return '';
@@ -291,12 +297,15 @@ export class IncomeChart implements AfterViewInit, OnDestroy {
 
     const datasets: ChartDataset<'bar'>[] = activeSeries.map((series) => {
       const color = incomeCategoricalPalette.getColor(series.categoryName, colors);
+      const dimColor = incomeCategoricalPalette.getColor(series.categoryName, colors, CATEGORY_DIM_ALPHA);
+      const resolveColor = () => this.categoryHighlight.colorFor(series.categoryName, color, dimColor);
       const monthlyValues =
         effectiveData.categorySeries.find((s) => s.categoryId === series.categoryId)?.values ?? series.values;
       return {
         label: series.categoryName,
         data: yearly ? yearlyValues!.get(series.categoryId)! : monthlyValues,
-        backgroundColor: color,
+        backgroundColor: resolveColor,
+        hoverBackgroundColor: resolveColor,
         borderColor: color,
         borderWidth: 0,
         stack: 'income',

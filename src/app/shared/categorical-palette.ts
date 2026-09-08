@@ -56,6 +56,12 @@ export const CategoricalHue = {
 
 export type CategoricalHue = (typeof CategoricalHue)[keyof typeof CategoricalHue];
 
+// Alpha for a muted (non-hovered) category segment when another category is highlighted across
+// a stacked-bar chart (see category-hover-highlight.ts). One value for both themes: the OKLCH
+// lightness/chroma recipe above already normalizes perceived weight per theme, so the same alpha
+// reads as an equivalently muted tone against either theme's chart background.
+export const CATEGORY_DIM_ALPHA = 0.25;
+
 function toColorString(hue: number, colors: ChartColors, alpha: number | undefined): string {
   const { lightness, chroma } = colors.isDark ? LIGHTNESS_CHROMA_BY_THEME.dark : LIGHTNESS_CHROMA_BY_THEME.light;
   const h = hue.toFixed(1);
