@@ -237,8 +237,17 @@ export interface MetricsUpdateWsMessage {
   payload: { points: MetricPoint[] };
 }
 
+// A metric never named here is never requested and never seen — there is no
+// "whole service" wildcard, by design. See
+// megaapp-front/plans/32-metrics-mobile-custom-only-mode.implementation-plan.md §4.1.
+export interface MetricsScopeEntry {
+  service: string;
+  metricNames: string[];
+}
+
 export interface MetricsSubscribeWsMessage {
   type: typeof WebSocketMessageType.METRICS_SUBSCRIBE;
+  payload: { scope: MetricsScopeEntry[] };
 }
 
 export interface MetricsUnsubscribeWsMessage {

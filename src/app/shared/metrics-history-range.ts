@@ -49,18 +49,45 @@ export function earliestHistoryBucket(granularity: MetricGranularity, latestBuck
   return latestBucket - (HISTORY_PERIODS[granularity] - 1) * step;
 }
 
-export function firstMissingHistoryBucket(
+// Per-metric cursor replaces bucket-scanning entirely (not a per-service patch
+// of it) — see megaapp-front/plans/32-metrics-mobile-custom-only-mode.implementation-plan.md
+// §4.3. No gap-checking is needed: a confirmed REST response is always
+// authoritative for the exact range it was asked for, so "checked through X"
+// can be trusted outright. Returns latestBucket+step (nothing to fetch) once
+// the cursor has caught up.
+export function nextHistorySinceBucket(
   granularity: MetricGranularity,
   checkedThrough: number,
   latestBucket: number,
-  coverage: { has(bucket: number): boolean },
 ): number {
-  const step = HISTORY_STEP_SECONDS[granularity];
-  const earliestBucket = earliestHistoryBucket(granularity, latestBucket);
-  const firstUncheckedBucket = checkedThrough > 0 ? checkedThrough + step : earliestBucket;
+  if (checkedThrough <= 0) return earliestHistoryBucket(granularity, latestBucket);
+  return checkedThrough + HISTORY_STEP_SECONDS[granularity];
+}
 
-  for (let bucket = Math.max(earliestBucket, firstUncheckedBucket); bucket <= latestBucket; bucket += step) {
-    if (!coverage.has(bucket)) return bucket;
+// Cursor is on the (service, metric) pair, not the view — a metric shown in
+// two places (e.g. dashboard + its own service panel) shares one cursor, so
+// switching between those views never re-fetches what the other already has.
+// JSON-encoded rather than plain-concatenated so a delimiter character inside
+// either name can never collide two distinct pairs onto the same key.
+export function metricCursorKey(service: string, name: string): string {
+  return JSON.stringify([service, name]);
+}
+
+export type MetricsCursorMap = Record<string, MetricsHistoryWatermarks>;
+
+export function emptyMetricsCursorMap(): MetricsCursorMap {
+  return {};
+}
+
+// A cache written before this cursor shape existed (single number/triple, not
+// keyed by metric) simply has no keys shaped like metricCursorKey() output —
+// every entry here parses fine, nothing to migrate, missing metrics just
+// fetch fresh once. See §4.4 of the plan referenced above.
+export function parseMetricsCursorMap(value: unknown): MetricsCursorMap {
+  const cursors = emptyMetricsCursorMap();
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return cursors;
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    cursors[key] = parseMetricsHistoryWatermarks(raw);
   }
-  return latestBucket + step;
+  return cursors;
 }

@@ -38,7 +38,13 @@ import {
 } from '@app/shared/metrics-series';
 import { mutedSectionColor, severityColor } from '@app/shared/metrics-severity';
 import { clearMetricSyncCrosshair } from '@app/shared/metrics-sync-crosshair';
-import { COMPOSITE_SERVICE_KEY, CompositeMetricDefinition, MetricGranularity, MetricPoint } from '@app/shared/types';
+import {
+  COMPOSITE_SERVICE_KEY,
+  CompositeMetricDefinition,
+  MetricGranularity,
+  MetricPoint,
+  MetricsScopeEntry,
+} from '@app/shared/types';
 import { VButton } from '@ui-kit/components/v-button/v-button';
 import { VCard } from '@ui-kit/components/v-card/v-card';
 import { VCheckbox } from '@ui-kit/components/v-checkbox/v-checkbox';
@@ -351,25 +357,8 @@ export class MetricsDashboard implements OnInit, OnDestroy {
         }))
         .filter((group) => group.cards.length > 0);
 
-      // Метрики, реально приходящие с бэка для этого сервиса, но ещё не описанные
-      // ни в одной группе каталога — отдельный явно подписанный блок вместо того,
-      // чтобы молча не показывать их вообще, пока кто-то не вспомнит завести вручную.
-      const knownNames = metricsCatalogKnownNames(option.service);
-      const observedNames = new Set(servicePoints.map((point) => point.name));
-      const discoveredNames = Array.from(observedNames)
-        .filter((name) => !knownNames.has(name))
-        .sort();
-      if (discoveredNames.length > 0) {
-        groups.push({
-          id: 'uncatalogued',
-          label: 'Не в каталоге',
-          cards: discoveredNames.map(buildCard),
-        });
-      }
-
       // Метрики, явно помеченные в каталоге как removed (бэк их когда-то слал под
-      // этим именем, но перестал) — не путать с discoveredNames выше: там имя
-      // неизвестно каталогу вообще, здесь оно известно, просто отправлено в архив.
+      // этим именем, но перестал) — каталогу известны, просто отправлены в архив.
       const removedNames = (definition?.groups ?? []).flatMap((group) =>
         group.metrics.filter((config) => config.removed).map((config) => config.name),
       );
@@ -533,9 +522,26 @@ export class MetricsDashboard implements OnInit, OnDestroy {
     });
   });
 
+  // Which (service, metricName) pairs the currently open panel actually shows —
+  // the request/subscription contract is always this explicit list, never a
+  // whole-service wildcard. See plans/32-metrics-mobile-custom-only-mode.implementation-plan.md §4.1.
+  private readonly metricsScope$$ = computed<MetricsScopeEntry[]>(() => {
+    const panel = this.resolvedExpandedPanel();
+    if (panel === DASHBOARD_PANEL_KEY) return this.dashboardScopeEntries();
+    if (panel === COMPOSITE_SERVICE_KEY) return this.compositeScopeEntries();
+    const metricNames = Array.from(metricsCatalogKnownNames(panel));
+    return metricNames.length > 0 ? [{ service: panel, metricNames }] : [];
+  });
+
+  // The one place that pushes scope changes into MetricsService — reacts to
+  // every panel/selection change that metricsScope$$ depends on, so there is
+  // no separate call site to keep in sync by hand.
+  private readonly scopeSyncEffect = effect(() => {
+    this.metricsService.setScope(this.metricsScope$$());
+  });
+
   public ngOnInit(): void {
     const startedAt = performance.now();
-    this.metricsService.subscribe();
     this.nowTickIntervalId = setInterval(() => this.now$$.set(Date.now()), NOW_TICK_INTERVAL_MS);
     window.addEventListener('scroll', this.onWindowScroll, { passive: true });
     void this.performanceMetrics.recordAfterPaint('metrics.dashboard_ready', startedAt, {
@@ -629,6 +635,13 @@ export class MetricsDashboard implements OnInit, OnDestroy {
     if (service === SETTINGS_PANEL_KEY) {
       this.isSettingsPanelExpanded$$.update((value) => !value);
       void this.performanceMetrics.recordAfterPaint('metrics.panel_change', startedAt, { panel: 'settings' });
+      return;
+    }
+
+    // Mobile is locked to the Dashboard panel — the header doesn't render service
+    // tabs to trigger this (see the template), this guard just makes the lock
+    // hold regardless of the call site.
+    if (this.deviceInfoService.isMobileScreen$$() && service !== DASHBOARD_PANEL_KEY) {
       return;
     }
 
@@ -903,7 +916,14 @@ export class MetricsDashboard implements OnInit, OnDestroy {
 
   // Falls back to the Dashboard panel (not "first visible service") the moment the
   // expanded service is hidden from the header — Dashboard is the primary view now.
+  // On mobile it's the ONLY panel — switching to a service panel is locked out
+  // entirely (see toggleServiceExpanded), so this always wins regardless of
+  // whatever expandedPanel$$ was left holding (e.g. from a resize).
   private resolvedExpandedPanel(): string {
+    if (this.deviceInfoService.isMobileScreen$$()) {
+      return DASHBOARD_PANEL_KEY;
+    }
+
     const current = this.expandedPanel$$();
     if (current === DASHBOARD_PANEL_KEY) {
       return current;
@@ -915,5 +935,40 @@ export class MetricsDashboard implements OnInit, OnDestroy {
       return current;
     }
     return DASHBOARD_PANEL_KEY;
+  }
+
+  // Union of every metric compositeDefinitions$$ references — the same set
+  // whether reached via the Dashboard rows or the standalone composite panel,
+  // since composite cards have no per-card dashboard toggle (see the comment
+  // on isDashboardEnabled in buildCompositeCard above).
+  private compositeScopeEntries(): MetricsScopeEntry[] {
+    const namesByService = new Map<string, Set<string>>();
+    for (const definition of this.compositeDefinitions$$()) {
+      if (!definition.metricName || !definition.serviceA || !definition.serviceB) continue;
+      for (const service of [definition.serviceA, definition.serviceB]) {
+        const names = namesByService.get(service) ?? new Set<string>();
+        names.add(definition.metricName);
+        namesByService.set(service, names);
+      }
+    }
+    return Array.from(namesByService, ([service, names]) => ({ service, metricNames: Array.from(names) }));
+  }
+
+  private dashboardScopeEntries(): MetricsScopeEntry[] {
+    const namesByService = new Map<string, Set<string>>();
+    const addNames = (service: string, names: Iterable<string>): void => {
+      const set = namesByService.get(service) ?? new Set<string>();
+      for (const name of names) set.add(name);
+      namesByService.set(service, set);
+    };
+
+    for (const [service, selection] of Object.entries(this.dashboardSelection$$())) {
+      if (!this.isDashboardServiceEnabled(service)) continue;
+      addNames(service, Object.keys(selection));
+    }
+    for (const entry of this.compositeScopeEntries()) {
+      addNames(entry.service, entry.metricNames);
+    }
+    return Array.from(namesByService, ([service, names]) => ({ service, metricNames: Array.from(names) }));
   }
 }

@@ -262,6 +262,6 @@ n=24: p50=482, p95=3446, **max=26809** — та же холодная загру
 - ✅ Спроектировать методологию анализа (точные перцентили по гистограммам, разрезы по операции/платформе/маршруту/дню/объёму данных, top-slowest выборки).
 - ✅ Написать read-only скрипт извлечения статистики, прогнать по всем 4 файлам (5.73М записей, 47 сек).
 - ✅ Извлечь и задокументировать все находки в этом файле, по длительности каждой операции независимо от частоты её срабатывания.
-- ⭕ На основе находок §4–§9 спроектировать план рефакторинга/оптимизации (отдельный документ, следующий шаг).
+- ✅ На основе находок §4–§9 спроектировать план рефакторинга/оптимизации — `/metrics` разнесён на три плана: фронт [32-metrics-mobile-custom-only-mode.implementation-plan.md](32-metrics-mobile-custom-only-mode.implementation-plan.md), бэк [../../megaapp-back/plans/32-metrics-history-scope-filter.implementation-plan.md](../../megaapp-back/plans/32-metrics-history-scope-filter.implementation-plan.md), Flatline [../../../flatline/plans/06-metrics-history-scope-filter.implementation-plan.md](../../../flatline/plans/06-metrics-history-scope-filter.implementation-plan.md) (`/food`/`/money` находки §6–§7 ждут своего плана).
 - ⭕ Решить судьбу самого сборщика телеметрии: `UPLOAD_INTERVAL_MS` помечен как «Temporary diagnostic interval» в коде, план 25 предполагал полное удаление диагностического кода после разбора данных.
 - ⭕ Закрыть пробелы инструментации из §8 (в первую очередь — мутации), если понадобится ещё один цикл сбора для этих путей.

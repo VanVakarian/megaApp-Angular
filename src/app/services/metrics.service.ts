@@ -1,20 +1,27 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, effect, inject, signal, untracked } from '@angular/core';
 import { IndexedDbCacheService } from '@app/services/indexed-db-cache.service';
 import { NetworkService } from '@app/services/network.service';
 import { NotificationService } from '@app/services/notification.service';
 import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
-import { metricsServiceDefinitions } from '@app/shared/metrics-catalog';
 import {
   METRIC_GRANULARITIES,
+  MetricsCursorMap,
   MetricsHistoryWatermarks,
-  earliestHistoryBucket,
+  emptyMetricsCursorMap,
   emptyMetricsHistoryWatermarks,
-  firstMissingHistoryBucket,
   latestClosedHistoryBucket,
-  parseMetricsHistoryWatermarks,
+  metricCursorKey,
+  nextHistorySinceBucket,
+  parseMetricsCursorMap,
 } from '@app/shared/metrics-history-range';
-import { MetricGranularity, MetricPoint, MetricsHistoryResponse, WebSocketMessageType } from '@app/shared/types';
+import {
+  MetricGranularity,
+  MetricPoint,
+  MetricsHistoryResponse,
+  MetricsScopeEntry,
+  WebSocketMessageType,
+} from '@app/shared/types';
 
 const STORAGE_KEY = 'metrics_detail';
 const CACHE_WINDOW_SECONDS: Record<MetricGranularity, number> = {
@@ -23,19 +30,25 @@ const CACHE_WINDOW_SECONDS: Record<MetricGranularity, number> = {
   day: 365 * 24 * 60 * 60,
 };
 const CACHE_WRITE_DELAY_MS = 1_000;
-const REFRESH_CHECK_DELAY_MS = 250;
+const HISTORY_HEARTBEAT_INTERVAL_MS = 60_000;
 const REFRESH_RETRY_DELAY_MS = 60_000;
 
 interface MetricsCacheState {
   points: MetricPoint[];
-  historyCheckedThrough: MetricsHistoryWatermarks | number;
-  historyServices: string[];
+  historyCheckedThrough: MetricsCursorMap;
+}
+
+interface MetricsHistoryRequestBody {
+  minuteSince: number;
+  hourSince: number;
+  daySince: number;
+  scope: MetricsScopeEntry[];
 }
 
 interface MetricsHistoryRequest {
   since: MetricsHistoryWatermarks;
   targets: MetricsHistoryWatermarks;
-  refreshedServices: Set<string>;
+  scope: MetricsScopeEntry[];
 }
 
 @Injectable({
@@ -45,35 +58,51 @@ export class MetricsService {
   public readonly points$$ = signal<MetricPoint[]>([]);
   public readonly isRefreshing$$ = signal(false);
 
+  // null = no view with charts open right now (e.g. Settings, or nothing has
+  // mounted yet). Replaced wholesale on every view change, never merged — see
+  // plans/32-metrics-mobile-custom-only-mode.implementation-plan.md §4.5.
+  private readonly currentScope$$ = signal<MetricsScopeEntry[] | null>(null);
+
   private readonly networkService = inject(NetworkService);
   private readonly notificationService = inject(NotificationService);
   private readonly http = inject(HttpClient);
   private readonly indexedDbCache = inject(IndexedDbCacheService);
   private readonly performanceMetrics = inject(PerformanceMetricsService);
   private readonly pointsByKey = new Map<string, MetricPoint>();
-  private readonly bucketCounts: Record<MetricGranularity, Map<number, number>> = {
-    minute: new Map(),
-    hour: new Map(),
-    day: new Map(),
-  };
   private readonly latestBuckets = emptyMetricsHistoryWatermarks();
-  private readonly knownServices = new Set(metricsServiceDefinitions().map((definition) => definition.service));
-  private refreshedServices = new Set<string>();
 
-  private isSubscribed = false;
   private isCacheLoaded = false;
   private latestRealtimeMinuteBucket = 0;
-  private historyCheckedThrough = emptyMetricsHistoryWatermarks();
+  private historyCheckedThrough = emptyMetricsCursorMap();
   private retryAfterMs = 0;
+  private hasNotifiedHistoryError = false;
+  private hasPendingHistoryRefresh = false;
   private cacheWriteTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private refreshCheckTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private historyHeartbeatIntervalId: ReturnType<typeof setInterval> | null = null;
   private pendingRefreshNotificationId: string | null = null;
 
-  private readonly resubscribeOnReconnectEffect = effect(() => {
+  // Single reactive source of truth for both the WS subscription and the REST
+  // history heartbeat — reacts to connection state and scope together, so
+  // first load, reconnect and view switches all go through this one path
+  // instead of separate imperative call sites. See §4.5 and the "Рефакторинг
+  // после ревью" section of the plan referenced above for the full scenario
+  // table and the reasoning behind folding the heartbeat in here too.
+  private readonly subscriptionEffect = effect(() => {
     const isConnected = this.networkService.isConnected$$();
-    if (isConnected && this.isSubscribed) {
-      untracked(() => this.sendSubscribe());
-    }
+    const scope = this.currentScope$$();
+    untracked(() => {
+      if (!isConnected) {
+        this.syncHistoryHeartbeat(false);
+        return;
+      }
+      if (scope) {
+        this.networkService.sendMessage({ type: WebSocketMessageType.METRICS_SUBSCRIBE, payload: { scope } });
+        this.syncHistoryHeartbeat(true);
+      } else {
+        this.networkService.sendMessage({ type: WebSocketMessageType.METRICS_UNSUBSCRIBE });
+        this.syncHistoryHeartbeat(false);
+      }
+    });
   });
 
   constructor() {
@@ -83,11 +112,10 @@ export class MetricsService {
         this.mergePoints(cached, false, false);
       } else if (cached) {
         this.mergePoints(cached.points ?? [], false, false);
-        this.historyCheckedThrough = parseMetricsHistoryWatermarks(cached.historyCheckedThrough);
-        this.refreshedServices = new Set(Array.isArray(cached.historyServices) ? cached.historyServices : []);
+        this.historyCheckedThrough = parseMetricsCursorMap(cached.historyCheckedThrough);
       }
       this.isCacheLoaded = true;
-      this.scheduleRefreshCheck();
+      this.syncHistoryHeartbeat(this.currentScope$$() !== null && this.networkService.isConnected$$());
       this.performanceMetrics.record('metrics.cache_hydrate', performance.now() - cacheStartedAt, {
         cache: cached ? 'hit' : 'miss',
         points: this.pointsByKey.size,
@@ -104,34 +132,33 @@ export class MetricsService {
             retainedPoints: this.pointsByKey.size,
           }),
         );
-        this.scheduleRefreshCheck();
         return;
       }
       if (message.type === WebSocketMessageType.METRICS_LATEST) {
         for (const service of message.payload.services) {
-          this.knownServices.add(service.service);
           if (Number.isFinite(service.lastBucket)) {
             this.latestRealtimeMinuteBucket = Math.max(this.latestRealtimeMinuteBucket, service.lastBucket);
           }
         }
-        this.scheduleRefreshCheck();
       }
     });
   }
 
-  public subscribe(): void {
-    this.isSubscribed = true;
-    this.sendSubscribe();
-    this.scheduleRefreshCheck();
+  // Called whenever the open view's set of visible metrics changes (view
+  // switch, dashboard selection edit, first mount). Empty scope means "no
+  // charts on screen" and is normalized to null (unsubscribed), same as never
+  // having set one.
+  public setScope(scope: MetricsScopeEntry[]): void {
+    this.currentScope$$.set(scope.length > 0 ? scope : null);
   }
 
+  // Leaving the /metrics route entirely — distinct from switching views while
+  // still on it, which goes through setScope() instead. Stops the heartbeat
+  // immediately rather than waiting for the effect's async reaction to the
+  // scope write below — same defensive-immediacy reasoning as before.
   public unsubscribe(): void {
-    this.isSubscribed = false;
-    if (this.refreshCheckTimeoutId !== null) {
-      clearTimeout(this.refreshCheckTimeoutId);
-      this.refreshCheckTimeoutId = null;
-    }
-    this.networkService.sendMessage({ type: WebSocketMessageType.METRICS_UNSUBSCRIBE });
+    this.currentScope$$.set(null);
+    this.syncHistoryHeartbeat(false);
   }
 
   public forceRefresh(): void {
@@ -141,24 +168,35 @@ export class MetricsService {
   public clearCache(): void {
     this.pointsByKey.clear();
     for (const granularity of METRIC_GRANULARITIES) {
-      this.bucketCounts[granularity].clear();
       this.latestBuckets[granularity] = 0;
     }
-    this.historyCheckedThrough = emptyMetricsHistoryWatermarks();
-    this.refreshedServices.clear();
+    this.historyCheckedThrough = emptyMetricsCursorMap();
     this.points$$.set([]);
     if (this.cacheWriteTimeoutId !== null) {
       clearTimeout(this.cacheWriteTimeoutId);
       this.cacheWriteTimeoutId = null;
     }
     void this.indexedDbCache.remove(STORAGE_KEY);
-    this.scheduleRefreshCheck();
+    this.refreshHistory();
   }
 
   private refreshHistory(showNotification = false): void {
-    if (this.isRefreshing$$()) return;
+    if (this.isRefreshing$$()) {
+      // A view/service switch (or another automatic trigger) landed while a
+      // request for the previous scope was still in flight — don't drop it,
+      // note it and re-check once that request settles (consumePendingHistoryRefresh),
+      // instead of leaving the new scope stale until the next heartbeat tick.
+      if (!showNotification) this.hasPendingHistoryRefresh = true;
+      return;
+    }
+    // Automatic path only — a manual click should never be blocked by a
+    // backoff set from an earlier automatic failure.
+    if (!showNotification && Date.now() < this.retryAfterMs) return;
 
-    const request = this.buildHistoryRequest(showNotification);
+    const scope = this.currentScope$$();
+    if (!scope) return;
+
+    const request = this.buildHistoryRequest(scope, showNotification);
     if (!request) return;
 
     this.isRefreshing$$.set(true);
@@ -172,32 +210,37 @@ export class MetricsService {
       });
     }
 
-    const params = new HttpParams()
-      .set('minuteSince', request.since.minute)
-      .set('hourSince', request.since.hour)
-      .set('daySince', request.since.day);
+    const body: MetricsHistoryRequestBody = {
+      minuteSince: request.since.minute,
+      hourSince: request.since.hour,
+      daySince: request.since.day,
+      scope: request.scope,
+    };
 
     const startedAt = performance.now();
-    this.http.get<MetricsHistoryResponse>('/api/metrics/history', { params }).subscribe({
+    this.http.post<MetricsHistoryResponse>('/api/metrics/history', body).subscribe({
       next: (response) => {
         const histories = response.histories ?? [];
         this.mergeHistories(histories);
-        this.refreshedServices = new Set([
-          ...request.refreshedServices,
-          ...histories
-            .map((history) => history.service?.trim())
-            .filter((service): service is string => Boolean(service)),
-        ]);
-        for (const granularity of METRIC_GRANULARITIES) {
-          this.historyCheckedThrough[granularity] = Math.max(
-            this.historyCheckedThrough[granularity],
-            request.targets[granularity],
-          );
+        // Advance every metric the request named, not only ones that appeared in the
+        // response — Flatline's response is authoritative for the whole requested
+        // range, so a metric absent from it genuinely had no points there, not "we
+        // didn't check". See §4.3 of the plan referenced above (safety condition).
+        for (const entry of request.scope) {
+          for (const name of entry.metricNames) {
+            const key = metricCursorKey(entry.service, name);
+            const cursor = this.historyCheckedThrough[key] ?? emptyMetricsHistoryWatermarks();
+            const next = { ...cursor };
+            for (const granularity of METRIC_GRANULARITIES) {
+              next[granularity] = Math.max(next[granularity], request.targets[granularity]);
+            }
+            this.historyCheckedThrough[key] = next;
+          }
         }
         this.retryAfterMs = 0;
+        this.hasNotifiedHistoryError = false;
         this.isRefreshing$$.set(false);
         this.scheduleCacheWrite();
-        this.scheduleRefreshCheck();
         void this.performanceMetrics.recordAfterPaint('metrics.history_refresh', startedAt, {
           trigger: showNotification ? 'manual' : 'automatic',
           histories: histories.length,
@@ -207,12 +250,20 @@ export class MetricsService {
           this.resolvePendingRefreshNotification();
           this.notificationService.addNotification('success', 'Metrics refreshed');
         }
+        this.consumePendingHistoryRefresh();
       },
-      error: () => {
+      error: (error: HttpErrorResponse) => {
         this.retryAfterMs = Date.now() + REFRESH_RETRY_DELAY_MS;
         this.isRefreshing$$.set(false);
         if (showNotification) {
           this.resolvePendingRefreshNotification();
+          this.notificationService.addNotification('error', 'Failed to refresh metrics');
+        } else if (error.status >= 400 && error.status < 500 && !this.hasNotifiedHistoryError) {
+          // A 4xx is a client/config problem, not a transient blip — worth telling the
+          // user about once per failure streak, unlike a 5xx/network error which keeps
+          // retrying silently on the next heartbeat tick (see plan §"Рефакторинг после
+          // ревью", находка 3).
+          this.hasNotifiedHistoryError = true;
           this.notificationService.addNotification('error', 'Failed to refresh metrics');
         }
         this.performanceMetrics.record(
@@ -223,19 +274,26 @@ export class MetricsService {
           },
           'error',
         );
+        this.consumePendingHistoryRefresh();
       },
     });
   }
 
-  private sendSubscribe(): void {
-    this.networkService.sendMessage({ type: WebSocketMessageType.METRICS_SUBSCRIBE });
+  // A refresh requested while the previous one was still in flight
+  // (refreshHistory's isRefreshing$$ guard) gets exactly one follow-up
+  // attempt right after that one settles — it will read whatever scope is
+  // current at that point, so a rapid A→B→C switch still ends up fetching
+  // for C, not stuck showing B's data until the next heartbeat tick.
+  private consumePendingHistoryRefresh(): void {
+    if (!this.hasPendingHistoryRefresh) return;
+    this.hasPendingHistoryRefresh = false;
+    this.refreshHistory();
   }
 
   private mergeHistories(histories: MetricsHistoryResponse['histories']): void {
     for (const history of histories) {
       const service = history?.service?.trim();
       if (!service) continue;
-      this.knownServices.add(service);
       for (const snapshot of history.snapshots ?? []) {
         if (!this.isValidGranularity(snapshot?.granularity) || !Number.isFinite(snapshot.bucket)) continue;
         for (const [name, value] of Object.entries(snapshot.metrics ?? {})) {
@@ -269,14 +327,8 @@ export class MetricsService {
     }
 
     const key = this.pointKey(point);
-    const isNew = !this.pointsByKey.has(key);
     this.pointsByKey.set(key, point);
-    this.knownServices.add(point.service);
     this.latestBuckets[point.granularity] = Math.max(this.latestBuckets[point.granularity], point.bucket);
-    if (isNew) {
-      const bucketCounts = this.bucketCounts[point.granularity];
-      bucketCounts.set(point.bucket, (bucketCounts.get(point.bucket) ?? 0) + 1);
-    }
 
     if (point.granularity === 'minute') {
       if (isRealtime) {
@@ -290,13 +342,6 @@ export class MetricsService {
       const minBucket = this.latestBuckets[point.granularity] - CACHE_WINDOW_SECONDS[point.granularity];
       if (minBucket <= 0 || point.bucket >= minBucket) continue;
       this.pointsByKey.delete(key);
-      const bucketCounts = this.bucketCounts[point.granularity];
-      const bucketCount = (bucketCounts.get(point.bucket) ?? 1) - 1;
-      if (bucketCount > 0) {
-        bucketCounts.set(point.bucket, bucketCount);
-      } else {
-        bucketCounts.delete(point.bucket);
-      }
     }
   }
 
@@ -312,57 +357,68 @@ export class MetricsService {
     }
   }
 
-  private scheduleRefreshCheck(): void {
-    if (!this.isCacheLoaded || !this.isSubscribed || this.isRefreshing$$() || this.refreshCheckTimeoutId !== null) {
+  // One heartbeat, one owner (subscriptionEffect) — replaces the old
+  // self-rescheduling setTimeout chain, which quietly died the moment a tick
+  // found nothing to do or hit an error, with no way back short of a scope
+  // change or reconnect. A plain interval can't die like that: every tick
+  // calls refreshHistory(), which is already a safe no-op when there's
+  // nothing to fetch, a refresh is in flight, or the retry backoff hasn't
+  // elapsed yet.
+  //
+  // Two separate concerns live here, deliberately not merged into one guard:
+  // "is the interval running" (idempotent — created once, torn down once) and
+  // "check now" (must happen every single time this is called with
+  // active=true, since every call means something just changed — first mount,
+  // reconnect, or a view/service switch — and each of those deserves its own
+  // immediate check rather than waiting up to HISTORY_HEARTBEAT_INTERVAL_MS
+  // for the next tick). refreshHistory() itself is what makes calling it
+  // "for free" safe to do this often — see needsRefresh in buildHistoryRequest.
+  private syncHistoryHeartbeat(active: boolean): void {
+    const shouldRun = active && this.isCacheLoaded;
+    if (!shouldRun) {
+      if (this.historyHeartbeatIntervalId !== null) {
+        clearInterval(this.historyHeartbeatIntervalId);
+        this.historyHeartbeatIntervalId = null;
+      }
       return;
     }
-    this.refreshCheckTimeoutId = setTimeout(() => {
-      this.refreshCheckTimeoutId = null;
-      if (Date.now() < this.retryAfterMs) return;
-      this.refreshHistory();
-    }, REFRESH_CHECK_DELAY_MS);
+    this.refreshHistory();
+    if (this.historyHeartbeatIntervalId === null) {
+      this.historyHeartbeatIntervalId = setInterval(() => this.refreshHistory(), HISTORY_HEARTBEAT_INTERVAL_MS);
+    }
   }
 
-  private buildHistoryRequest(force: boolean): MetricsHistoryRequest | null {
+  // One request per call, floored per granularity by the neediest metric in
+  // scope — not one request per metric. A metric already caught up just gets
+  // some already-known points back (harmless, deduped by key in insertPoint),
+  // never under-fetches. See §4.2-4.3 of the plan referenced above.
+  private buildHistoryRequest(scope: MetricsScopeEntry[], force: boolean): MetricsHistoryRequest | null {
     const latestMinuteBucket =
       this.latestRealtimeMinuteBucket > 0 ? this.latestRealtimeMinuteBucket : Math.floor(Date.now() / 60_000) * 60 - 60;
 
-    let fullRefresh = force || this.refreshedServices.size === 0;
-    for (const service of this.knownServices) {
-      if (!this.refreshedServices.has(service)) {
-        fullRefresh = true;
-        break;
-      }
-    }
-
     const since = emptyMetricsHistoryWatermarks();
     const targets = emptyMetricsHistoryWatermarks();
-    let needsRefresh = fullRefresh;
-    let watermarksChanged = false;
-
     for (const granularity of METRIC_GRANULARITIES) {
       const target = latestClosedHistoryBucket(granularity, latestMinuteBucket);
       targets[granularity] = target;
-      since[granularity] = fullRefresh
-        ? earliestHistoryBucket(granularity, target)
-        : firstMissingHistoryBucket(
-            granularity,
-            this.historyCheckedThrough[granularity],
-            target,
-            this.bucketCounts[granularity],
-          );
+      // Sentinel > target: narrowed below by any metric that still needs catching up;
+      // if none do, this granularity contributes nothing and stays "not needed".
+      since[granularity] = target + 1;
+    }
 
-      if (since[granularity] <= target) {
-        needsRefresh = true;
-      } else if (this.historyCheckedThrough[granularity] < target) {
-        this.historyCheckedThrough[granularity] = target;
-        watermarksChanged = true;
+    for (const entry of scope) {
+      for (const name of entry.metricNames) {
+        const cursor = force ? undefined : this.historyCheckedThrough[metricCursorKey(entry.service, name)];
+        for (const granularity of METRIC_GRANULARITIES) {
+          const requiredSince = nextHistorySinceBucket(granularity, cursor?.[granularity] ?? 0, targets[granularity]);
+          since[granularity] = Math.min(since[granularity], requiredSince);
+        }
       }
     }
 
-    if (watermarksChanged) this.scheduleCacheWrite();
+    const needsRefresh = METRIC_GRANULARITIES.some((granularity) => since[granularity] <= targets[granularity]);
     if (!needsRefresh) return null;
-    return { since, targets, refreshedServices: new Set(this.knownServices) };
+    return { since, targets, scope };
   }
 
   private scheduleCacheWrite(): void {
@@ -374,7 +430,6 @@ export class MetricsService {
         .set<MetricsCacheState>(STORAGE_KEY, {
           points: this.points$$(),
           historyCheckedThrough: { ...this.historyCheckedThrough },
-          historyServices: Array.from(this.refreshedServices).sort(),
         })
         .then(() =>
           this.performanceMetrics.record('metrics.cache_persist', performance.now() - startedAt, {

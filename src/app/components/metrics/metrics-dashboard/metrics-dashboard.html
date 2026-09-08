@@ -9,31 +9,33 @@
         Dashboard
       </v-button>
 
-      @for (entry of headerEntries$$(); track entry.service) {
-        @if (entry.isComposite) {
-          <v-button [class.v-primary]="isServiceExpanded(entry.service)"
-                    [surface]="isServiceExpanded(entry.service) ? 'raised' : 'flat'"
-                    (onClick)="toggleServiceExpanded(entry.service)">
-            @if (hasHoverExpandableServiceLabel(entry.service)) {<span
-                    class="header-label-short">{{ resolvedServiceShortLabel(entry.service) }}</span><span
-                    class="header-label-long">{{ resolvedServiceLabel(entry.service) }}</span>} @else {
-              {{ resolvedServiceLabel(entry.service) }}
-            }
-          </v-button>
-        } @else {
-          <v-button class="v-primary"
-                    [surface]="isServiceExpanded(entry.service) ? 'raised' : 'flat'"
-                    [color]="sectionButtonColor(entry.service)"
-                    (onClick)="toggleServiceExpanded(entry.service)">
-            @if (hasHoverExpandableServiceLabel(entry.service)) {<span
-                    class="header-label-short">{{ resolvedServiceShortLabel(entry.service) }}</span><span
-                    class="header-label-long">{{ resolvedServiceLabel(entry.service) }}</span>} @else {
-              {{ resolvedServiceLabel(entry.service) }}
-            }
-          </v-button>
+      @if (!deviceInfoService.isMobileScreen$$()) {
+        @for (entry of headerEntries$$(); track entry.service) {
+          @if (entry.isComposite) {
+            <v-button [class.v-primary]="isServiceExpanded(entry.service)"
+                      [surface]="isServiceExpanded(entry.service) ? 'raised' : 'flat'"
+                      (onClick)="toggleServiceExpanded(entry.service)">
+              @if (hasHoverExpandableServiceLabel(entry.service)) {<span
+                      class="header-label-short">{{ resolvedServiceShortLabel(entry.service) }}</span><span
+                      class="header-label-long">{{ resolvedServiceLabel(entry.service) }}</span>} @else {
+                {{ resolvedServiceLabel(entry.service) }}
+              }
+            </v-button>
+          } @else {
+            <v-button class="v-primary"
+                      [surface]="isServiceExpanded(entry.service) ? 'raised' : 'flat'"
+                      [color]="sectionButtonColor(entry.service)"
+                      (onClick)="toggleServiceExpanded(entry.service)">
+              @if (hasHoverExpandableServiceLabel(entry.service)) {<span
+                      class="header-label-short">{{ resolvedServiceShortLabel(entry.service) }}</span><span
+                      class="header-label-long">{{ resolvedServiceLabel(entry.service) }}</span>} @else {
+                {{ resolvedServiceLabel(entry.service) }}
+              }
+            </v-button>
+          }
+        } @empty {
+          <div class="opacity-60 text-sm">Нет сервисов</div>
         }
-      } @empty {
-        <div class="opacity-60 text-sm">Нет сервисов</div>
       }
     </div>
 
@@ -468,7 +470,7 @@
                 [padding]="0">
           <div class="flex flex-col gap-4 py-3 pl-2 pr-3">
             <div class="flex gap-2">
-              <div class="shrink-0 relative w-6">
+              <div class="shrink-0 relative w-4">
                 <div class="absolute inset-y-0 left-0 overflow-hidden [writing-mode:vertical-rl] [text-align:end] rotate-180 whitespace-nowrap font-semibold opacity-70 leading-none"
                      fitTextOnOverflow
                      fitTextOnOverflowAxis="height"
