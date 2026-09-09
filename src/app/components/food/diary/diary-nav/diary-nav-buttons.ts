@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, effect, ElementRef, inject, Signal, viewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FOOD_DIARY_ACCORDION_GROUP_ID } from '@app/components/food/diary/food-diary-accordion';
 import { FOOD_FAB_ROW_RIGHT_INSET_PX, FoodFabLayer, foodFabStackBottomPx } from '@app/components/food/food-fab-layout';
 import { AuthService } from '@app/services/auth.service';
 import { DeviceInfoService } from '@app/services/device-info.service';
@@ -50,6 +51,13 @@ export class DiaryNavButtons {
   protected readonly primaryActionIcon$$: Signal<IconName> = computed(() => {
     return this.isTodaySelected$$() ? IconName.CalendarMonth : IconName.Undo;
   });
+
+  // Mirrors food-diary.ts's isAnyAccordionOpen$$ — hides the add-FAB while an accordion on
+  // the food screen is expanded, since its "Сохранить"/panel controls sit right underneath
+  // this FAB and users kept mis-tapping one for the other.
+  protected readonly isAnyAccordionOpen$$: Signal<boolean> = computed(() =>
+    this.accordionGroupService.isAnyOpen(FOOD_DIARY_ACCORDION_GROUP_ID),
+  );
 
   protected readonly Icon = IconName;
 
@@ -152,7 +160,7 @@ export class DiaryNavButtons {
   }
 
   protected openAddFoodModal(): void {
-    this.accordionGroupService.closeAll('food-diary-section');
+    this.accordionGroupService.closeAll(FOOD_DIARY_ACCORDION_GROUP_ID);
     this.foodAddModalService.openModal();
   }
 }

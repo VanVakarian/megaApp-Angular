@@ -125,10 +125,8 @@
       </v-button>
     }
 
-    @if (deviceInfoService.isDesktopScreen$$()) {
-      <v-button [class.v-primary]="addDiaryEntryButtonVariant$$() === 'primary'"
-                [surface]="addDiaryEntryButtonVariant$$() === 'raised' ? 'raised' : 'default'"
-                class="grow"
+    @if (deviceInfoService.isDesktopScreen$$() && !isAnyAccordionOpen$$()) {
+      <v-button class="v-primary grow"
                 width="100%"
                 (onClick)="openAddFoodModal()">
         Добавить запись

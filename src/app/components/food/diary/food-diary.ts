@@ -15,6 +15,7 @@ import { BMI } from '@app/components/food/diary/bmi/bmi';
 import { BodyWeight } from '@app/components/food/diary/body-weight/body-weight';
 import { DiaryEntryEditForm } from '@app/components/food/diary/diary-entry-edit-form/diary-entry-edit-form';
 import { DiaryNavButtons } from '@app/components/food/diary/diary-nav/diary-nav-buttons';
+import { FOOD_DIARY_ACCORDION_GROUP_ID } from '@app/components/food/diary/food-diary-accordion';
 import { DeviceInfoService } from '@app/services/device-info.service';
 import { FoodAddModalService, ModalState } from '@app/services/food/food-add-modal.service';
 import { FoodCatalogueService } from '@app/services/food/food-catalogue.service';
@@ -120,10 +121,12 @@ export class FoodDiary {
     return `Съедено ${percent}% от дневной нормы`;
   });
 
-  protected readonly addDiaryEntryButtonVariant$$ = computed(() => {
-    if (this.deviceInfoService.isDesktopScreen$$()) return 'primary';
-    return this.openedDiaryEntryId$$() !== null ? 'raised' : 'primary';
-  });
+  // Drives hiding "Добавить запись" (and the mobile add-FAB in diary-nav-buttons) while any
+  // accordion on this screen is expanded — its "Сохранить"/panel controls sit right next to
+  // that button and users kept mis-tapping one for the other.
+  protected readonly isAnyAccordionOpen$$ = computed(() =>
+    this.accordionGroupService.isAnyOpen(FOOD_DIARY_ACCORDION_GROUP_ID),
+  );
 
   protected isDeleteDayConfirmOpen = false;
   protected readonly Icon = IconName;
@@ -254,6 +257,6 @@ export class FoodDiary {
   }
 
   protected closeAllAccordions(): void {
-    this.accordionGroupService.closeAll('food-diary-section');
+    this.accordionGroupService.closeAll(FOOD_DIARY_ACCORDION_GROUP_ID);
   }
 }

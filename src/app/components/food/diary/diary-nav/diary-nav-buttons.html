@@ -46,20 +46,22 @@
 </div>
 
 @if (authService.isAuthenticated$$() && !deviceInfoService.isDesktopScreen$$()) {
-  <div [class]="deviceInfoService.shouldHideFabButtons$$() ? 'fab-hide-slide-right-hidden' : 'fab-hide-slide-right-visible'"
-       class="fixed right-0 z-20 mr-4"
-       [style.bottom]="addFabBottomPx">
-    <v-button class="v-primary"
-              surface="raised"
-              [isLabelHidden]="true"
-              [borderRadius]="7"
-              [padding]="3"
-              (onClick)="openAddFoodModal()">
-      <v-icon v-prefix
-              [name]="Icon.Add"
-              [size]="8" />
-    </v-button>
-  </div>
+  @if (!isAnyAccordionOpen$$()) {
+    <div [class]="deviceInfoService.shouldHideFabButtons$$() ? 'fab-hide-slide-right-hidden' : 'fab-hide-slide-right-visible'"
+         class="fixed right-0 z-20 mr-4"
+         [style.bottom]="addFabBottomPx">
+      <v-button class="v-primary"
+                surface="raised"
+                [isLabelHidden]="true"
+                [borderRadius]="7"
+                [padding]="3"
+                (onClick)="openAddFoodModal()">
+        <v-icon v-prefix
+                [name]="Icon.Add"
+                [size]="8" />
+      </v-button>
+    </div>
+  }
 
   <div [class]="deviceInfoService.shouldHideFabButtons$$() ? 'fab-hide-slide-down-hidden' : 'fab-hide-slide-down-visible'"
        class="bottom-4 fixed flex gap-5"
