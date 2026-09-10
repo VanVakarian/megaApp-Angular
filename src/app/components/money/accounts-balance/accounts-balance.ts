@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MoneyService } from '@app/services/money.service';
 import { convertAmount } from '@app/shared/money-utils';
+import { groupNumberText } from '@app/shared/number-format';
 import { Account, AccountKind, Organization, SymbolPosition, Transaction, TransactionKind } from '@app/shared/types';
 import { VCard } from '@ui-kit/components/v-card/v-card';
 import { IconName, VIcon } from '@ui-kit/components/v-icon/v-icon';
@@ -12,8 +13,6 @@ import { IconName, VIcon } from '@ui-kit/components/v-icon/v-icon';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountsBalance {
-  private readonly THOUSANDS_SEP = '\u2005';
-
   // Edit this array to control the display order of accounts (by account ID).
   // Accounts not listed here will appear at the end in their default order.
   private readonly ACCOUNT_DISPLAY_ORDER: readonly number[] = [3, 15, 16, 1, 14];
@@ -102,8 +101,7 @@ export class AccountsBalance {
   }
 
   private formatNumber(amount: number): string {
-    const [int, dec] = amount.toFixed(2).split('.');
-    return `${int.replace(/\B(?=(\d{3})+(?!\d))/g, this.THOUSANDS_SEP)}.${dec}`;
+    return groupNumberText(amount.toFixed(2));
   }
 
   private getTxDelta(tx: Transaction): number {

@@ -74,7 +74,9 @@
                       [progressNum]="projectedSelectedDaysConsumedPercentNum$$()"
                       [diameter]="24" />
 
-    <span class="w-2/3 font-bold text-left"> {{ projectedSelectedDaysConsumedPercentPadded$$() }}% </span>
+    <span class="w-2/3 font-bold text-left">
+      <v-rolling-number [textInput]="projectedSelectedDaysConsumedPercentDisplay$$()" />
+    </span>
   </div>
 
   <div class="readable-text-bg whitespace-nowrap overflow-hidden text-xl text-center">
@@ -82,17 +84,19 @@
             [name]="Icon.Scale"
             [size]="7" />
 
-    <span class="font-bold"> {{ foodWeightFinal$$() }}г. </span>
+    <span class="font-bold">
+      <v-rolling-number [textInput]="foodWeightFinalDisplay$$()" />
+    </span>
   </div>
 </div>
 
 <form class="flex flex-col gap-4"
       [formGroup]="diaryEntryForm"
       (submit)="onSubmit()">
-  <div class="flex justify-end gap-4 mt-0 *:w-[38%]">
+  <div class="flex gap-4">
     <v-input #foodWeightNewElem
              [formControl]="diaryEntryForm.controls.foodWeightNew"
-             class="readable-text-bg"
+             class="readable-text-bg flex-1"
              inputmode="numeric"
              label="Новый вес"
              fontSize="20px"
@@ -124,7 +128,7 @@
 
     <v-input #foodWeightChangeElem
              [formControl]="diaryEntryForm.controls.foodWeightChange"
-             class="readable-text-bg w-1/3"
+             class="readable-text-bg flex-1"
              inputmode="numeric"
              label="Изменить на"
              fontSize="20px"

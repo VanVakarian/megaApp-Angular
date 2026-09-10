@@ -30,6 +30,7 @@ import { VExpand } from '@ui-kit/components/v-expand/v-expand';
 import { IconName, VIcon } from '@ui-kit/components/v-icon/v-icon';
 import { VInput } from '@ui-kit/components/v-input/v-input';
 import { VModal } from '@ui-kit/components/v-modal/v-modal';
+import { VRollingNumber } from '@ui-kit/components/v-rolling-number/v-rolling-number';
 import { UiProgressIcon } from '@ui-kit/progress-icon/progress-icon.component';
 import { DiaryEntryProductInfo } from '../diary-entry-product-info/diary-entry-product-info';
 import { NutritionSummary } from '../nutrition-summary/nutrition-summary';
@@ -54,6 +55,7 @@ interface DiaryEntryFormModel {
     VExpand,
     VInput,
     VModal,
+    VRollingNumber,
     DiaryEntryProductInfo,
     NutritionSummary,
   ],
@@ -85,6 +87,7 @@ export class DiaryEntryEditForm implements OnChanges, OnDestroy {
   private readonly foodWeightDraftChangeRaw$$: WritableSignal<string | null> = signal(null);
 
   protected readonly foodWeightFinal$$ = computed(() => this.computeFoodWeightFinal());
+  protected readonly foodWeightFinalDisplay$$ = computed(() => `${this.foodWeightFinal$$()}г.`);
 
   // Mirrors the day's kcal-percent counter shown everywhere else (top bar, nutrition-summary) —
   // draft-aware via FoodDiaryService.setDraftEntryWeight, so this and the top bar are always the
@@ -94,6 +97,9 @@ export class DiaryEntryEditForm implements OnChanges, OnDestroy {
   );
   protected readonly projectedSelectedDaysConsumedPercentPadded$$ = computed(() =>
     this.projectedSelectedDaysConsumedPercentNum$$().toFixed(1),
+  );
+  protected readonly projectedSelectedDaysConsumedPercentDisplay$$ = computed(
+    () => `${this.projectedSelectedDaysConsumedPercentPadded$$()}%`,
   );
 
   protected readonly Icon = IconName;

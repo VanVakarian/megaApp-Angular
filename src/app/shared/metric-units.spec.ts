@@ -1,4 +1,5 @@
 import { formatMetricUnitValue } from './metric-units';
+import { THIN_SPACE } from './number-format';
 
 describe('formatMetricUnitValue', () => {
   it('returns "0" for non-finite values regardless of unit', () => {
@@ -84,6 +85,14 @@ describe('formatMetricUnitValue', () => {
     it('formats a whole number with trailing zeros', () => {
       expect(formatMetricUnitValue('money', 10)).toBe('$10.00');
     });
+
+    it('groups thousands starting at 4 digits', () => {
+      expect(formatMetricUnitValue('money', 1800)).toBe(`$1${THIN_SPACE}800.00`);
+    });
+
+    it('groups thousands for negative amounts', () => {
+      expect(formatMetricUnitValue('money', -1234567.5)).toBe(`$-1${THIN_SPACE}234${THIN_SPACE}567.50`);
+    });
   });
 
   describe('count', () => {
@@ -93,6 +102,27 @@ describe('formatMetricUnitValue', () => {
 
     it('formats a non-integer with 1 decimal', () => {
       expect(formatMetricUnitValue('count', 42.37)).toBe('42.4');
+    });
+
+    it('leaves numbers under 1000 ungrouped', () => {
+      expect(formatMetricUnitValue('count', 226)).toBe('226');
+    });
+
+    it('groups thousands starting at 4 digits', () => {
+      expect(formatMetricUnitValue('count', 9106)).toBe(`9${THIN_SPACE}106`);
+      expect(formatMetricUnitValue('count', 118636)).toBe(`118${THIN_SPACE}636`);
+    });
+
+    it('groups the integer part of a non-integer value', () => {
+      expect(formatMetricUnitValue('count', 6401.5)).toBe(`6${THIN_SPACE}401.5`);
+    });
+
+    it('groups multiple thousands separators for large values', () => {
+      expect(formatMetricUnitValue('count', 12345678)).toBe(`12${THIN_SPACE}345${THIN_SPACE}678`);
+    });
+
+    it('groups a negative count', () => {
+      expect(formatMetricUnitValue('count', -1234567)).toBe(`-1${THIN_SPACE}234${THIN_SPACE}567`);
     });
   });
 });

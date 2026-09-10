@@ -28,7 +28,10 @@
         </div>
       }
 
-      <span class="day-progress-label font-normal">{{ caloriesDisplayText$$() }}</span>
+      @if (selectedDaysConsumedPercentText$$(); as percentText) {
+        <span class="day-progress-label font-normal">Съедено <v-rolling-number [textInput]="percentText + '%'" /> от
+          дневной нормы</span>
+      }
     </div>
 
     <div v-body

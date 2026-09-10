@@ -53,11 +53,17 @@
         }
         @if (headerOhlcDisplay$$(); as ohlc) {
           <v-tooltip [noWrap]="true">
-            <span class="font-mono text-sm font-semibold leading-none">{{ headerDisplayValue$$() }}</span>
+            <v-rolling-number #headerValueElem
+                              class="text-sm font-semibold leading-none text-right"
+                              [style.min-width.px]="headerValueReservedWidthPx$$()"
+                              [textInput]="headerDisplayValue$$()" />
             <span v-panel>{{ ohlc }}</span>
           </v-tooltip>
         } @else {
-          <span class="font-mono text-sm font-semibold leading-none">{{ headerDisplayValue$$() }}</span>
+          <v-rolling-number #headerValueElem
+                            class="text-sm font-semibold leading-none text-right"
+                            [style.min-width.px]="headerValueReservedWidthPx$$()"
+                            [textInput]="headerDisplayValue$$()" />
         }
       </div>
     }

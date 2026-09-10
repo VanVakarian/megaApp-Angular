@@ -38,12 +38,14 @@ import {
   MetricSyncCrosshairOptions,
   metricSyncCrosshairPlugin,
 } from '@app/shared/metrics-sync-crosshair';
+import { measureTextWidthPx } from '@app/shared/text-measure';
 import { MetricGranularity } from '@app/shared/types';
 import { VButton } from '@ui-kit/components/v-button/v-button';
 import { VCard } from '@ui-kit/components/v-card/v-card';
 import { VCheckbox } from '@ui-kit/components/v-checkbox/v-checkbox';
 import { IconName, VIcon } from '@ui-kit/components/v-icon/v-icon';
 import { VInput } from '@ui-kit/components/v-input/v-input';
+import { VRollingNumber } from '@ui-kit/components/v-rolling-number/v-rolling-number';
 import { VTooltip } from '@ui-kit/components/v-tooltip/v-tooltip';
 import {
   BarController,
@@ -101,7 +103,7 @@ const HOVER_NO_VALUE_PLACEHOLDER = '—';
 @Component({
   selector: 'metric-chart-card',
   templateUrl: './metric-chart-card.html',
-  imports: [VButton, VCard, VCheckbox, VIcon, VInput, VTooltip],
+  imports: [VButton, VCard, VCheckbox, VIcon, VInput, VRollingNumber, VTooltip],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MetricChartCard implements OnInit, OnDestroy {
@@ -145,41 +147,64 @@ export class MetricChartCard implements OnInit, OnDestroy {
 
   protected readonly Icon = IconName;
 
+  // The header value's own rendered font, read from the live element rather than
+  // hardcoded, so the width measurement below always matches what's actually on
+  // screen even if the header's text size/weight classes change later. `read:
+  // ElementRef` is required here — #headerValueElem sits on a <v-rolling-number>
+  // component tag, and a template ref on a component tag resolves to the component
+  // instance by default, not its native element. Falls back to a reasonable guess
+  // before the view has rendered once.
+  private readonly headerValueElem = viewChild<unknown, ElementRef<HTMLElement>>('headerValueElem', {
+    read: ElementRef,
+  });
+  private readonly headerValueFont$$ = computed(() => {
+    const elem = this.headerValueElem()?.nativeElement;
+    return elem ? getComputedStyle(elem).font : '600 14px system-ui, sans-serif';
+  });
+
   // Widest formatted value across the currently visible window (whatever unit —
-  // money, count, ratio, durations all vary wildly in digit count). Padding every
-  // header value out to this width up front means scrubbing across a card whose
-  // series spans e.g. "20" through "24480" never reflows the header (or the time
-  // label and title next to it) as the digit count changes underfoot.
-  private readonly headerValuePadWidth$$ = computed(() => {
+  // money, count, ratio, durations all vary wildly in digit count and, in a
+  // proportional font, digit shape). Measuring every candidate's real pixel width
+  // up front and reserving that as the value's min-width means scrubbing across a
+  // card whose series spans e.g. "20" through "24 480" never reflows the header
+  // (or the time label and title next to it) as the value changes underfoot.
+  //
+  // v-rolling-number animates glyphs *within* a fixed-size box; it doesn't manage
+  // the box's own size, on purpose — this component's own reactive update runs
+  // strictly after Angular has already written the sibling time label's new DOM
+  // state for the same hoverBucket$$ change (effects, and afterRenderEffect's
+  // earlyRead phase, both fire after the change-detection pass that performs that
+  // write), so there is no reactive hook that can see the time label's "before"
+  // position to spring away a jump after the fact. Reserving the width up front
+  // sidesteps the problem entirely by never letting the box resize during a hover.
+  protected readonly headerValueReservedWidthPx$$ = computed(() => {
+    const font = this.headerValueFont$$();
     const unit = this.unitInput();
-    let maxLength = (this.displayValueInput() || String(this.valueInput())).length;
+    const candidates = [this.displayValueInput() || String(this.valueInput())];
     for (const point of this.seriesInput()) {
       if (point.value === null) continue;
-      maxLength = Math.max(maxLength, formatMetricUnitValue(unit, point.value).length);
+      candidates.push(formatMetricUnitValue(unit, point.value));
     }
-    return maxLength;
+    return Math.max(...candidates.map((text) => measureTextWidthPx(text, font)));
   });
 
   // While the synced crosshair is active, the header tracks the highlighted time
   // instead of the series' last value — a dash when nothing falls within the
   // capture window, back to the static value the instant the crosshair clears
   // (hoverBucket$$ going null), for every card at once, since it's one shared signal.
-  // Left-padded with non-breaking spaces (plain spaces would collapse in the DOM)
-  // to headerValuePadWidth$$ so the monospace value column never resizes.
   protected readonly headerDisplayValue$$ = computed(() => {
-    const padWidth = this.headerValuePadWidth$$();
     const hoverBucket = hoverBucket$$();
     if (hoverBucket === null || !this.syncCrosshairEnabledInput()) {
-      return (this.displayValueInput() || String(this.valueInput())).padStart(padWidth, ' ');
+      return this.displayValueInput() || String(this.valueInput());
     }
 
     const nearest = findNearestSeriesPoint(this.seriesInput(), hoverBucket);
     const captureWindowSeconds = CROSSHAIR_CAPTURE_STEP_MULTIPLIER * this.displayStepSecondsInput();
     if (!nearest || nearest.value === null || Math.abs(nearest.bucket - hoverBucket) > captureWindowSeconds) {
-      return HOVER_NO_VALUE_PLACEHOLDER.padStart(padWidth, ' ');
+      return HOVER_NO_VALUE_PLACEHOLDER;
     }
 
-    return formatMetricUnitValue(this.unitInput(), nearest.value).padStart(padWidth, ' ');
+    return formatMetricUnitValue(this.unitInput(), nearest.value);
   });
 
   // Bucket the header value above corresponds to, formatted per granularity

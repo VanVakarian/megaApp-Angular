@@ -26,6 +26,7 @@ import { VAccordion } from '@ui-kit/components/v-expand/v-accordion';
 import { VExpand } from '@ui-kit/components/v-expand/v-expand';
 import { IconName, VIcon } from '@ui-kit/components/v-icon/v-icon';
 import { VModal } from '@ui-kit/components/v-modal/v-modal';
+import { VRollingNumber } from '@ui-kit/components/v-rolling-number/v-rolling-number';
 import { AccordionGroupService } from '@ui-kit/services/accordion-group.service';
 import { NutritionSummary } from './nutrition-summary/nutrition-summary';
 
@@ -45,6 +46,7 @@ import { NutritionSummary } from './nutrition-summary/nutrition-summary';
     VAccordion,
     VExpand,
     VIcon,
+    VRollingNumber,
   ],
 })
 export class FoodDiary {
@@ -114,11 +116,11 @@ export class FoodDiary {
     () => this.foodDiaryService.selectedDayDeletedSnapshot$$() !== null,
   );
 
-  protected readonly caloriesDisplayText$$ = computed(() => {
+  // null hides the whole label (no target set yet) — string, not number, so it can feed
+  // v-rolling-number directly without the template re-deriving a display format.
+  protected readonly selectedDaysConsumedPercentText$$ = computed<string | null>(() => {
     const percent = this.selectedDaysFormattedConsumedPercent$$();
-    if (Number.isNaN(percent)) return '';
-
-    return `Съедено ${percent}% от дневной нормы`;
+    return Number.isNaN(percent) ? null : String(percent);
   });
 
   // Drives hiding "Добавить запись" (and the mobile add-FAB in diary-nav-buttons) while any

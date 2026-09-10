@@ -1,3 +1,5 @@
+import { groupNumberText } from './number-format';
+
 export type MetricUnit = 'ratio' | 'bytes' | 'durationMs' | 'humanDuration' | 'money' | 'count';
 
 const BYTE_UNIT_SUFFIXES = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
@@ -48,8 +50,12 @@ function formatHumanDurationValue(valueSeconds: number): string {
 }
 
 function formatCountValue(value: number): string {
-  if (Number.isInteger(value)) return value.toString();
-  return (Math.round(value * 10) / 10).toFixed(1);
+  const text = Number.isInteger(value) ? value.toString() : (Math.round(value * 10) / 10).toFixed(1);
+  return groupNumberText(text);
+}
+
+function formatMoneyValue(value: number): string {
+  return `$${groupNumberText((Math.round(value * 100) / 100).toFixed(2))}`;
 }
 
 export function formatMetricUnitValue(unit: MetricUnit, value: number): string {
@@ -64,7 +70,7 @@ export function formatMetricUnitValue(unit: MetricUnit, value: number): string {
     case 'humanDuration':
       return formatHumanDurationValue(value);
     case 'money':
-      return `$${(Math.round(value * 100) / 100).toFixed(2)}`;
+      return formatMoneyValue(value);
     case 'count':
     default:
       return formatCountValue(value);

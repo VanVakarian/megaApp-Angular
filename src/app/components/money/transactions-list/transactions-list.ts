@@ -6,6 +6,7 @@ import { PerformanceMetricsService } from '@app/services/performance-metrics.ser
 import { DefaultModal } from '@app/shared/components/default-modal/default-modal';
 import { FormModal } from '@app/shared/components/form-modal/form-modal';
 import { convertAmount } from '@app/shared/money-utils';
+import { groupNumberText } from '@app/shared/number-format';
 import { AccountKind, Asset, Organization, SymbolPosition, Transaction, TransactionKind } from '@app/shared/types';
 import { VButton } from '@ui-kit/components/v-button/v-button';
 import { VCard } from '@ui-kit/components/v-card/v-card';
@@ -47,17 +48,6 @@ export class TransactionsList {
     .subscribe(() => {
       this.showNewTransactionForm();
     });
-
-  /**
-   * Thousands separator. Options (narrowest to widest):
-   * '\u2006' six-per-em   ~1/6em
-   * '\u2009' thin space   ~1/5em
-   * '\u202F' narrow-nbsp  ~1/4em
-   * '\u2005' four-per-em  ~1/4em  ← current
-   * '\u2004' three-per-em ~1/3em
-   * '\u2002' en-space     ~1/2em
-   */
-  private readonly THOUSANDS_SEP = '\u2005';
 
   private readonly currencies$$ = computed(() => this.moneyService.currencies$$());
   private readonly categories$$ = computed(() => this.moneyService.categories$$());
@@ -424,9 +414,7 @@ export class TransactionsList {
   }
 
   private formatNumber(amount: number): string {
-    const [int, dec] = amount.toFixed(2).split('.');
-    const intFormatted = int.replace(/\B(?=(\d{3})+(?!\d))/g, this.THOUSANDS_SEP);
-    return `${intFormatted}.${dec}`;
+    return groupNumberText(amount.toFixed(2));
   }
 
   private getTwinTransaction(transaction: Transaction): Transaction | null {
