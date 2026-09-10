@@ -1,9 +1,10 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, effect, inject, signal, untracked } from '@angular/core';
 import { IndexedDbCacheService } from '@app/services/indexed-db-cache.service';
-import { NetworkService } from '@app/services/network.service';
+import { MetricsBinaryFrameType, NetworkService } from '@app/services/network.service';
 import { NotificationService } from '@app/services/notification.service';
 import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
+import { METRICS_GRANULARITY_STEP_SECONDS, METRICS_GRANULARITY_WINDOW_PERIODS } from '@app/shared/chart-config';
 import {
   METRIC_GRANULARITIES,
   MetricsCursorMap,
@@ -15,20 +16,11 @@ import {
   nextHistorySinceBucket,
   parseMetricsCursorMap,
 } from '@app/shared/metrics-history-range';
-import {
-  MetricGranularity,
-  MetricPoint,
-  MetricsHistoryResponse,
-  MetricsScopeEntry,
-  WebSocketMessageType,
-} from '@app/shared/types';
+import { MetricRingBuffer } from '@app/shared/metrics-ring-buffer';
+import { decodeMetricsWireToPoints } from '@app/shared/metrics-wire';
+import { MetricGranularity, MetricPoint, MetricsScopeEntry, WebSocketMessageType } from '@app/shared/types';
 
 const STORAGE_KEY = 'metrics_detail';
-const CACHE_WINDOW_SECONDS: Record<MetricGranularity, number> = {
-  minute: 48 * 60 * 60,
-  hour: 30 * 24 * 60 * 60,
-  day: 365 * 24 * 60 * 60,
-};
 const CACHE_WRITE_DELAY_MS = 1_000;
 const HISTORY_HEARTBEAT_INTERVAL_MS = 60_000;
 const REFRESH_RETRY_DELAY_MS = 60_000;
@@ -51,6 +43,13 @@ interface MetricsHistoryRequest {
   scope: MetricsScopeEntry[];
 }
 
+interface SeriesBuffer {
+  service: string;
+  name: string;
+  granularity: MetricGranularity;
+  buffer: MetricRingBuffer;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -68,8 +67,13 @@ export class MetricsService {
   private readonly http = inject(HttpClient);
   private readonly indexedDbCache = inject(IndexedDbCacheService);
   private readonly performanceMetrics = inject(PerformanceMetricsService);
-  private readonly pointsByKey = new Map<string, MetricPoint>();
-  private readonly latestBuckets = emptyMetricsHistoryWatermarks();
+
+  // One fixed-capacity ring buffer per (granularity, service, name) series —
+  // replaces the old session-wide Map + age-based full-scan pruning. Capacity
+  // matches the display window exactly (METRICS_GRANULARITY_WINDOW_PERIODS),
+  // so nothing is ever retained that the dashboard couldn't show anyway. See
+  // plans/33-metrics-flow-tstorage-migration.implementation-plan.md §2.1.
+  private readonly buffers = new Map<string, SeriesBuffer>();
 
   private isCacheLoaded = false;
   private latestRealtimeMinuteBucket = 0;
@@ -118,27 +122,26 @@ export class MetricsService {
       this.syncHistoryHeartbeat(this.currentScope$$() !== null && this.networkService.isConnected$$());
       this.performanceMetrics.record('metrics.cache_hydrate', performance.now() - cacheStartedAt, {
         cache: cached ? 'hit' : 'miss',
-        points: this.pointsByKey.size,
+        points: this.trackedPointCount(),
       });
     });
 
-    this.networkService.wsMessages$.subscribe((message) => {
-      if (message.type === WebSocketMessageType.METRICS_UPDATE) {
+    this.networkService.metricsBinaryFrames$.subscribe((frame) => {
+      if (frame.frameType === MetricsBinaryFrameType.Update) {
+        const points = decodeMetricsWireToPoints(frame.payload);
         this.performanceMetrics.measure(
           'metrics.realtime_batch',
-          () => this.mergePoints(message.payload.points, true),
+          () => this.mergePoints(points, true),
           () => ({
-            inputPoints: message.payload.points.length,
-            retainedPoints: this.pointsByKey.size,
+            inputPoints: points.length,
+            retainedPoints: this.trackedPointCount(),
           }),
         );
         return;
       }
-      if (message.type === WebSocketMessageType.METRICS_LATEST) {
-        for (const service of message.payload.services) {
-          if (Number.isFinite(service.lastBucket)) {
-            this.latestRealtimeMinuteBucket = Math.max(this.latestRealtimeMinuteBucket, service.lastBucket);
-          }
+      if (frame.frameType === MetricsBinaryFrameType.Latest) {
+        for (const point of decodeMetricsWireToPoints(frame.payload)) {
+          this.latestRealtimeMinuteBucket = Math.max(this.latestRealtimeMinuteBucket, point.bucket);
         }
       }
     });
@@ -166,10 +169,7 @@ export class MetricsService {
   }
 
   public clearCache(): void {
-    this.pointsByKey.clear();
-    for (const granularity of METRIC_GRANULARITIES) {
-      this.latestBuckets[granularity] = 0;
-    }
+    this.buffers.clear();
     this.historyCheckedThrough = emptyMetricsCursorMap();
     this.points$$.set([]);
     if (this.cacheWriteTimeoutId !== null) {
@@ -218,10 +218,10 @@ export class MetricsService {
     };
 
     const startedAt = performance.now();
-    this.http.post<MetricsHistoryResponse>('/api/metrics/history', body).subscribe({
+    this.http.post('/api/metrics/history', body, { responseType: 'arraybuffer' }).subscribe({
       next: (response) => {
-        const histories = response.histories ?? [];
-        this.mergeHistories(histories);
+        const points = decodeMetricsWireToPoints(response);
+        this.mergePoints(points, false, false);
         // Advance every metric the request named, not only ones that appeared in the
         // response — Flatline's response is authoritative for the whole requested
         // range, so a metric absent from it genuinely had no points there, not "we
@@ -243,8 +243,8 @@ export class MetricsService {
         this.scheduleCacheWrite();
         void this.performanceMetrics.recordAfterPaint('metrics.history_refresh', startedAt, {
           trigger: showNotification ? 'manual' : 'automatic',
-          histories: histories.length,
-          retainedPoints: this.pointsByKey.size,
+          points: points.length,
+          retainedPoints: this.trackedPointCount(),
         });
         if (showNotification) {
           this.resolvePendingRefreshNotification();
@@ -290,28 +290,12 @@ export class MetricsService {
     this.refreshHistory();
   }
 
-  private mergeHistories(histories: MetricsHistoryResponse['histories']): void {
-    for (const history of histories) {
-      const service = history?.service?.trim();
-      if (!service) continue;
-      for (const snapshot of history.snapshots ?? []) {
-        if (!this.isValidGranularity(snapshot?.granularity) || !Number.isFinite(snapshot.bucket)) continue;
-        for (const [name, value] of Object.entries(snapshot.metrics ?? {})) {
-          this.insertPoint({ service, name, granularity: snapshot.granularity, bucket: snapshot.bucket, value }, false);
-        }
-      }
-    }
-    this.prunePoints();
-    this.publishPoints(true);
-  }
-
   private mergePoints(newPoints: MetricPoint[] | null, isRealtime: boolean, shouldSave = true): void {
     if (!newPoints || newPoints.length === 0) return;
 
     for (const point of newPoints) {
       this.insertPoint(point, isRealtime);
     }
-    this.prunePoints();
     this.publishPoints(shouldSave);
   }
 
@@ -326,27 +310,35 @@ export class MetricsService {
       return;
     }
 
-    const key = this.pointKey(point);
-    this.pointsByKey.set(key, point);
-    this.latestBuckets[point.granularity] = Math.max(this.latestBuckets[point.granularity], point.bucket);
+    this.bufferFor(point.service, point.name, point.granularity).insert(point.bucket, point.value);
 
-    if (point.granularity === 'minute') {
-      if (isRealtime) {
-        this.latestRealtimeMinuteBucket = Math.max(this.latestRealtimeMinuteBucket, point.bucket);
-      }
+    if (point.granularity === 'minute' && isRealtime) {
+      this.latestRealtimeMinuteBucket = Math.max(this.latestRealtimeMinuteBucket, point.bucket);
     }
   }
 
-  private prunePoints(): void {
-    for (const [key, point] of this.pointsByKey) {
-      const minBucket = this.latestBuckets[point.granularity] - CACHE_WINDOW_SECONDS[point.granularity];
-      if (minBucket <= 0 || point.bucket >= minBucket) continue;
-      this.pointsByKey.delete(key);
+  private bufferFor(service: string, name: string, granularity: MetricGranularity): MetricRingBuffer {
+    const key = this.seriesKey(service, name, granularity);
+    let entry = this.buffers.get(key);
+    if (!entry) {
+      const buffer = new MetricRingBuffer(
+        METRICS_GRANULARITY_WINDOW_PERIODS[granularity],
+        METRICS_GRANULARITY_STEP_SECONDS[granularity],
+      );
+      entry = { service, name, granularity, buffer };
+      this.buffers.set(key, entry);
     }
+    return entry.buffer;
   }
 
   private publishPoints(shouldSave: boolean): void {
-    const points = Array.from(this.pointsByKey.values()).sort((a, b) => {
+    const points: MetricPoint[] = [];
+    for (const { service, name, granularity, buffer } of this.buffers.values()) {
+      for (const point of buffer.toSortedPoints()) {
+        points.push({ service, name, granularity, ...point });
+      }
+    }
+    points.sort((a, b) => {
       if (a.bucket !== b.bucket) return a.bucket - b.bucket;
       if (a.service !== b.service) return a.service.localeCompare(b.service);
       return a.name.localeCompare(b.name);
@@ -433,7 +425,7 @@ export class MetricsService {
         })
         .then(() =>
           this.performanceMetrics.record('metrics.cache_persist', performance.now() - startedAt, {
-            points: this.pointsByKey.size,
+            points: this.trackedPointCount(),
           }),
         );
     }, CACHE_WRITE_DELAY_MS);
@@ -449,7 +441,15 @@ export class MetricsService {
     return value === 'minute' || value === 'hour' || value === 'day';
   }
 
-  private pointKey(point: MetricPoint): string {
-    return `${point.granularity}:${point.service}:${point.name}:${point.bucket}`;
+  private seriesKey(service: string, name: string, granularity: MetricGranularity): string {
+    return `${granularity}:${service}:${name}`;
+  }
+
+  private trackedPointCount(): number {
+    let count = 0;
+    for (const { buffer } of this.buffers.values()) {
+      count += buffer.size();
+    }
+    return count;
   }
 }

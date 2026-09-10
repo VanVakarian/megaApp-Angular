@@ -32,8 +32,6 @@ export const WebSocketMessageType = {
   CATALOGUE_ENTRY_DELETED: 'CATALOGUE_ENTRY_DELETED',
   CATALOGUE_IMAGE_GENERATED: 'CATALOGUE_IMAGE_GENERATED',
   METRICS_HEALTH: 'METRICS_HEALTH',
-  METRICS_LATEST: 'METRICS_LATEST',
-  METRICS_UPDATE: 'METRICS_UPDATE',
   METRICS_SUBSCRIBE: 'METRICS_SUBSCRIBE',
   METRICS_UNSUBSCRIBE: 'METRICS_UNSUBSCRIBE',
   PERFORMANCE_METRICS_BATCH: 'PERFORMANCE_METRICS_BATCH',
@@ -188,13 +186,12 @@ export interface ServiceLatest {
   metrics: Record<string, number>;
 }
 
+// Decoded from the METRICS_LATEST binary WS frame (see shared/metrics-wire.ts) —
+// no longer a JSON WS message, hence no WebSocketMessageType.METRICS_LATEST
+// entry: the frame carries a type-prefix byte instead (network.service.ts's
+// MetricsBinaryFrameType), not a JSON "type" field.
 export interface MetricsLatestSnapshot {
   services: ServiceLatest[];
-}
-
-export interface MetricsLatestWsMessage {
-  type: typeof WebSocketMessageType.METRICS_LATEST;
-  payload: MetricsLatestSnapshot;
 }
 
 export type MetricGranularity = 'minute' | 'hour' | 'day';
@@ -215,26 +212,6 @@ export interface MetricPoint {
   granularity: MetricGranularity;
   bucket: number;
   value: number;
-}
-
-export interface MetricSnapshot {
-  granularity: MetricGranularity;
-  bucket: number;
-  metrics: Record<string, number>;
-}
-
-export interface ServiceMetricHistory {
-  service: string;
-  snapshots: MetricSnapshot[];
-}
-
-export interface MetricsHistoryResponse {
-  histories: ServiceMetricHistory[];
-}
-
-export interface MetricsUpdateWsMessage {
-  type: typeof WebSocketMessageType.METRICS_UPDATE;
-  payload: { points: MetricPoint[] };
 }
 
 // A metric never named here is never requested and never seen — there is no
@@ -321,8 +298,6 @@ export type IncomingWsMessage =
   | DiaryDayDeletedWsMessage
   | BodyWeightUpdatedWsMessage
   | MetricsHealthWsMessage
-  | MetricsLatestWsMessage
-  | MetricsUpdateWsMessage
   | PerformanceMetricsAckWsMessage
   | SearchResultsWsMessage
   | CatalogueEntrySavedWsMessage

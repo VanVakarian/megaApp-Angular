@@ -3,10 +3,12 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ApplicationRef, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { IndexedDbCacheService } from '@app/services/indexed-db-cache.service';
-import { NetworkService } from '@app/services/network.service';
+import { MetricsBinaryFrame, MetricsBinaryFrameType, NetworkService } from '@app/services/network.service';
 import { NotificationService } from '@app/services/notification.service';
 import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
-import { IncomingWsMessage, MetricPoint, WebSocketMessageType } from '@app/shared/types';
+import { METRICS_GRANULARITY_WINDOW_PERIODS } from '@app/shared/chart-config';
+import { MetricPoint } from '@app/shared/types';
+import { encodeMetricsWireFixture } from '@app/testing/metrics-wire.fake';
 import { createPerformanceMetricsFake } from '@app/testing/performance-metrics.fake';
 import { Subject } from 'rxjs';
 import { MetricsService } from './metrics.service';
@@ -16,10 +18,10 @@ function metricPoint(overrides: Partial<MetricPoint> = {}): MetricPoint {
 }
 
 function setup() {
-  const wsMessages$ = new Subject<IncomingWsMessage>();
+  const metricsBinaryFrames$ = new Subject<MetricsBinaryFrame>();
   const isConnected$$ = signal(false);
-  const networkServiceFake: Pick<NetworkService, 'wsMessages$' | 'isConnected$$' | 'sendMessage'> = {
-    wsMessages$,
+  const networkServiceFake: Pick<NetworkService, 'metricsBinaryFrames$' | 'isConnected$$' | 'sendMessage'> = {
+    metricsBinaryFrames$,
     isConnected$$,
     sendMessage: vi.fn(() => true),
   };
@@ -47,7 +49,7 @@ function setup() {
   return {
     service: TestBed.inject(MetricsService),
     httpMock: TestBed.inject(HttpTestingController),
-    wsMessages$,
+    metricsBinaryFrames$,
     isConnected$$,
     appRef: TestBed.inject(ApplicationRef),
   };
@@ -60,53 +62,71 @@ async function flushCacheLoad(): Promise<void> {
   await Promise.resolve();
 }
 
-function pushUpdate(wsMessages$: Subject<IncomingWsMessage>, points: MetricPoint[]): void {
-  wsMessages$.next({ type: WebSocketMessageType.METRICS_UPDATE, payload: { points } });
+function pushUpdate(metricsBinaryFrames$: Subject<MetricsBinaryFrame>, points: MetricPoint[]): void {
+  const payload = encodeMetricsWireFixture(
+    points.map((point) => ({
+      service: point.service,
+      metricName: point.name,
+      granularity: point.granularity,
+      points: [{ bucket: point.bucket, value: point.value }],
+    })),
+  );
+  metricsBinaryFrames$.next({ frameType: MetricsBinaryFrameType.Update, payload });
 }
 
-describe('MetricsService — point dedup (pointKey/insertPoint)', () => {
+describe('MetricsService — point dedup (bufferFor/insertPoint)', () => {
   it('keeps only the latest value for points sharing the same service/name/granularity/bucket key', () => {
-    const { service, wsMessages$ } = setup();
-    pushUpdate(wsMessages$, [metricPoint({ value: 10 })]);
-    pushUpdate(wsMessages$, [metricPoint({ value: 20 })]);
+    const { service, metricsBinaryFrames$ } = setup();
+    pushUpdate(metricsBinaryFrames$, [metricPoint({ value: 10 })]);
+    pushUpdate(metricsBinaryFrames$, [metricPoint({ value: 20 })]);
     expect(service.points$$()).toEqual([metricPoint({ value: 20 })]);
   });
 
   it('drops a point with a non-finite value or an unrecognized granularity instead of throwing', () => {
-    const { service, wsMessages$ } = setup();
-    pushUpdate(wsMessages$, [
-      metricPoint({ value: NaN }),
-      { ...metricPoint({ name: 'errors' }), granularity: 'century' as never },
-    ]);
+    const { service, metricsBinaryFrames$ } = setup();
+    pushUpdate(metricsBinaryFrames$, [metricPoint({ value: NaN })]);
+    // A wire-decoded granularity byte outside 0/1/2 already falls back to
+    // 'minute' at the decoder (see GRANULARITY_BY_WIRE_BYTE), so the
+    // unrecognized-granularity half of this guard can't be exercised through
+    // pushUpdate anymore — it stays as defense-in-depth for any other caller
+    // of insertPoint (e.g. cache hydration reading an older/foreign format).
     expect(service.points$$()).toEqual([]);
   });
 });
 
-describe('MetricsService — pruning (prunePoints)', () => {
-  it('drops points older than the granularity cache window once a newer bucket for that granularity arrives', () => {
-    const { service, wsMessages$ } = setup();
-    const oldPoint = metricPoint({ bucket: 1_000_000 });
-    const newPoint = metricPoint({ name: 'errors', bucket: 1_000_000 + 200_000 }); // 200_000s > 172_800s (48h minute window)
-    pushUpdate(wsMessages$, [oldPoint, newPoint]);
-    expect(service.points$$()).toEqual([newPoint]);
+describe('MetricsService — ring buffer capacity eviction (MetricRingBuffer)', () => {
+  it('evicts the oldest point of a series once more than the granularity capacity of newer buckets have arrived', () => {
+    const { service, metricsBinaryFrames$ } = setup();
+    const capacity = METRICS_GRANULARITY_WINDOW_PERIODS.minute; // 1440
+    const stepSeconds = 60;
+    const firstBucket = 60;
+
+    pushUpdate(metricsBinaryFrames$, [metricPoint({ bucket: firstBucket })]);
+    // One point per bucket beyond capacity — the ring must have wrapped past
+    // the very first bucket by the time this loop ends.
+    for (let i = 1; i <= capacity; i++) {
+      pushUpdate(metricsBinaryFrames$, [metricPoint({ bucket: firstBucket + i * stepSeconds })]);
+    }
+
+    const buckets = service.points$$().map((point) => point.bucket);
+    expect(buckets).not.toContain(firstBucket);
+    expect(buckets.length).toBe(capacity);
   });
 });
 
-describe('MetricsService.forceRefresh — mergeHistories', () => {
-  it('flattens a history response into points and applies the same dedup rules', () => {
+describe('MetricsService.forceRefresh — refreshHistory (binary /api/metrics/history response)', () => {
+  it('decodes a wire history response into points and applies the same dedup rules', () => {
     const { service, httpMock } = setup();
     service.setScope([{ service: 'api', metricNames: ['requests'] }]);
     service.forceRefresh();
 
     const req = httpMock.expectOne((r) => r.url === '/api/metrics/history' && r.method === 'POST');
-    req.flush({
-      histories: [
-        {
-          service: 'api',
-          snapshots: [{ granularity: 'minute', bucket: 1_000_000, metrics: { requests: 42 } }],
-        },
-      ],
-    });
+    expect(req.request.responseType).toBe('arraybuffer');
+    req.flush(
+      encodeMetricsWireFixture([
+        { service: 'api', metricName: 'requests', granularity: 'minute', points: [{ bucket: 1_000_000, value: 42 }] },
+      ]),
+    );
 
     expect(service.points$$()).toEqual([metricPoint({ bucket: 1_000_000, value: 42 })]);
     httpMock.verify();
@@ -125,7 +145,7 @@ describe('MetricsService.forceRefresh — mergeHistories', () => {
 
     const req = httpMock.expectOne((r) => r.url === '/api/metrics/history');
     expect(req.request.body.scope).toEqual([{ service: 'api', metricNames: ['requests'] }]);
-    req.flush({ histories: [] });
+    req.flush(encodeMetricsWireFixture([]));
   });
 });
 
@@ -138,7 +158,7 @@ describe('MetricsService — history heartbeat (subscriptionEffect/syncHistoryHe
     appRef.tick();
 
     const req = httpMock.expectOne((r) => r.url === '/api/metrics/history');
-    req.flush({ histories: [] });
+    req.flush(encodeMetricsWireFixture([]));
     httpMock.verify();
   });
 
@@ -148,7 +168,7 @@ describe('MetricsService — history heartbeat (subscriptionEffect/syncHistoryHe
     service.setScope([{ service: 'api', metricNames: ['requests'] }]);
     isConnected$$.set(true);
     appRef.tick();
-    httpMock.expectOne((r) => r.url === '/api/metrics/history').flush({ histories: [] });
+    httpMock.expectOne((r) => r.url === '/api/metrics/history').flush(encodeMetricsWireFixture([]));
 
     // The heartbeat interval is already running at this point — before the fix, the
     // "already running" guard also blocked this immediate check, so switching services
@@ -158,7 +178,7 @@ describe('MetricsService — history heartbeat (subscriptionEffect/syncHistoryHe
 
     const secondRequest = httpMock.expectOne((r) => r.url === '/api/metrics/history');
     expect(secondRequest.request.body.scope).toEqual([{ service: 'other', metricNames: ['errors'] }]);
-    secondRequest.flush({ histories: [] });
+    secondRequest.flush(encodeMetricsWireFixture([]));
     httpMock.verify();
   });
 
@@ -175,11 +195,11 @@ describe('MetricsService — history heartbeat (subscriptionEffect/syncHistoryHe
     appRef.tick();
     httpMock.expectNone('/api/metrics/history');
 
-    firstRequest.flush({ histories: [] });
+    firstRequest.flush(encodeMetricsWireFixture([]));
 
     const secondRequest = httpMock.expectOne((r) => r.url === '/api/metrics/history');
     expect(secondRequest.request.body.scope).toEqual([{ service: 'other', metricNames: ['errors'] }]);
-    secondRequest.flush({ histories: [] });
+    secondRequest.flush(encodeMetricsWireFixture([]));
     httpMock.verify();
   });
 });
