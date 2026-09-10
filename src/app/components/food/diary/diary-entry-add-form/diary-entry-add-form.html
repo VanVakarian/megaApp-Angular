@@ -34,7 +34,7 @@
                         [diameter]="24" />
 
       <span class="w-2/3 font-bold text-left">
-        {{ projectedSelectedDaysConsumedPercentPadded$$() }}%
+        <v-rolling-number [textInput]="projectedSelectedDaysConsumedPercentDisplay$$()" />
       </span>
     </div>
 

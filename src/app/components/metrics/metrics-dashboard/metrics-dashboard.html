@@ -482,8 +482,15 @@
                      fitTextOnOverflowAxis="height"
                      [fullText]="row.label"
                      [shortText]="row.shortLabel"></div>
-                <div class="sticky [height:max-content] overflow-hidden [writing-mode:vertical-rl] rotate-180 whitespace-nowrap font-semibold opacity-70 leading-none"
-                     [style.top.px]="stickyLabelTopPx$$()">{{ rowLabelFit.text() }}</div>
+                <!-- Sticky label lives inside its own inset-y-0 box — same decoupling trick as
+                     the measurer above. Without it, the label's own (in-flow) content height
+                     would feed back into the flex-stretch that sizes this column: once the full
+                     label rendered once, its height would keep the column stretched tall even
+                     after the row shrank back down, so it could never re-collapse to shortLabel. -->
+                <div class="absolute inset-y-0 left-0">
+                  <div class="sticky [writing-mode:vertical-rl] rotate-180 whitespace-nowrap font-semibold opacity-70 leading-none"
+                       [style.top.px]="stickyLabelTopPx$$()">{{ rowLabelFit.text() }}</div>
+                </div>
               </div>
               <metric-card-grid class="grow min-w-0"
                                 [cardsInput]="row.cards"
@@ -518,8 +525,7 @@
                   [borderRadius]="2"
                   [padding]="0">
             <div class="grid grid-cols-[auto_minmax(0,1fr)] gap-2 py-3 pl-2 pr-3">
-              <div
-                   class="self-start sticky [height:max-content] [writing-mode:vertical-rl] rotate-180 whitespace-nowrap font-semibold opacity-70 leading-none"
+              <div class="self-start sticky [height:max-content] [writing-mode:vertical-rl] rotate-180 whitespace-nowrap font-semibold opacity-70 leading-none"
                    [style.top.px]="stickyLabelTopPx$$()">
                 {{ group.label }}
               </div>
@@ -554,8 +560,7 @@
                 [borderRadius]="2"
                 [padding]="0">
           <div class="grid grid-cols-[auto_minmax(0,1fr)] gap-2 py-3 pl-2 pr-3">
-            <div
-                 class="self-start sticky [height:max-content] [writing-mode:vertical-rl] rotate-180 whitespace-nowrap font-semibold opacity-70 leading-none"
+            <div class="self-start sticky [height:max-content] [writing-mode:vertical-rl] rotate-180 whitespace-nowrap font-semibold opacity-70 leading-none"
                  [style.top.px]="stickyLabelTopPx$$()">
               {{ group.label }}
             </div>

@@ -8,12 +8,13 @@ import { DiaryEntry, HistoryEntryAction } from '@app/shared/types';
 import { VButton } from '@ui-kit/components/v-button/v-button';
 import { IconName, VIcon } from '@ui-kit/components/v-icon/v-icon';
 import { VInput } from '@ui-kit/components/v-input/v-input';
+import { VRollingNumber } from '@ui-kit/components/v-rolling-number/v-rolling-number';
 import { UiProgressIcon } from '@ui-kit/progress-icon/progress-icon.component';
 
 @Component({
   selector: 'diary-entry-add-form',
   templateUrl: './diary-entry-add-form.html',
-  imports: [ReactiveFormsModule, UiProgressIcon, VButton, VIcon, VInput],
+  imports: [ReactiveFormsModule, UiProgressIcon, VButton, VIcon, VInput, VRollingNumber],
 })
 export class DiaryEntryAddForm implements AfterViewInit, OnDestroy {
   protected readonly Icon = IconName;
@@ -26,6 +27,9 @@ export class DiaryEntryAddForm implements AfterViewInit, OnDestroy {
   );
   protected readonly projectedSelectedDaysConsumedPercentPadded$$ = computed(() =>
     this.projectedSelectedDaysConsumedPercentNum$$().toFixed(1),
+  );
+  protected readonly projectedSelectedDaysConsumedPercentDisplay$$ = computed(
+    () => `${this.projectedSelectedDaysConsumedPercentPadded$$()}%`,
   );
 
   protected readonly foodWeightInput = viewChild.required(VInput);
