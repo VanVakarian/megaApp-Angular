@@ -1,3 +1,13 @@
+// Raw internal state of a MetricRingBuffer, for IndexedDB persistence
+// (megaapp-front/plans/35-metrics-dashboard-viewport-rendering.implementation-plan.md
+// §2.4) — typed arrays go into IndexedDB as-is (structured clone handles them
+// natively, no JSON involved), one record per series.
+export interface MetricRingBufferSnapshot {
+  buckets: Float64Array;
+  values: Float64Array;
+  latestBucket: number;
+}
+
 // Fixed-capacity, bucket-addressed ring buffer for one (service, metricName,
 // granularity) series — replaces the session-wide Map + age-based full-scan
 // pruning in metrics.service.ts. O(1) insert with automatic eviction: a slot
@@ -53,6 +63,29 @@ export class MetricRingBuffer {
       if (!Number.isNaN(this.buckets[i]) && this.latestBucket - this.buckets[i] < maxAge) count++;
     }
     return count;
+  }
+
+  // Copies (not views) of the internal typed arrays — safe to hand to a
+  // caller that will hold onto this past the buffer's next insert().
+  public snapshot(): MetricRingBufferSnapshot {
+    return { buckets: this.buckets.slice(), values: this.values.slice(), latestBucket: this.latestBucket };
+  }
+
+  // Rebuilds a buffer from a persisted snapshot. Returns null instead of
+  // restoring a mismatched-capacity snapshot (e.g. METRICS_GRANULARITY_WINDOW_PERIODS
+  // changed between deploys) — the caller simply starts that series empty and
+  // re-backfills from REST/WS, same as any other cold cache miss.
+  public static fromSnapshot(
+    capacity: number,
+    stepSeconds: number,
+    snapshot: MetricRingBufferSnapshot,
+  ): MetricRingBuffer | null {
+    if (snapshot.buckets.length !== capacity || snapshot.values.length !== capacity) return null;
+    const buffer = new MetricRingBuffer(capacity, stepSeconds);
+    buffer.buckets.set(snapshot.buckets);
+    buffer.values.set(snapshot.values);
+    buffer.latestBucket = snapshot.latestBucket;
+    return buffer;
   }
 
   private slotFor(bucket: number): number {

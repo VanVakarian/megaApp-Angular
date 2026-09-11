@@ -9,6 +9,7 @@ import {
   OnDestroy,
   OnInit,
   output,
+  Signal,
   signal,
 } from '@angular/core';
 import { MetricCardExpansionService } from '@app/services/metric-card-expansion.service';
@@ -31,20 +32,25 @@ export interface MetricChartCardData {
   key: string;
   label: string;
   technicalName: string;
-  value: number;
-  displayValue: string;
+  // Reactive: each of these is its own independent signal (see metrics-dashboard.ts's
+  // CardLiveSignals/regularCardLive), so binding to one in a template subscribes to
+  // just that card's own data — a data tick for one metric never re-evaluates a
+  // binding that reads a different card's signal. See
+  // plans/35-metrics-dashboard-viewport-rendering.implementation-plan.md §2.2-§2.3.
+  value: Signal<number>;
+  displayValue: Signal<string>;
   unit: MetricUnit;
-  granularity: MetricGranularity;
+  granularity: Signal<MetricGranularity>;
   color: string;
-  chartMode: MetricChartMode;
+  chartMode: Signal<MetricChartMode>;
   description: string;
   // Two independently-built series, always both present: the fitted-to-columns
   // display (5-minute buckets) and the full-width display (raw per-minute). Which
   // one a given card shows is a render-time decision (is this card the one
   // expanded by click, or is the whole grid in Wide layout mode) — not a width
   // comparison, since a card's rendered width alone doesn't say which role it's in.
-  display: MetricChartCardSeriesDisplay;
-  fullWidthDisplay: MetricChartCardSeriesDisplay;
+  display: Signal<MetricChartCardSeriesDisplay>;
+  fullWidthDisplay: Signal<MetricChartCardSeriesDisplay>;
   isDashboardEnabled: boolean;
   dashboardOrder: number;
 }
@@ -202,7 +208,7 @@ export class MetricCardGrid implements OnInit, OnDestroy {
   }
 
   protected cardDisplay(item: RenderItem): MetricChartCardSeriesDisplay {
-    return this.isFullWidthRole(item) ? item.card.fullWidthDisplay : item.card.display;
+    return this.isFullWidthRole(item) ? item.card.fullWidthDisplay() : item.card.display();
   }
 
   protected cardHeightPx(item: RenderItem): number {

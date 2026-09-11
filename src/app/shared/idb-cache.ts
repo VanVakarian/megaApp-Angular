@@ -1,8 +1,8 @@
 import { isStaleCacheKey, isUserScopedCacheKey } from '@app/shared/cache';
-import { DIARY_DAYS_STORE_NAME, IDB_STORE_SCHEMA_CHECKPOINTS } from '@app/shared/const';
+import { DIARY_DAYS_STORE_NAME, IDB_STORE_SCHEMA_CHECKPOINTS, METRIC_SERIES_STORE_NAME } from '@app/shared/const';
 
 const DB_NAME = 'megaapp-idb-cache';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_NAME = 'kv';
 
 function openDb(): Promise<IDBDatabase> {
@@ -161,5 +161,53 @@ export async function idbClearDays(): Promise<void> {
     });
   } catch (error) {
     console.error('Error clearing diary days from IndexedDB:', error);
+  }
+}
+
+// Another dedicated store, one record per metric series — keyed by the same
+// "granularity:service:name" string metrics.service.ts already uses in memory
+// (see MetricsService.seriesKey). Unlike foodDiaryDays, this key carries no
+// business meaning of its own, so it's free-form on our side.
+
+export async function idbSetMetricSeries<T>(seriesKey: string, value: T): Promise<void> {
+  try {
+    const db = await openDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(METRIC_SERIES_STORE_NAME, 'readwrite');
+      tx.objectStore(METRIC_SERIES_STORE_NAME).put(value, seriesKey);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (error) {
+    console.error(`Error writing metric series "${seriesKey}" to IndexedDB:`, error);
+  }
+}
+
+export async function idbGetAllMetricSeries<T>(): Promise<T[]> {
+  try {
+    const db = await openDb();
+    return await new Promise<T[]>((resolve, reject) => {
+      const tx = db.transaction(METRIC_SERIES_STORE_NAME, 'readonly');
+      const request = tx.objectStore(METRIC_SERIES_STORE_NAME).getAll();
+      request.onsuccess = () => resolve(request.result as T[]);
+      request.onerror = () => reject(request.error);
+    });
+  } catch (error) {
+    console.error('Error reading metric series from IndexedDB:', error);
+    return [];
+  }
+}
+
+export async function idbClearMetricSeries(): Promise<void> {
+  try {
+    const db = await openDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(METRIC_SERIES_STORE_NAME, 'readwrite');
+      tx.objectStore(METRIC_SERIES_STORE_NAME).clear();
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (error) {
+    console.error('Error clearing metric series from IndexedDB:', error);
   }
 }

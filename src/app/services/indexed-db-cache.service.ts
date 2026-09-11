@@ -3,11 +3,14 @@ import { buildCacheKey, hasCacheUser } from '@app/shared/cache';
 import {
   idbClearAllUserScopedKvEntries,
   idbClearDays,
+  idbClearMetricSeries,
   idbGet,
+  idbGetAllMetricSeries,
   idbGetDay,
   idbRemove,
   idbSet,
   idbSetDay,
+  idbSetMetricSeries,
 } from '@app/shared/idb-cache';
 
 @Injectable({
@@ -43,5 +46,17 @@ export class IndexedDbCacheService {
 
   public clearAllUserScoped(): Promise<void> {
     return idbClearAllUserScopedKvEntries();
+  }
+
+  public setMetricSeries<T>(seriesKey: string, value: T): Promise<void> {
+    return idbSetMetricSeries(seriesKey, value);
+  }
+
+  public getAllMetricSeries<T>(): Promise<T[]> {
+    return idbGetAllMetricSeries<T>();
+  }
+
+  public clearMetricSeries(): Promise<void> {
+    return idbClearMetricSeries();
   }
 }

@@ -100,6 +100,13 @@ const TICK_LABEL_SLOT_PX = TICK_LABEL_WIDTH_PX + TICK_LABEL_GAP_PX;
 // Shown while hovering when no point falls within the capture window above.
 const HOVER_NO_VALUE_PLACEHOLDER = '—';
 
+// How far outside the viewport a card starts/stops pushing data to its Chart.js
+// instance — wide enough that ordinary scrolling doesn't flip visibility back and
+// forth on every small scroll delta, small enough that a card is already "live"
+// well before it's actually on screen (no pop-in of stale data on the frame it
+// arrives). See plans/35-metrics-dashboard-viewport-rendering.implementation-plan.md §2.1.
+const VIEWPORT_GATE_ROOT_MARGIN_PX = 200;
+
 @Component({
   selector: 'metric-chart-card',
   templateUrl: './metric-chart-card.html',
@@ -277,7 +284,18 @@ export class MetricChartCard implements OnInit, OnDestroy {
   private readonly chartThemeService = inject(ChartThemeService);
   private readonly performanceMetrics = inject(PerformanceMetricsService);
 
+  // Off-screen cards keep their Chart.js instance (once created) but stop receiving
+  // updates — recreating it on every scroll back into view would cost more than the
+  // redraw it's meant to save. Read first in chartUpdateEffect and bailed out on before
+  // touching anything else, so an invisible card's effect run is a single signal read:
+  // it simply never re-subscribes to series/theme/window changes while off-screen, and
+  // picks up whatever is current the moment it becomes visible again — no stale-data
+  // bookkeeping needed, signals always hand back the live value once actually read.
+  private readonly isVisible$$ = signal(false);
+  private intersectionObserver: IntersectionObserver | null = null;
+
   private readonly chartUpdateEffect = effect(() => {
+    if (!this.isVisible$$()) return;
     const canvasElem = this.chartCanvasElem();
     const chartMode = this.chartModeInput();
     const color = this.colorInput();
@@ -315,11 +333,18 @@ export class MetricChartCard implements OnInit, OnDestroy {
       this.cardWidthPx$$.set(entry.contentRect.width);
     });
     this.resizeObserver.observe(this.hostElement);
+
+    this.intersectionObserver = new IntersectionObserver(([entry]) => this.isVisible$$.set(entry.isIntersecting), {
+      rootMargin: `${VIEWPORT_GATE_ROOT_MARGIN_PX}px`,
+    });
+    this.intersectionObserver.observe(this.hostElement);
   }
 
   public ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
+    this.intersectionObserver?.disconnect();
+    this.intersectionObserver = null;
     this.chart?.destroy();
     this.chart = null;
     this.chartSignature = '';

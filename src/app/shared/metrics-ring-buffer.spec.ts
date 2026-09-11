@@ -49,4 +49,36 @@ describe('MetricRingBuffer', () => {
     buffer.insert(120, 2);
     expect(buffer.size()).toBe(buffer.toSortedPoints().length);
   });
+
+  it('fromSnapshot(snapshot()) round-trips to an equivalent buffer', () => {
+    const original = new MetricRingBuffer(5, 60);
+    original.insert(60, 1);
+    original.insert(120, 2);
+    original.insert(180, 3);
+
+    const restored = MetricRingBuffer.fromSnapshot(5, 60, original.snapshot());
+
+    expect(restored).not.toBeNull();
+    expect(restored!.toSortedPoints()).toEqual(original.toSortedPoints());
+    expect(restored!.size()).toBe(original.size());
+  });
+
+  it('fromSnapshot() rejects a snapshot whose capacity does not match', () => {
+    const buffer = new MetricRingBuffer(5, 60);
+    buffer.insert(60, 1);
+
+    expect(MetricRingBuffer.fromSnapshot(10, 60, buffer.snapshot())).toBeNull();
+  });
+
+  it('a restored buffer keeps evicting relative to the snapshot latestBucket, not a fresh one', () => {
+    const capacity = 5;
+    const stepSeconds = 60;
+    const original = new MetricRingBuffer(capacity, stepSeconds);
+    for (let i = 0; i <= capacity; i++) {
+      original.insert(60 + i * stepSeconds, i);
+    }
+
+    const restored = MetricRingBuffer.fromSnapshot(capacity, stepSeconds, original.snapshot())!;
+    expect(restored.toSortedPoints()).toEqual(original.toSortedPoints());
+  });
 });

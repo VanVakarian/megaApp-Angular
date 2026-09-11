@@ -2,11 +2,13 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ApplicationRef, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { AuthService, AuthSessionState } from '@app/services/auth.service';
 import { IndexedDbCacheService } from '@app/services/indexed-db-cache.service';
 import { MetricsBinaryFrame, MetricsBinaryFrameType, NetworkService } from '@app/services/network.service';
 import { NotificationService } from '@app/services/notification.service';
 import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
 import { METRICS_GRANULARITY_WINDOW_PERIODS } from '@app/shared/chart-config';
+import { MetricRingBuffer } from '@app/shared/metrics-ring-buffer';
 import { MetricPoint } from '@app/shared/types';
 import { encodeMetricsWireFixture } from '@app/testing/metrics-wire.fake';
 import { createPerformanceMetricsFake } from '@app/testing/performance-metrics.fake';
@@ -17,7 +19,7 @@ function metricPoint(overrides: Partial<MetricPoint> = {}): MetricPoint {
   return { service: 'api', name: 'requests', granularity: 'minute', bucket: 1_000_000, value: 1, ...overrides };
 }
 
-function setup() {
+function setup(options: { persistedSeries?: unknown[] } = {}) {
   const metricsBinaryFrames$ = new Subject<MetricsBinaryFrame>();
   const isConnected$$ = signal(false);
   const networkServiceFake: Pick<NetworkService, 'metricsBinaryFrames$' | 'isConnected$$' | 'sendMessage'> = {
@@ -29,10 +31,23 @@ function setup() {
     addNotification: vi.fn(() => 'notification-id'),
     removeNotification: vi.fn(),
   };
-  const indexedDbCacheFake: Pick<IndexedDbCacheService, 'get' | 'set' | 'remove'> = {
+  const indexedDbCacheFake: Pick<
+    IndexedDbCacheService,
+    'get' | 'set' | 'remove' | 'getAllMetricSeries' | 'setMetricSeries' | 'clearMetricSeries'
+  > = {
     get: vi.fn(() => Promise.resolve(null)),
     set: vi.fn(() => Promise.resolve()),
     remove: vi.fn(() => Promise.resolve()),
+    getAllMetricSeries: vi.fn(() =>
+      Promise.resolve(options.persistedSeries ?? []),
+    ) as IndexedDbCacheService['getAllMetricSeries'],
+    setMetricSeries: vi.fn(() => Promise.resolve()),
+    clearMetricSeries: vi.fn(() => Promise.resolve()),
+  };
+  // Unknown (never Guest) — MetricsService wipes all state on a confirmed guest
+  // session (resetOnAuthLossEffect), which these tests don't want mid-run.
+  const authServiceFake: Pick<AuthService, 'sessionState$$'> = {
+    sessionState$$: signal<AuthSessionState>(AuthSessionState.Unknown),
   };
 
   TestBed.configureTestingModule({
@@ -43,6 +58,7 @@ function setup() {
       { provide: NotificationService, useValue: notificationServiceFake },
       { provide: IndexedDbCacheService, useValue: indexedDbCacheFake },
       { provide: PerformanceMetricsService, useValue: createPerformanceMetricsFake() },
+      { provide: AuthService, useValue: authServiceFake },
     ],
   });
 
@@ -52,6 +68,7 @@ function setup() {
     metricsBinaryFrames$,
     isConnected$$,
     appRef: TestBed.inject(ApplicationRef),
+    indexedDbCacheFake,
   };
 }
 
@@ -79,7 +96,7 @@ describe('MetricsService — point dedup (bufferFor/insertPoint)', () => {
     const { service, metricsBinaryFrames$ } = setup();
     pushUpdate(metricsBinaryFrames$, [metricPoint({ value: 10 })]);
     pushUpdate(metricsBinaryFrames$, [metricPoint({ value: 20 })]);
-    expect(service.points$$()).toEqual([metricPoint({ value: 20 })]);
+    expect(service.seriesFor('api', 'requests', 'minute')()).toEqual([metricPoint({ value: 20 })]);
   });
 
   it('drops a point with a non-finite value or an unrecognized granularity instead of throwing', () => {
@@ -90,7 +107,7 @@ describe('MetricsService — point dedup (bufferFor/insertPoint)', () => {
     // unrecognized-granularity half of this guard can't be exercised through
     // pushUpdate anymore — it stays as defense-in-depth for any other caller
     // of insertPoint (e.g. cache hydration reading an older/foreign format).
-    expect(service.points$$()).toEqual([]);
+    expect(service.seriesFor('api', 'requests', 'minute')()).toEqual([]);
   });
 });
 
@@ -108,9 +125,65 @@ describe('MetricsService — ring buffer capacity eviction (MetricRingBuffer)', 
       pushUpdate(metricsBinaryFrames$, [metricPoint({ bucket: firstBucket + i * stepSeconds })]);
     }
 
-    const buckets = service.points$$().map((point) => point.bucket);
+    const buckets = service
+      .seriesFor('api', 'requests', 'minute')()
+      .map((point) => point.bucket);
     expect(buckets).not.toContain(firstBucket);
     expect(buckets.length).toBe(capacity);
+  });
+});
+
+describe('MetricsService — per-series IndexedDB persistence (scheduleCacheWrite)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('writes only the series touched since the last write, not every buffered series', async () => {
+    const { indexedDbCacheFake, metricsBinaryFrames$ } = setup();
+    pushUpdate(metricsBinaryFrames$, [metricPoint({ service: 'api', name: 'requests' })]);
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    expect(indexedDbCacheFake.setMetricSeries).toHaveBeenCalledTimes(1);
+    expect(indexedDbCacheFake.setMetricSeries).toHaveBeenCalledWith(
+      'minute:api:requests',
+      expect.objectContaining({ service: 'api', name: 'requests', granularity: 'minute' }),
+    );
+
+    vi.mocked(indexedDbCacheFake.setMetricSeries).mockClear();
+    // A second, unrelated series ticks — only its own record should be written,
+    // not 'requests' again (see MetricsService.pendingPersistKeys/publishTouchedSeries).
+    pushUpdate(metricsBinaryFrames$, [metricPoint({ service: 'api', name: 'errors' })]);
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    expect(indexedDbCacheFake.setMetricSeries).toHaveBeenCalledTimes(1);
+    expect(indexedDbCacheFake.setMetricSeries).toHaveBeenCalledWith('minute:api:errors', expect.anything());
+  });
+
+  it('coalesces several merges inside one debounce window into a single write per touched series', async () => {
+    const { indexedDbCacheFake, metricsBinaryFrames$ } = setup();
+    pushUpdate(metricsBinaryFrames$, [metricPoint({ bucket: 1_000_000, value: 1 })]);
+    pushUpdate(metricsBinaryFrames$, [metricPoint({ bucket: 1_000_060, value: 2 })]);
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    expect(indexedDbCacheFake.setMetricSeries).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('MetricsService — hydration from persisted series (constructor)', () => {
+  it('rebuilds a series from a persisted MetricRingBuffer snapshot and exposes it via seriesFor', async () => {
+    const capacity = METRICS_GRANULARITY_WINDOW_PERIODS.minute;
+    const seedBuffer = new MetricRingBuffer(capacity, 60);
+    seedBuffer.insert(1_000_000, 42);
+    const record = {
+      service: 'api',
+      name: 'requests',
+      granularity: 'minute' as const,
+      snapshot: seedBuffer.snapshot(),
+    };
+
+    const { service } = setup({ persistedSeries: [record] });
+    await flushCacheLoad();
+
+    expect(service.seriesFor('api', 'requests', 'minute')()).toEqual([metricPoint({ bucket: 1_000_000, value: 42 })]);
   });
 });
 
@@ -128,7 +201,7 @@ describe('MetricsService.forceRefresh — refreshHistory (binary /api/metrics/hi
       ]),
     );
 
-    expect(service.points$$()).toEqual([metricPoint({ bucket: 1_000_000, value: 42 })]);
+    expect(service.seriesFor('api', 'requests', 'minute')()).toEqual([metricPoint({ bucket: 1_000_000, value: 42 })]);
     httpMock.verify();
   });
 

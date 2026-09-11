@@ -520,7 +520,7 @@
 
     @for (service of visibleServiceOptions$$(); track service.service) {
       @if (isServiceExpanded(service.service)) {
-        @for (group of serviceMetricsData$$().get(service.service)?.groups ?? []; track group.id) {
+        @for (group of expandedServiceGroups$$(); track group.id) {
           <v-card class="mb-4"
                   [borderRadius]="2"
                   [padding]="0">
@@ -555,7 +555,7 @@
     }
 
     @if (isServiceExpanded(compositeServiceKey)) {
-      @for (group of serviceMetricsData$$().get(compositeServiceKey)?.groups ?? []; track group.id) {
+      @for (group of compositeGroups$$(); track group.id) {
         <v-card class="mb-4"
                 [borderRadius]="2"
                 [padding]="0">

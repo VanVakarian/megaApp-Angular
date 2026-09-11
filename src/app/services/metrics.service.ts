@@ -1,34 +1,30 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Injectable, effect, inject, signal, untracked } from '@angular/core';
+import { effect, inject, Injectable, Signal, signal, untracked, WritableSignal } from '@angular/core';
+import { AuthService, AuthSessionState } from '@app/services/auth.service';
 import { IndexedDbCacheService } from '@app/services/indexed-db-cache.service';
 import { MetricsBinaryFrameType, NetworkService } from '@app/services/network.service';
 import { NotificationService } from '@app/services/notification.service';
 import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
 import { METRICS_GRANULARITY_STEP_SECONDS, METRICS_GRANULARITY_WINDOW_PERIODS } from '@app/shared/chart-config';
 import {
-  METRIC_GRANULARITIES,
-  MetricsCursorMap,
-  MetricsHistoryWatermarks,
   emptyMetricsCursorMap,
   emptyMetricsHistoryWatermarks,
   latestClosedHistoryBucket,
+  METRIC_GRANULARITIES,
   metricCursorKey,
+  MetricsCursorMap,
+  MetricsHistoryWatermarks,
   nextHistorySinceBucket,
   parseMetricsCursorMap,
 } from '@app/shared/metrics-history-range';
-import { MetricRingBuffer } from '@app/shared/metrics-ring-buffer';
+import { MetricRingBuffer, MetricRingBufferSnapshot } from '@app/shared/metrics-ring-buffer';
 import { decodeMetricsWireToPoints } from '@app/shared/metrics-wire';
 import { MetricGranularity, MetricPoint, MetricsScopeEntry, WebSocketMessageType } from '@app/shared/types';
 
-const STORAGE_KEY = 'metrics_detail';
+const CURSORS_STORAGE_KEY = 'metrics_history_cursors';
 const CACHE_WRITE_DELAY_MS = 1_000;
 const HISTORY_HEARTBEAT_INTERVAL_MS = 60_000;
 const REFRESH_RETRY_DELAY_MS = 60_000;
-
-interface MetricsCacheState {
-  points: MetricPoint[];
-  historyCheckedThrough: MetricsCursorMap;
-}
 
 interface MetricsHistoryRequestBody {
   minuteSince: number;
@@ -43,19 +39,35 @@ interface MetricsHistoryRequest {
   scope: MetricsScopeEntry[];
 }
 
+// One persisted IndexedDB record per series — see
+// plans/35-metrics-dashboard-viewport-rendering.implementation-plan.md §2.4.
+interface MetricSeriesRecord {
+  service: string;
+  name: string;
+  granularity: MetricGranularity;
+  snapshot: MetricRingBufferSnapshot;
+}
+
 interface SeriesBuffer {
   service: string;
   name: string;
   granularity: MetricGranularity;
   buffer: MetricRingBuffer;
+  pointsSignal: WritableSignal<MetricPoint[]>;
+  readonlyPointsSignal: Signal<MetricPoint[]>;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class MetricsService {
-  public readonly points$$ = signal<MetricPoint[]>([]);
   public readonly isRefreshing$$ = signal(false);
+
+  // Every service name any series has ever been buffered under — the runtime-discovered
+  // half of "which services exist" (the other half is the static catalog). Updates only
+  // when a genuinely new service's first point arrives, not on every tick. Replaces the
+  // old points$$()-scanning fallback in metrics-dashboard.ts's serviceOptions$$.
+  public readonly knownServices$$ = signal<ReadonlySet<string>>(new Set());
 
   // null = no view with charts open right now (e.g. Settings, or nothing has
   // mounted yet). Replaced wholesale on every view change, never merged — see
@@ -67,13 +79,21 @@ export class MetricsService {
   private readonly http = inject(HttpClient);
   private readonly indexedDbCache = inject(IndexedDbCacheService);
   private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly authService = inject(AuthService);
 
-  // One fixed-capacity ring buffer per (granularity, service, name) series —
-  // replaces the old session-wide Map + age-based full-scan pruning. Capacity
-  // matches the display window exactly (METRICS_GRANULARITY_WINDOW_PERIODS),
-  // so nothing is ever retained that the dashboard couldn't show anyway. See
-  // plans/33-metrics-flow-tstorage-migration.implementation-plan.md §2.1.
+  // One fixed-capacity ring buffer + one reactive points signal per (granularity,
+  // service, name) series — each series is its own independent signal, so a merge
+  // touching a handful of series only invalidates computeds that actually read those
+  // series, not every card on the page. Replaces the old single points$$ signal,
+  // which was rebuilt and fully re-sorted from every buffer on every merge. See
+  // plans/35-metrics-dashboard-viewport-rendering.implementation-plan.md §2.3.
   private readonly buffers = new Map<string, SeriesBuffer>();
+  private readonly knownServicesInternal = new Set<string>();
+
+  // Series touched since the last debounced IndexedDB write — accumulated across
+  // however many merges land inside one CACHE_WRITE_DELAY_MS window, drained (and
+  // only those series re-persisted) when the write actually fires.
+  private readonly pendingPersistKeys = new Set<string>();
 
   private isCacheLoaded = false;
   private latestRealtimeMinuteBucket = 0;
@@ -91,38 +111,55 @@ export class MetricsService {
   // instead of separate imperative call sites. See §4.5 and the "Рефакторинг
   // после ревью" section of the plan referenced above for the full scenario
   // table and the reasoning behind folding the heartbeat in here too.
+  //
+  // The REST heartbeat's only real precondition is "is there a scope to fetch" —
+  // /api/metrics/history is a plain authenticated HTTP endpoint, unrelated to the
+  // WS transport. Gating it on isConnected too meant metrics silently went stale
+  // for as long as the socket stayed disconnected (reconnect backoff, a hidden
+  // tab whose WS never got a chance to open, a brief network hiccup) with no
+  // catch-up path until the socket happened to reconnect. sendMessage() already
+  // no-ops safely while disconnected, so the WS subscribe/unsubscribe call below
+  // stays unconditional too — isConnected is only read to make this effect
+  // re-fire (and resend the declarative subscription) on reconnect.
   private readonly subscriptionEffect = effect(() => {
-    const isConnected = this.networkService.isConnected$$();
+    this.networkService.isConnected$$();
     const scope = this.currentScope$$();
     untracked(() => {
-      if (!isConnected) {
-        this.syncHistoryHeartbeat(false);
-        return;
-      }
       if (scope) {
         this.networkService.sendMessage({ type: WebSocketMessageType.METRICS_SUBSCRIBE, payload: { scope } });
-        this.syncHistoryHeartbeat(true);
       } else {
         this.networkService.sendMessage({ type: WebSocketMessageType.METRICS_UNSUBSCRIBE });
-        this.syncHistoryHeartbeat(false);
       }
+      this.syncHistoryHeartbeat(scope !== null);
     });
+  });
+
+  // Mirrors food-diary.service.ts's resetOnAuthLossEffect$$ — series data is as
+  // personal as the food diary, and the dedicated metricSeries IndexedDB store
+  // carries no per-user key suffix (unlike the old metrics_detail blob), so it
+  // must be wiped explicitly on logout rather than relying on key-scoping.
+  private readonly resetOnAuthLossEffect = effect(() => {
+    if (this.authService.sessionState$$() !== AuthSessionState.Guest) return;
+    this.resetAllState();
   });
 
   constructor() {
     const cacheStartedAt = performance.now();
-    void this.indexedDbCache.get<MetricsCacheState | MetricPoint[]>(STORAGE_KEY).then((cached) => {
-      if (Array.isArray(cached)) {
-        this.mergePoints(cached, false, false);
-      } else if (cached) {
-        this.mergePoints(cached.points ?? [], false, false);
-        this.historyCheckedThrough = parseMetricsCursorMap(cached.historyCheckedThrough);
+    void Promise.all([
+      this.indexedDbCache.get<MetricsCursorMap>(CURSORS_STORAGE_KEY),
+      this.indexedDbCache.getAllMetricSeries<MetricSeriesRecord>(),
+    ]).then(([cursors, records]) => {
+      if (cursors) {
+        this.historyCheckedThrough = parseMetricsCursorMap(cursors);
+      }
+      for (const record of records) {
+        this.hydrateSeries(record);
       }
       this.isCacheLoaded = true;
-      this.syncHistoryHeartbeat(this.currentScope$$() !== null && this.networkService.isConnected$$());
+      this.syncHistoryHeartbeat(this.currentScope$$() !== null);
       this.performanceMetrics.record('metrics.cache_hydrate', performance.now() - cacheStartedAt, {
-        cache: cached ? 'hit' : 'miss',
-        points: this.trackedPointCount(),
+        cache: records.length > 0 ? 'hit' : 'miss',
+        points: this.totalBufferedPointCount(),
       });
     });
 
@@ -134,7 +171,7 @@ export class MetricsService {
           () => this.mergePoints(points, true),
           () => ({
             inputPoints: points.length,
-            retainedPoints: this.trackedPointCount(),
+            retainedPoints: this.totalBufferedPointCount(),
           }),
         );
         return;
@@ -145,6 +182,15 @@ export class MetricsService {
         }
       }
     });
+  }
+
+  // The reactive series for one (service, metricName, granularity) — created lazily on
+  // first access from either side (a consumer asking before any data exists yet, or a
+  // point actually arriving first), so identity is always shared: whichever call happens
+  // first "wins" the entry, and every later caller — consumer or insertPoint — gets that
+  // same signal. Read-only: callers subscribe, only MetricsService itself ever writes.
+  public seriesFor(service: string, name: string, granularity: MetricGranularity): Signal<MetricPoint[]> {
+    return this.entryFor(service, name, granularity).readonlyPointsSignal;
   }
 
   // Called whenever the open view's set of visible metrics changes (view
@@ -169,15 +215,21 @@ export class MetricsService {
   }
 
   public clearCache(): void {
+    this.resetAllState();
+    this.refreshHistory();
+  }
+
+  private resetAllState(): void {
     this.buffers.clear();
+    this.knownServicesInternal.clear();
+    this.knownServices$$.set(new Set());
+    this.pendingPersistKeys.clear();
     this.historyCheckedThrough = emptyMetricsCursorMap();
-    this.points$$.set([]);
     if (this.cacheWriteTimeoutId !== null) {
       clearTimeout(this.cacheWriteTimeoutId);
       this.cacheWriteTimeoutId = null;
     }
-    void this.indexedDbCache.remove(STORAGE_KEY);
-    this.refreshHistory();
+    void Promise.all([this.indexedDbCache.remove(CURSORS_STORAGE_KEY), this.indexedDbCache.clearMetricSeries()]);
   }
 
   private refreshHistory(showNotification = false): void {
@@ -244,7 +296,7 @@ export class MetricsService {
         void this.performanceMetrics.recordAfterPaint('metrics.history_refresh', startedAt, {
           trigger: showNotification ? 'manual' : 'automatic',
           points: points.length,
-          retainedPoints: this.trackedPointCount(),
+          retainedPoints: this.totalBufferedPointCount(),
         });
         if (showNotification) {
           this.resolvePendingRefreshNotification();
@@ -293,13 +345,14 @@ export class MetricsService {
   private mergePoints(newPoints: MetricPoint[] | null, isRealtime: boolean, shouldSave = true): void {
     if (!newPoints || newPoints.length === 0) return;
 
+    const touchedKeys = new Set<string>();
     for (const point of newPoints) {
-      this.insertPoint(point, isRealtime);
+      this.insertPoint(point, isRealtime, touchedKeys);
     }
-    this.publishPoints(shouldSave);
+    this.publishTouchedSeries(touchedKeys, shouldSave);
   }
 
-  private insertPoint(point: MetricPoint, isRealtime: boolean): void {
+  private insertPoint(point: MetricPoint, isRealtime: boolean, touchedKeys: Set<string>): void {
     if (
       !point?.service ||
       !point.name ||
@@ -310,14 +363,21 @@ export class MetricsService {
       return;
     }
 
-    this.bufferFor(point.service, point.name, point.granularity).insert(point.bucket, point.value);
+    const entry = this.entryFor(point.service, point.name, point.granularity);
+    entry.buffer.insert(point.bucket, point.value);
+    touchedKeys.add(this.seriesKey(point.service, point.name, point.granularity));
+    // Real data, not a speculative read — safe to register here (insertPoint is never
+    // called from inside a computed). entryFor() itself must stay side-effect-free: it's
+    // also called from seriesFor(), which UI code calls from inside computed()s to read a
+    // series that may have no data yet — writing a signal there throws NG0600.
+    this.registerKnownService(point.service);
 
     if (point.granularity === 'minute' && isRealtime) {
       this.latestRealtimeMinuteBucket = Math.max(this.latestRealtimeMinuteBucket, point.bucket);
     }
   }
 
-  private bufferFor(service: string, name: string, granularity: MetricGranularity): MetricRingBuffer {
+  private entryFor(service: string, name: string, granularity: MetricGranularity): SeriesBuffer {
     const key = this.seriesKey(service, name, granularity);
     let entry = this.buffers.get(key);
     if (!entry) {
@@ -325,28 +385,63 @@ export class MetricsService {
         METRICS_GRANULARITY_WINDOW_PERIODS[granularity],
         METRICS_GRANULARITY_STEP_SECONDS[granularity],
       );
-      entry = { service, name, granularity, buffer };
+      const pointsSignal = signal<MetricPoint[]>([]);
+      entry = { service, name, granularity, buffer, pointsSignal, readonlyPointsSignal: pointsSignal.asReadonly() };
       this.buffers.set(key, entry);
     }
-    return entry.buffer;
+    return entry;
   }
 
-  private publishPoints(shouldSave: boolean): void {
-    const points: MetricPoint[] = [];
-    for (const { service, name, granularity, buffer } of this.buffers.values()) {
-      for (const point of buffer.toSortedPoints()) {
-        points.push({ service, name, granularity, ...point });
-      }
+  // Reuses entryFor() rather than building its own SeriesBuffer — hydration runs async
+  // (after the constructor's IndexedDB reads resolve), so a card's computed may have
+  // already called seriesFor() for this exact key before this runs, subscribing to
+  // whatever (empty) pointsSignal entryFor() handed out at that point. Swapping in a
+  // brand-new SeriesBuffer here — as an earlier version of this method did — would
+  // orphan that signal: already-subscribed computeds keep pointing at the old, now-
+  // dead one and never see the hydrated data. Updating the existing entry's buffer and
+  // writing through its existing pointsSignal keeps that identity intact instead.
+  private hydrateSeries(record: MetricSeriesRecord): void {
+    if (!this.isValidGranularity(record.granularity)) return;
+    const buffer = MetricRingBuffer.fromSnapshot(
+      METRICS_GRANULARITY_WINDOW_PERIODS[record.granularity],
+      METRICS_GRANULARITY_STEP_SECONDS[record.granularity],
+      record.snapshot,
+    );
+    if (!buffer) return;
+
+    const entry = this.entryFor(record.service, record.name, record.granularity);
+    entry.buffer = buffer;
+    this.registerKnownService(record.service);
+    entry.pointsSignal.set(this.pointsFor(entry));
+  }
+
+  private registerKnownService(service: string): void {
+    if (this.knownServicesInternal.has(service)) return;
+    this.knownServicesInternal.add(service);
+    this.knownServices$$.set(new Set(this.knownServicesInternal));
+  }
+
+  private publishTouchedSeries(touchedKeys: ReadonlySet<string>, shouldSave: boolean): void {
+    if (touchedKeys.size === 0) return;
+    for (const key of touchedKeys) {
+      const entry = this.buffers.get(key);
+      if (!entry) continue;
+      entry.pointsSignal.set(this.pointsFor(entry));
+      this.pendingPersistKeys.add(key);
     }
-    points.sort((a, b) => {
-      if (a.bucket !== b.bucket) return a.bucket - b.bucket;
-      if (a.service !== b.service) return a.service.localeCompare(b.service);
-      return a.name.localeCompare(b.name);
-    });
-    this.points$$.set(points);
     if (shouldSave) {
       this.scheduleCacheWrite();
     }
+  }
+
+  private pointsFor(entry: SeriesBuffer): MetricPoint[] {
+    return entry.buffer.toSortedPoints().map(({ bucket, value }) => ({
+      service: entry.service,
+      name: entry.name,
+      granularity: entry.granularity,
+      bucket,
+      value,
+    }));
   }
 
   // One heartbeat, one owner (subscriptionEffect) — replaces the old
@@ -361,10 +456,13 @@ export class MetricsService {
   // "is the interval running" (idempotent — created once, torn down once) and
   // "check now" (must happen every single time this is called with
   // active=true, since every call means something just changed — first mount,
-  // reconnect, or a view/service switch — and each of those deserves its own
-  // immediate check rather than waiting up to HISTORY_HEARTBEAT_INTERVAL_MS
+  // WS (re)connect, or a view/service switch — and each of those deserves its
+  // own immediate check rather than waiting up to HISTORY_HEARTBEAT_INTERVAL_MS
   // for the next tick). refreshHistory() itself is what makes calling it
   // "for free" safe to do this often — see needsRefresh in buildHistoryRequest.
+  // active = "there's a scope to fetch", deliberately independent of WS
+  // connection state (see subscriptionEffect) — the REST heartbeat must keep
+  // running on its own even while the socket is reconnecting or never opened.
   private syncHistoryHeartbeat(active: boolean): void {
     const shouldRun = active && this.isCacheLoaded;
     if (!shouldRun) {
@@ -413,21 +511,40 @@ export class MetricsService {
     return { since, targets, scope };
   }
 
+  // Writes only the series touched since the last write (pendingPersistKeys), plus the
+  // (small, always-whole) history cursor map — not a single combined blob of everything
+  // ever buffered. Each series goes into its own IndexedDB record (metricSeries store),
+  // the same bucket-addressed shape the live ring buffer already holds, via structured
+  // clone — no JSON.stringify involved. See plan §2.4.
   private scheduleCacheWrite(): void {
     if (this.cacheWriteTimeoutId !== null) return;
     this.cacheWriteTimeoutId = setTimeout(() => {
       this.cacheWriteTimeoutId = null;
       const startedAt = performance.now();
-      void this.indexedDbCache
-        .set<MetricsCacheState>(STORAGE_KEY, {
-          points: this.points$$(),
-          historyCheckedThrough: { ...this.historyCheckedThrough },
-        })
-        .then(() =>
-          this.performanceMetrics.record('metrics.cache_persist', performance.now() - startedAt, {
-            points: this.trackedPointCount(),
-          }),
-        );
+      const keysToWrite = Array.from(this.pendingPersistKeys);
+      this.pendingPersistKeys.clear();
+
+      const seriesWrites = keysToWrite.map((key) => {
+        const entry = this.buffers.get(key);
+        if (!entry) return Promise.resolve();
+        const record: MetricSeriesRecord = {
+          service: entry.service,
+          name: entry.name,
+          granularity: entry.granularity,
+          snapshot: entry.buffer.snapshot(),
+        };
+        return this.indexedDbCache.setMetricSeries(key, record);
+      });
+      const cursorWrite = this.indexedDbCache.set<MetricsCursorMap>(CURSORS_STORAGE_KEY, {
+        ...this.historyCheckedThrough,
+      });
+
+      void Promise.all([...seriesWrites, cursorWrite]).then(() =>
+        this.performanceMetrics.record('metrics.cache_persist', performance.now() - startedAt, {
+          seriesWritten: keysToWrite.length,
+          points: this.totalBufferedPointCount(),
+        }),
+      );
     }, CACHE_WRITE_DELAY_MS);
   }
 
@@ -445,7 +562,7 @@ export class MetricsService {
     return `${granularity}:${service}:${name}`;
   }
 
-  private trackedPointCount(): number {
+  public totalBufferedPointCount(): number {
     let count = 0;
     for (const { buffer } of this.buffers.values()) {
       count += buffer.size();

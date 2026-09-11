@@ -79,7 +79,7 @@ export const CACHE_KEY_VERSIONS: Readonly<Record<string, number>> = {
   food_personal_kcals: 4,
   food_diary_deleted_day_snapshot: 4,
   money_snapshot: 4,
-  metrics_detail: 4,
+  metrics_history_cursors: 1,
   metrics_granularity: 4,
   metrics_active_card_layout_mode: 4,
   metrics_active_tooltip_mode: 4,
@@ -103,8 +103,16 @@ export const DIARY_DAYS_STORE_NAME = 'foodDiaryDays';
 // suffix). Instead each store records the IndexedDB DB_VERSION at which its record shape last
 // changed; onupgradeneeded wipes and recreates only stores whose checkpoint is newer than the
 // DB's previous version, leaving every other store untouched.
+
+// One record per (service, metricName, granularity) series — replaces the single
+// metrics_detail blob in the generic kv store (dropped from CACHE_KEY_VERSIONS above,
+// so the old blob is swept by the next purge pass). See
+// plans/35-metrics-dashboard-viewport-rendering.implementation-plan.md §2.4.
+export const METRIC_SERIES_STORE_NAME = 'metricSeries';
+
 export const IDB_STORE_SCHEMA_CHECKPOINTS: Readonly<Record<string, number>> = {
   [DIARY_DAYS_STORE_NAME]: 2,
+  [METRIC_SERIES_STORE_NAME]: 3,
 };
 
 export const SESSION_BOOTSTRAP_TIMEOUT_MS: number = 9000;
