@@ -4,7 +4,7 @@ import { AuthService, AuthSessionState } from '@app/services/auth.service';
 import { IndexedDbCacheService } from '@app/services/indexed-db-cache.service';
 import { MetricsBinaryFrameType, NetworkService } from '@app/services/network.service';
 import { NotificationService } from '@app/services/notification.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
+import { TelemetryService } from '@app/services/telemetry.service';
 import { METRICS_GRANULARITY_STEP_SECONDS, METRICS_GRANULARITY_WINDOW_PERIODS } from '@app/shared/chart-config';
 import {
   emptyMetricsCursorMap,
@@ -78,7 +78,7 @@ export class MetricsService {
   private readonly notificationService = inject(NotificationService);
   private readonly http = inject(HttpClient);
   private readonly indexedDbCache = inject(IndexedDbCacheService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
   private readonly authService = inject(AuthService);
 
   // One fixed-capacity ring buffer + one reactive points signal per (granularity,
@@ -157,7 +157,7 @@ export class MetricsService {
       }
       this.isCacheLoaded = true;
       this.syncHistoryHeartbeat(this.currentScope$$() !== null);
-      this.performanceMetrics.record('metrics.cache_hydrate', performance.now() - cacheStartedAt, {
+      this.telemetry.record('metrics.cache_hydrate', performance.now() - cacheStartedAt, {
         cache: records.length > 0 ? 'hit' : 'miss',
         points: this.totalBufferedPointCount(),
       });
@@ -166,7 +166,7 @@ export class MetricsService {
     this.networkService.metricsBinaryFrames$.subscribe((frame) => {
       if (frame.frameType === MetricsBinaryFrameType.Update) {
         const points = decodeMetricsWireToPoints(frame.payload);
-        this.performanceMetrics.measure(
+        this.telemetry.measure(
           'metrics.realtime_batch',
           () => this.mergePoints(points, true),
           () => ({
@@ -293,7 +293,7 @@ export class MetricsService {
         this.hasNotifiedHistoryError = false;
         this.isRefreshing$$.set(false);
         this.scheduleCacheWrite();
-        void this.performanceMetrics.recordAfterPaint('metrics.history_refresh', startedAt, {
+        void this.telemetry.recordAfterPaint('metrics.history_refresh', startedAt, {
           trigger: showNotification ? 'manual' : 'automatic',
           points: points.length,
           retainedPoints: this.totalBufferedPointCount(),
@@ -318,7 +318,7 @@ export class MetricsService {
           this.hasNotifiedHistoryError = true;
           this.notificationService.addNotification('error', 'Failed to refresh metrics');
         }
-        this.performanceMetrics.record(
+        this.telemetry.record(
           'metrics.history_refresh',
           performance.now() - startedAt,
           {
@@ -540,7 +540,7 @@ export class MetricsService {
       });
 
       void Promise.all([...seriesWrites, cursorWrite]).then(() =>
-        this.performanceMetrics.record('metrics.cache_persist', performance.now() - startedAt, {
+        this.telemetry.record('metrics.cache_persist', performance.now() - startedAt, {
           seriesWritten: keysToWrite.length,
           points: this.totalBufferedPointCount(),
         }),

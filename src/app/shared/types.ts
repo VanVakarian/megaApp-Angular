@@ -34,8 +34,6 @@ export const WebSocketMessageType = {
   METRICS_HEALTH: 'METRICS_HEALTH',
   METRICS_SUBSCRIBE: 'METRICS_SUBSCRIBE',
   METRICS_UNSUBSCRIBE: 'METRICS_UNSUBSCRIBE',
-  PERFORMANCE_METRICS_BATCH: 'PERFORMANCE_METRICS_BATCH',
-  PERFORMANCE_METRICS_ACK: 'PERFORMANCE_METRICS_ACK',
   SETTINGS_UPDATED: 'SETTINGS_UPDATED',
 } as const;
 
@@ -231,16 +229,23 @@ export interface MetricsUnsubscribeWsMessage {
   type: typeof WebSocketMessageType.METRICS_UNSUBSCRIBE;
 }
 
-export interface PerformanceMetricRecord {
+//                                                                     TELEMETRY
+
+// Single unified shape for performance/error/log events sent to POST /api/telemetry/events.
+// No discriminant field: the event's kind is read off the `operation` namespace prefix
+// (`app.*`/`money.*`/... for performance, `error.*` for errors, `log.*` for structured logs).
+export interface TelemetryEvent {
   eventId: string;
   timestampMs: number;
   sessionId: string;
   operation: string;
-  elapsedMs: number;
+  elapsedMs?: number;
   renderMs?: number;
   route: string;
   trigger?: string;
-  outcome: 'success' | 'error';
+  outcome?: 'success' | 'error' | 'cancelled';
+  message?: string;
+  stack?: string;
   attributes?: Record<string, string | number | boolean>;
   device: {
     platform: 'mobile' | 'tablet' | 'desktop';
@@ -260,22 +265,9 @@ export interface PerformanceMetricRecord {
   };
 }
 
-export interface PerformanceMetricsBatchWsMessage {
-  type: typeof WebSocketMessageType.PERFORMANCE_METRICS_BATCH;
-  payload: {
-    batchId: string;
-    events: PerformanceMetricRecord[];
-    dropped: number;
-  };
-}
-
-export interface PerformanceMetricsAckWsMessage {
-  type: typeof WebSocketMessageType.PERFORMANCE_METRICS_ACK;
-  payload: {
-    batchId: string;
-    eventIds: string[];
-    outcome: 'accepted' | 'discarded';
-  };
+export interface TelemetryEventsRequest {
+  events: TelemetryEvent[];
+  dropped: number;
 }
 
 export interface SettingsUpdatedWsMessage {
@@ -298,15 +290,13 @@ export type IncomingWsMessage =
   | DiaryDayDeletedWsMessage
   | BodyWeightUpdatedWsMessage
   | MetricsHealthWsMessage
-  | PerformanceMetricsAckWsMessage
   | SearchResultsWsMessage
   | CatalogueEntrySavedWsMessage
   | CatalogueEntryDeletedWsMessage
   | CatalogueImageGeneratedWsMessage
   | SettingsUpdatedWsMessage;
 
-export type OutgoingWsMessage =
-  SearchQueryWsMessage | MetricsSubscribeWsMessage | MetricsUnsubscribeWsMessage | PerformanceMetricsBatchWsMessage;
+export type OutgoingWsMessage = SearchQueryWsMessage | MetricsSubscribeWsMessage | MetricsUnsubscribeWsMessage;
 
 //                                                                        SERVER
 

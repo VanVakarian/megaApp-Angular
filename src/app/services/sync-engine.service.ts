@@ -9,7 +9,7 @@ import { sleep } from '@app/shared/utils';
 import { firstValueFrom, timeout } from 'rxjs';
 import { LocalStorageService } from './local-storage.service';
 import { NotificationService } from './notification.service';
-import { PerformanceMetricsService } from './performance-metrics.service';
+import { TelemetryService } from './telemetry.service';
 
 // Normalized shape of a failed request, passed to rollback/error callbacks instead of the raw
 // caught value — callers don't need to know about HttpErrorResponse/TimeoutError/etc.
@@ -117,7 +117,7 @@ export class SyncEngineService {
   private readonly http = inject(HttpClient);
   private readonly notificationService = inject(NotificationService);
   private readonly localStorageService = inject(LocalStorageService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
 
   public reset(): void {
     for (const operation of this.queue) {
@@ -251,7 +251,7 @@ export class SyncEngineService {
         }
       }
     } finally {
-      this.performanceMetrics.record(
+      this.telemetry.record(
         'sync.operation',
         performance.now() - startedAt,
         {

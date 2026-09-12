@@ -24,7 +24,7 @@ import { FoodCatalogueService } from '@app/services/food/food-catalogue.service'
 import { FoodProductHistoryStateService } from '@app/services/food/food-product-history-state.service';
 import { FoodScreenMobileTab, FoodScreenModeService } from '@app/services/food/food-screen-mode.service';
 import { FoodSyncCoordinatorService } from '@app/services/food/food-sync-coordinator.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
+import { TelemetryService } from '@app/services/telemetry.service';
 import { fitColumnsToWidth } from '@app/shared/utils';
 import { VModal } from '@ui-kit/components/v-modal/v-modal';
 
@@ -60,7 +60,7 @@ const HOST_HORIZONTAL_PADDING_PX = 16;
 export class FoodScreen implements OnInit, OnDestroy {
   private readonly foodSyncCoordinatorService = inject(FoodSyncCoordinatorService);
   protected readonly deviceInfoService = inject(DeviceInfoService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
   private readonly foodCatalogueService = inject(FoodCatalogueService);
   protected readonly foodScreenModeService = inject(FoodScreenModeService);
   protected readonly foodAddModalService = inject(FoodAddModalService);
@@ -120,7 +120,7 @@ export class FoodScreen implements OnInit, OnDestroy {
   public ngOnInit(): void {
     const startedAt = performance.now();
     void this.foodSyncCoordinatorService.loadInitialFoodData().then(() =>
-      this.performanceMetrics.recordAfterPaint('food.screen_ready', startedAt, {
+      this.telemetry.recordAfterPaint('food.screen_ready', startedAt, {
         columns: this.totalColumnCount$$(),
       }),
     );

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signa
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KeyboardService } from '@app/services/keyboard.service';
 import { MoneyService } from '@app/services/money.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
+import { TelemetryService } from '@app/services/telemetry.service';
 import { DefaultModal } from '@app/shared/components/default-modal/default-modal';
 import { FormModal } from '@app/shared/components/form-modal/form-modal';
 import { convertAmount } from '@app/shared/money-utils';
@@ -37,7 +37,7 @@ export class TransactionsList {
 
   private readonly moneyService = inject(MoneyService);
   private readonly keyboardService = inject(KeyboardService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
 
   private readonly shortcutSubscription = this.keyboardService
     .shortcut$({
@@ -59,7 +59,7 @@ export class TransactionsList {
   protected readonly convertToUnifiedCurrency$$ = this.moneyService.convertToUnifiedCurrency$$;
 
   protected readonly groupedTransactions$$ = computed(() =>
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'money.transaction_list_model',
       () => this.groupTransactionsByDate(),
       (groups) => ({

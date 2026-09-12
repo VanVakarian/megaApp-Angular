@@ -32,8 +32,8 @@ import { firstValueFrom, Subject } from 'rxjs';
 import { LocalStorageService } from '../local-storage.service';
 import { NetworkService } from '../network.service';
 import { NotificationService } from '../notification.service';
-import { PerformanceMetricsService } from '../performance-metrics.service';
 import { SyncEngineService, SyncOperationMode, SyncOperationType } from '../sync-engine.service';
+import { TelemetryService } from '../telemetry.service';
 import { BaseFoodService } from './food-base.service';
 import { FoodCatalogueService } from './food-catalogue.service';
 import { FoodPersonalKcalsService } from './food-personal-kcals.service';
@@ -60,7 +60,7 @@ export class FoodDiaryService extends BaseFoodService {
   private readonly deletedDaySnapshot$$: WritableSignal<DeletedDiaryDaySnapshot | null> = signal(null);
 
   public readonly diary$$: Signal<UnifiedDiary> = computed(() =>
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'food.diary_unified_model',
       () => this.prepUnifiedDiary(),
       (result) => ({
@@ -147,7 +147,7 @@ export class FoodDiaryService extends BaseFoodService {
   private readonly foodSettingsService = inject(FoodSettingsService);
   private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
   private readonly indexedDbCache = inject(IndexedDbCacheService);
 
   private readonly ensureDiarySegmentEffect$$ = effect(() => {
@@ -236,7 +236,7 @@ export class FoodDiaryService extends BaseFoodService {
 
     this.diaryRaw$$.update((diary) => this.mergeServerDiaryResponse(diary, response));
     Object.keys(response).forEach((responseDateIso) => this.persistDay(responseDateIso));
-    void this.performanceMetrics.recordAfterPaint('food.diary_segment_load', startedAt, {
+    void this.telemetry.recordAfterPaint('food.diary_segment_load', startedAt, {
       offsetDays: offset ?? this.FIRST_SEGMENT_OFFSET_DAYS,
       days: Object.keys(response).length,
       entries: Object.values(response).reduce((total, day) => total + Object.keys(day.food).length, 0),
@@ -264,7 +264,7 @@ export class FoodDiaryService extends BaseFoodService {
     this.updateDiaryEntryWithNewValues(entryWithTempId);
     this.updateNutrientsOptimistically(selectedDay, nutrientsDelta, kcalsDelta);
     this.persistDay(selectedDay);
-    void this.performanceMetrics.recordAfterPaint('food.diary_mutation', startedAt, { mutationType: 'create' });
+    void this.telemetry.recordAfterPaint('food.diary_mutation', startedAt, { mutationType: 'create' });
 
     const successCallback = (response: ServerResponseWithDiaryId) => {
       if (response.result && response.diaryId) {
@@ -331,7 +331,7 @@ export class FoodDiaryService extends BaseFoodService {
     this.updateDiaryEntryWithNewValues({ ...diaryEntry, kcals: newKcals });
     this.updateNutrientsOptimistically(selectedDay, nutrientsDelta, kcalsDelta);
     this.persistDay(selectedDay);
-    void this.performanceMetrics.recordAfterPaint('food.diary_mutation', startedAt, { mutationType: 'edit' });
+    void this.telemetry.recordAfterPaint('food.diary_mutation', startedAt, { mutationType: 'edit' });
 
     this.pendingDiaryEntryIds.add(diaryEntry.id);
 
@@ -410,7 +410,7 @@ export class FoodDiaryService extends BaseFoodService {
     this.removeDiaryEntry(diaryEntryId);
     this.updateNutrientsOptimistically(selectedDay, nutrientsDelta, kcalsDelta);
     this.persistDay(selectedDay);
-    void this.performanceMetrics.recordAfterPaint('food.diary_mutation', startedAt, { mutationType: 'delete' });
+    void this.telemetry.recordAfterPaint('food.diary_mutation', startedAt, { mutationType: 'delete' });
 
     this.pendingDiaryEntryIds.add(diaryEntryId);
 
@@ -464,7 +464,7 @@ export class FoodDiaryService extends BaseFoodService {
     this.clearDiaryEntriesForDay(selectedDay);
     this.updateNutrientsOptimistically(selectedDay, nutrientsDelta, kcalsDelta);
     this.persistDay(selectedDay);
-    void this.performanceMetrics.recordAfterPaint('food.diary_mutation', startedAt, { mutationType: 'delete_day' });
+    void this.telemetry.recordAfterPaint('food.diary_mutation', startedAt, { mutationType: 'delete_day' });
 
     const rollbackFunction = () => {
       this.diaryRaw$$.set(originalDiary);
@@ -517,7 +517,7 @@ export class FoodDiaryService extends BaseFoodService {
     this.addDiaryEntriesForDay(snapshot.dateISO, tempEntries);
     this.updateNutrientsOptimistically(snapshot.dateISO, nutrientsDelta, kcalsDelta);
     this.persistDay(snapshot.dateISO);
-    void this.performanceMetrics.recordAfterPaint('food.diary_mutation', startedAt, { mutationType: 'restore_day' });
+    void this.telemetry.recordAfterPaint('food.diary_mutation', startedAt, { mutationType: 'restore_day' });
 
     const successCallback = (response: ServerResponseWithDiaryEntries) => {
       if (response.result && response.diaryEntries?.length) {
@@ -584,7 +584,7 @@ export class FoodDiaryService extends BaseFoodService {
       };
     });
     this.persistDay(dateISO);
-    void this.performanceMetrics.recordAfterPaint('food.diary_mutation', startedAt, { mutationType: 'body_weight' });
+    void this.telemetry.recordAfterPaint('food.diary_mutation', startedAt, { mutationType: 'body_weight' });
 
     const rollbackFunction = () => {
       this.diaryRaw$$.set(originalDiary);
@@ -694,7 +694,8 @@ export class FoodDiaryService extends BaseFoodService {
     const draft = this.draftEntryWeight$$();
     if (!draft || draft.dateISO !== selectedDay) return totals;
 
-    const previousKcals = draft.diaryId !== null ? (this.diaryRaw$$()[selectedDay]?.food[draft.diaryId]?.kcals ?? 0) : 0;
+    const previousKcals =
+      draft.diaryId !== null ? (this.diaryRaw$$()[selectedDay]?.food[draft.diaryId]?.kcals ?? 0) : 0;
     const projectedKcals = this.estimateEntryKcalsNow(draft.foodCatalogueId, draft.weight);
     const kcalsConsumed = totals.kcalsConsumed - previousKcals + projectedKcals;
 
@@ -981,13 +982,11 @@ export class FoodDiaryService extends BaseFoodService {
 
   private createDiaryDayRestoreRequest(entries: DiaryEntry[]): DiaryDayRestoreRequest {
     return {
-      entries: entries.map(
-        (entry): DiaryEntryToRestore => ({
-          foodCatalogueId: entry.foodCatalogueId,
-          foodWeight: entry.foodWeight,
-          history: [...entry.history],
-        }),
-      ),
+      entries: entries.map((entry): DiaryEntryToRestore => ({
+        foodCatalogueId: entry.foodCatalogueId,
+        foodWeight: entry.foodWeight,
+        history: [...entry.history],
+      })),
     };
   }
 

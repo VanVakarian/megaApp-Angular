@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { PerformanceMetricsService } from './performance-metrics.service';
+import { TelemetryService } from './telemetry.service';
 
 interface PhotoAnalysisResult {
   result: boolean;
@@ -23,7 +23,7 @@ interface PhotoAnalysisResult {
 })
 export class PhotoCaptureService {
   private readonly http: HttpClient = inject(HttpClient);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
 
   public async analyzeImage(file: File): Promise<PhotoAnalysisResult> {
     const startedAt = performance.now();
@@ -33,7 +33,7 @@ export class PhotoCaptureService {
 
       const response = await firstValueFrom(this.http.post<PhotoAnalysisResult>('/api/food/analyze-image', formData));
 
-      this.performanceMetrics.record(
+      this.telemetry.record(
         'food.photo_analysis',
         performance.now() - startedAt,
         {
@@ -45,12 +45,7 @@ export class PhotoCaptureService {
       return response;
     } catch (error) {
       console.error('Error analyzing image:', error);
-      this.performanceMetrics.record(
-        'food.photo_analysis',
-        performance.now() - startedAt,
-        { imageBytes: file.size },
-        'error',
-      );
+      this.telemetry.record('food.photo_analysis', performance.now() - startedAt, { imageBytes: file.size }, 'error');
       return {
         result: false,
         error: 'Failed to analyze image',

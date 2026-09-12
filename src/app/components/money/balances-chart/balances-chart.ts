@@ -13,8 +13,13 @@ import {
 } from '@angular/core';
 import { ChartThemeService } from '@app/services/chart-theme.service';
 import { MoneyService, SuspensionFilter } from '@app/services/money.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
-import { balanceCategoricalPalette, ChartColors, createBalanceChartConfig, formatMonthYearLabel } from '@app/shared/chart-config';
+import { TelemetryService } from '@app/services/telemetry.service';
+import {
+  ChartColors,
+  balanceCategoricalPalette,
+  createBalanceChartConfig,
+  formatMonthYearLabel,
+} from '@app/shared/chart-config';
 import { BalanceChartAccountSeries, BalanceChartData } from '@app/shared/types';
 import { VButton } from '@ui-kit/components/v-button/v-button';
 import { VCheckbox } from '@ui-kit/components/v-checkbox/v-checkbox';
@@ -54,7 +59,7 @@ export class BalancesChart implements AfterViewInit, OnDestroy {
 
   private readonly moneyService = inject(MoneyService);
   private readonly chartThemeService = inject(ChartThemeService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
 
   // Chart.js caches a scale's resolved grid/border/ticks color internally — mutating
   // chart.data and calling chart.update('none') doesn't reliably repaint it after a theme
@@ -160,7 +165,7 @@ export class BalancesChart implements AfterViewInit, OnDestroy {
     const activeSeries = this.activeAccountSeries$$();
     const suspensionFilter = this.suspensionFilter$$();
     const colors = this.chartThemeService.colors$$();
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'money.balance_chart_render',
       () => {
         let chart = this.chart$$();

@@ -3,8 +3,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { LocalStorageService } from '@app/services/local-storage.service';
 import { NotificationService } from '@app/services/notification.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
-import { createPerformanceMetricsFake } from '@app/testing/performance-metrics.fake';
+import { TelemetryService } from '@app/services/telemetry.service';
+import { createTelemetryFake } from '@app/testing/telemetry.fake';
 import {
   OptimisticSyncOperation,
   SyncEngineService,
@@ -29,7 +29,7 @@ function setup() {
       provideHttpClientTesting(),
       { provide: LocalStorageService, useValue: localStorageFake },
       { provide: NotificationService, useValue: notificationServiceFake },
-      { provide: PerformanceMetricsService, useValue: createPerformanceMetricsFake() },
+      { provide: TelemetryService, useValue: createTelemetryFake() },
     ],
   });
 

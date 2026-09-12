@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { ChartThemeService } from '@app/services/chart-theme.service';
 import { MoneyService } from '@app/services/money.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
+import { TelemetryService } from '@app/services/telemetry.service';
 import { CATEGORY_DIM_ALPHA } from '@app/shared/categorical-palette';
 import { createCategoryHoverHighlight } from '@app/shared/category-hover-highlight';
 import {
@@ -57,7 +57,7 @@ export class IncomeChart implements AfterViewInit, OnDestroy {
 
   private readonly chartThemeService = inject(ChartThemeService);
   private readonly moneyService = inject(MoneyService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
   // Chart.js caches a scale's resolved grid/border/ticks color internally — mutating
   // chart.data and calling chart.update('none') doesn't reliably repaint it after a theme
   // toggle (see the identical comment/fix in food-stats-charts.ts). Recreating the chart
@@ -81,7 +81,7 @@ export class IncomeChart implements AfterViewInit, OnDestroy {
     // Dataset colors here are category-identity colors, not theme colors — colors$$ is only
     // needed to detect a theme switch and recreate the chart so its grid/tick colors repaint.
     const colors = this.chartThemeService.colors$$();
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'money.income_chart_render',
       () => {
         let chart = this.chart$$();

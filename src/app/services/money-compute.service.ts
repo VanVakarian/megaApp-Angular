@@ -17,7 +17,7 @@ import {
   TransactionKind,
 } from '../shared/types';
 import { MoneyService } from './money.service';
-import { PerformanceMetricsService } from './performance-metrics.service';
+import { TelemetryService } from './telemetry.service';
 
 interface MonthlyBuckets {
   accountDelta: Record<string, Record<number, number>>;
@@ -31,11 +31,11 @@ interface MonthlyBuckets {
 @Injectable({ providedIn: 'root' })
 export class MoneyComputeService {
   private readonly moneyService = inject(MoneyService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
   private readonly fxTickers = new Set(['USD', 'EUR']);
 
   private readonly monthlyBuckets$$: Signal<MonthlyBuckets> = computed(() =>
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'money.monthly_buckets',
       () =>
         this.buildBuckets(
@@ -52,7 +52,7 @@ export class MoneyComputeService {
   );
 
   private readonly positionLotRows$$: Signal<PositionLotRow[]> = computed(() =>
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'money.position_lots',
       () =>
         this.buildPositionLotRows(
@@ -66,7 +66,7 @@ export class MoneyComputeService {
   );
 
   public readonly balanceChartData$$: Signal<BalanceChartData> = computed(() =>
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'money.balance_model',
       () => this.buildBalanceChartData(),
       (result) => ({
@@ -77,7 +77,7 @@ export class MoneyComputeService {
   );
 
   public readonly incomeChartData$$: Signal<IncomeChartData> = computed(() =>
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'money.income_model',
       () => this.buildIncomeChartData(),
       (result) => ({
@@ -88,7 +88,7 @@ export class MoneyComputeService {
   );
 
   public readonly expenseChartData$$: Signal<ExpenseChartData> = computed(() =>
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'money.expense_model',
       () => this.buildExpenseChartData(),
       (result) => ({

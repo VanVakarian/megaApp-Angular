@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { ChartThemeService } from '@app/services/chart-theme.service';
 import { TooltipMode } from '@app/services/metrics-settings.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
+import { TelemetryService } from '@app/services/telemetry.service';
 import {
   ChartColors,
   createMetricBarConfig,
@@ -282,7 +282,7 @@ export class MetricChartCard implements OnInit, OnDestroy {
   private readonly cardWidthPx$$ = signal(0);
   private resizeObserver: ResizeObserver | null = null;
   private readonly chartThemeService = inject(ChartThemeService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
 
   // Off-screen cards keep their Chart.js instance (once created) but stop receiving
   // updates — recreating it on every scroll back into view would cost more than the
@@ -392,7 +392,7 @@ export class MetricChartCard implements OnInit, OnDestroy {
       return;
     }
 
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'metrics.chart_create',
       () => {
         this.chart = new Chart(ctx, this.createChartConfig(chartMode, color, unit, granularity, tooltipMode, colors));
@@ -408,7 +408,7 @@ export class MetricChartCard implements OnInit, OnDestroy {
 
   private updateChart(series: MetricSeriesPoint[]): void {
     if (!this.chart) return;
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'metrics.chart_update',
       () => {
         this.updateSparseChart(series);

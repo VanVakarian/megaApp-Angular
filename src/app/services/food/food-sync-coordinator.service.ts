@@ -3,7 +3,7 @@ import { effect, inject, Injectable } from '@angular/core';
 import { AuthService, AuthSessionState } from '@app/services/auth.service';
 import { LocalStorageService } from '@app/services/local-storage.service';
 import { NetworkService } from '@app/services/network.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
+import { TelemetryService } from '@app/services/telemetry.service';
 import {
   CatalogueVersionResponse,
   IncomingWsMessage,
@@ -39,7 +39,7 @@ export class FoodSyncCoordinatorService {
   private readonly authService = inject(AuthService);
   private readonly networkService = inject(NetworkService);
   private readonly localStorageService = inject(LocalStorageService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
   private readonly foodDiaryService = inject(FoodDiaryService);
   private readonly foodCatalogueService = inject(FoodCatalogueService);
   private readonly foodStatsService = inject(FoodStatsService);
@@ -76,7 +76,7 @@ export class FoodSyncCoordinatorService {
     if (!this.getCheckpoint()) this.setCheckpoint(calculateTodayIsoWithUserTimeShift());
     this.lastSyncTs = Date.now();
 
-    void this.performanceMetrics.recordAfterPaint('food.initial_load', startedAt, {
+    void this.telemetry.recordAfterPaint('food.initial_load', startedAt, {
       catalogueEntries: Object.keys(this.foodCatalogueService.catalogue$$()).length,
       statsDays: this.foodStatsService.loadedDates$$().length,
     });
@@ -130,7 +130,7 @@ export class FoodSyncCoordinatorService {
 
     this.setCheckpoint(today);
     this.lastSyncTs = Date.now();
-    void this.performanceMetrics.recordAfterPaint('food.reconnect_catchup', startedAt, { gapDays });
+    void this.telemetry.recordAfterPaint('food.reconnect_catchup', startedAt, { gapDays });
   }
 
   private async ensureCatalogueFreshness(): Promise<void> {

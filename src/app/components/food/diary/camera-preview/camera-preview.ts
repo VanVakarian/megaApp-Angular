@@ -10,8 +10,8 @@ import {
   signal,
 } from '@angular/core';
 import { FoodAddModalService } from '@app/services/food/food-add-modal.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
 import { PhotoCaptureService } from '@app/services/photo-capture.service';
+import { TelemetryService } from '@app/services/telemetry.service';
 import { CapturedPhoto } from '@app/shared/types';
 import { VButton } from '@ui-kit/components/v-button/v-button';
 import { IconName, VIcon } from '@ui-kit/components/v-icon/v-icon';
@@ -41,7 +41,7 @@ export class CameraPreview implements AfterViewInit, OnDestroy {
   private cameraStream: MediaStream | null = null;
 
   private readonly photoCaptureService = inject(PhotoCaptureService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
   private readonly foodAddModalService = inject(FoodAddModalService);
 
   private readonly confirmPhotoButtonCooldownEffect$$ = effect(() => {
@@ -77,11 +77,11 @@ export class CameraPreview implements AfterViewInit, OnDestroy {
         this.video.nativeElement.srcObject = this.cameraStream;
         await this.video.nativeElement.play();
       }
-      this.performanceMetrics.record('food.photo_camera_start', performance.now() - startedAt);
+      this.telemetry.record('food.photo_camera_start', performance.now() - startedAt);
     } catch (error) {
       console.error('Error accessing camera:', error);
       this.error$$.set('Не удалось получить доступ к камере. Проверьте разрешения.');
-      this.performanceMetrics.record('food.photo_camera_start', performance.now() - startedAt, undefined, 'error');
+      this.telemetry.record('food.photo_camera_start', performance.now() - startedAt, undefined, 'error');
     } finally {
       this.isLoading$$.set(false);
     }
@@ -113,12 +113,12 @@ export class CameraPreview implements AfterViewInit, OnDestroy {
           this.capturedFile$$.set(new File([blob], 'photo.jpg', { type: 'image/jpeg' }));
           this.photoDataUrl$$.set(canvas.toDataURL('image/jpeg', 0.8));
           this.stopCamera();
-          this.performanceMetrics.record('food.photo_capture', performance.now() - startedAt, {
+          this.telemetry.record('food.photo_capture', performance.now() - startedAt, {
             imageBytes: blob.size,
           });
         } else {
           this.error$$.set('Ошибка создания фото');
-          this.performanceMetrics.record('food.photo_capture', performance.now() - startedAt, undefined, 'error');
+          this.telemetry.record('food.photo_capture', performance.now() - startedAt, undefined, 'error');
         }
       },
       'image/jpeg',

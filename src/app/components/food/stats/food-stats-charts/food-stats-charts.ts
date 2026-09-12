@@ -14,7 +14,7 @@ import { StatsHelpIcon } from '@app/components/food/stats/stats-help-icon/stats-
 import { ChartThemeService } from '@app/services/chart-theme.service';
 import { DeviceInfoService } from '@app/services/device-info.service';
 import { FoodStatsService } from '@app/services/food/food-stats.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
+import { TelemetryService } from '@app/services/telemetry.service';
 import { ANIMATION_DURATION_MS } from '@app/shared/animations';
 import {
   ChartColors,
@@ -241,7 +241,7 @@ export class FoodStatsCharts implements OnInit, AfterViewInit, OnDestroy {
 
   protected readonly deviceInfoService = inject(DeviceInfoService);
   private readonly foodStatsService = inject(FoodStatsService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
   private readonly rangeAnimationDurationMs = ANIMATION_DURATION_MS.MEDIUM;
   private rangeAnimationFrameId: number | null = null;
 
@@ -255,7 +255,7 @@ export class FoodStatsCharts implements OnInit, AfterViewInit, OnDestroy {
   private readonly chartsUpdateEffect = effect(() => {
     const data = this.foodStatsService.statsChartDataClipped$$();
     const colors = this.chartThemeService.colors$$();
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'food.stats_charts_render',
       () => {
         if (colors !== this.lastChartColors) {

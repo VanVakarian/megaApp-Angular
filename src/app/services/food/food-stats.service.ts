@@ -7,8 +7,8 @@ import { firstValueFrom } from 'rxjs';
 import { dateToIsoNoTimeNoTZ, formatDateTicks, isoDaysBefore } from '../../shared/utils';
 import { LocalStorageService } from '../local-storage.service';
 import { NetworkService } from '../network.service';
-import { PerformanceMetricsService } from '../performance-metrics.service';
 import { SyncEngineService } from '../sync-engine.service';
+import { TelemetryService } from '../telemetry.service';
 import { BaseFoodService } from './food-base.service';
 import { FoodDiaryService } from './food-diary.service';
 import { FoodSettingsService } from './food-settings.service';
@@ -111,14 +111,14 @@ export class FoodStatsService extends BaseFoodService {
   public readonly loadedDates$$: Signal<string[]> = computed(() => Object.keys(this.displayStats$$()).sort());
 
   public readonly statsChartData$$: Signal<StatsChartData> = computed(() =>
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'food.stats_base_model',
       () => this.prepareChartData(),
       (result) => ({ days: result.dates.length }),
     ),
   );
   public readonly statsChartDataClipped$$: Signal<StatsChartData> = computed(() =>
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'food.stats_clipped_model',
       () => this.prepareChartDataClipped(),
       (result) => ({ days: result.dates.length }),
@@ -126,14 +126,14 @@ export class FoodStatsService extends BaseFoodService {
   );
 
   private readonly weeklyAggregated$$: Signal<AggregatedPeriodData> = computed(() =>
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'food.stats_aggregate_week',
       () => this.prepareAggregatedData('week'),
       (result) => ({ periods: result.data.dates.length }),
     ),
   );
   private readonly monthlyAggregated$$: Signal<AggregatedPeriodData> = computed(() =>
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'food.stats_aggregate_month',
       () => this.prepareAggregatedData('month'),
       (result) => ({ periods: result.data.dates.length }),
@@ -144,7 +144,7 @@ export class FoodStatsService extends BaseFoodService {
   public readonly selectedDateIdxEnd$$: WritableSignal<number> = signal(0);
 
   private readonly authService = inject(AuthService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
 
   // Once true, every getStats() call (from anywhere — the reconnect coordinator included) fetches
   // full history instead of the default recent window, so a user who has explicitly widened their
@@ -269,14 +269,14 @@ export class FoodStatsService extends BaseFoodService {
       this.saveStatsToLocalStorage();
 
       void this.applyDateRangeOnLoad(isLocalStatsEmpty);
-      void this.performanceMetrics.recordAfterPaint('food.stats_response_apply', startedAt, {
+      void this.telemetry.recordAfterPaint('food.stats_response_apply', startedAt, {
         cache: cachedResponse ? 'hit' : 'miss',
         days: Object.keys(serverResponse.days).length,
         topProducts: (serverResponse.topProductsByKcal ?? []).length,
       });
     } catch (error) {
       console.error('Failed fetching stats from server:', error);
-      this.performanceMetrics.record('food.stats_response_apply', performance.now() - startedAt, undefined, 'error');
+      this.telemetry.record('food.stats_response_apply', performance.now() - startedAt, undefined, 'error');
     }
   }
 

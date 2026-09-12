@@ -2,8 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { computed, effect, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { AuthService, AuthSessionState } from '@app/services/auth.service';
 import { LocalStorageService } from '@app/services/local-storage.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
 import { NamespaceSettingsStore } from '@app/services/settings/namespace-settings-store';
+import { TelemetryService } from '@app/services/telemetry.service';
 import { Observable, of, Subject } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import {
@@ -108,7 +108,7 @@ interface BasicResponse extends MessageResponse {}
 })
 export class MoneyService {
   private readonly localStorageService = inject(LocalStorageService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
 
   public readonly currencies$$: WritableSignal<Currency[]> = signal([]);
   public readonly categories$$: WritableSignal<Category[]> = signal([]);
@@ -244,7 +244,7 @@ export class MoneyService {
   public loadData(): void {
     const cached = this.localStorageService.getUserScoped<MoneySnapshot>(SNAPSHOT_KEY);
     if (cached) {
-      this.performanceMetrics.measure(
+      this.telemetry.measure(
         'money.snapshot_apply',
         () => this.applySnapshot(cached, true),
         () => ({
@@ -264,7 +264,7 @@ export class MoneyService {
         if (response.success && response.data) {
           this.applySnapshot(response.data, true);
           this.writeCacheSnapshot();
-          void this.performanceMetrics.recordAfterPaint('money.snapshot_apply', startedAt, {
+          void this.telemetry.recordAfterPaint('money.snapshot_apply', startedAt, {
             source: 'server',
             transactions: response.data.transactions?.length ?? 0,
             accounts: response.data.accounts?.length ?? 0,

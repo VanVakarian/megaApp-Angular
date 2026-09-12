@@ -6,12 +6,12 @@ import { AuthService, AuthSessionState } from '@app/services/auth.service';
 import { IndexedDbCacheService } from '@app/services/indexed-db-cache.service';
 import { MetricsBinaryFrame, MetricsBinaryFrameType, NetworkService } from '@app/services/network.service';
 import { NotificationService } from '@app/services/notification.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
+import { TelemetryService } from '@app/services/telemetry.service';
 import { METRICS_GRANULARITY_WINDOW_PERIODS } from '@app/shared/chart-config';
 import { MetricRingBuffer } from '@app/shared/metrics-ring-buffer';
 import { MetricPoint } from '@app/shared/types';
 import { encodeMetricsWireFixture } from '@app/testing/metrics-wire.fake';
-import { createPerformanceMetricsFake } from '@app/testing/performance-metrics.fake';
+import { createTelemetryFake } from '@app/testing/telemetry.fake';
 import { Subject } from 'rxjs';
 import { MetricsService } from './metrics.service';
 
@@ -57,7 +57,7 @@ function setup(options: { persistedSeries?: unknown[] } = {}) {
       { provide: NetworkService, useValue: networkServiceFake },
       { provide: NotificationService, useValue: notificationServiceFake },
       { provide: IndexedDbCacheService, useValue: indexedDbCacheFake },
-      { provide: PerformanceMetricsService, useValue: createPerformanceMetricsFake() },
+      { provide: TelemetryService, useValue: createTelemetryFake() },
       { provide: AuthService, useValue: authServiceFake },
     ],
   });

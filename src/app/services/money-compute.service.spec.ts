@@ -13,10 +13,10 @@ import {
   Transaction,
   TransactionKind,
 } from '@app/shared/types';
-import { createPerformanceMetricsFake } from '@app/testing/performance-metrics.fake';
+import { createTelemetryFake } from '@app/testing/telemetry.fake';
 import { MoneyComputeService } from './money-compute.service';
 import { MoneyService } from './money.service';
-import { PerformanceMetricsService } from './performance-metrics.service';
+import { TelemetryService } from './telemetry.service';
 
 interface MoneyServiceFakeInput {
   transactions?: Transaction[];
@@ -47,7 +47,7 @@ function setup(input: MoneyServiceFakeInput = {}): MoneyComputeService {
   TestBed.configureTestingModule({
     providers: [
       { provide: MoneyService, useValue: createMoneyServiceFake(input) },
-      { provide: PerformanceMetricsService, useValue: createPerformanceMetricsFake() },
+      { provide: TelemetryService, useValue: createTelemetryFake() },
     ],
   });
   return TestBed.inject(MoneyComputeService);

@@ -4,10 +4,10 @@ import { TestBed } from '@angular/core/testing';
 import { AuthService, AuthSessionState } from '@app/services/auth.service';
 import { LocalStorageService } from '@app/services/local-storage.service';
 import { NetworkService } from '@app/services/network.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
 import { SyncEngineService } from '@app/services/sync-engine.service';
+import { TelemetryService } from '@app/services/telemetry.service';
 import { DayStats, FoodStatsResponse, Stats } from '@app/shared/types';
-import { createPerformanceMetricsFake } from '@app/testing/performance-metrics.fake';
+import { createTelemetryFake } from '@app/testing/telemetry.fake';
 import { Subject } from 'rxjs';
 import { FoodDiaryService } from './food-diary.service';
 import { FoodSettingsService } from './food-settings.service';
@@ -58,7 +58,7 @@ function setup(response: FoodStatsResponse): FoodStatsService {
       { provide: FoodDiaryService, useValue: diaryServiceFake },
       { provide: FoodSettingsService, useValue: settingsServiceFake },
       { provide: AuthService, useValue: authServiceFake },
-      { provide: PerformanceMetricsService, useValue: createPerformanceMetricsFake() },
+      { provide: TelemetryService, useValue: createTelemetryFake() },
     ],
   });
   return TestBed.inject(FoodStatsService);

@@ -7,7 +7,7 @@ import { VSlider, VSliderRangeValue } from '@ui-kit/components/v-slider/v-slider
 import { VToggleItem } from '@ui-kit/components/v-toggle/v-toggle';
 import { MoneyComputeService } from '../../services/money-compute.service';
 import { MoneyService } from '../../services/money.service';
-import { PerformanceMetricsService } from '../../services/performance-metrics.service';
+import { TelemetryService } from '../../services/telemetry.service';
 import { BalanceChartData } from '../../shared/types';
 import { AccountsBalance } from './accounts-balance/accounts-balance';
 import { AccountsList } from './accounts-list/accounts-list';
@@ -58,7 +58,7 @@ export class MoneyScreen implements OnInit {
 
   private readonly moneyService = inject(MoneyService);
   private readonly moneyComputeService = inject(MoneyComputeService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
   private readonly sliderMonthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric' });
   private readonly screenStartedAt = performance.now();
   private screenReadyRecorded = false;
@@ -68,7 +68,7 @@ export class MoneyScreen implements OnInit {
   private readonly screenReadyEffect$$ = effect(() => {
     if (!this.isChartDataReady$$() || this.screenReadyRecorded) return;
     this.screenReadyRecorded = true;
-    void this.performanceMetrics.recordAfterPaint('money.screen_ready', this.screenStartedAt, {
+    void this.telemetry.recordAfterPaint('money.screen_ready', this.screenStartedAt, {
       tab: this.activeTab$$(),
       transactions: this.moneyService.transactions$$().length,
     });
@@ -187,7 +187,7 @@ export class MoneyScreen implements OnInit {
       startIdx <= 0 ? null : (months[startIdx] ?? null),
       endIdx >= maxIdx ? null : (months[endIdx] ?? null),
     );
-    void this.performanceMetrics.recordAfterPaint('money.range_change', startedAt, { months: endIdx - startIdx + 1 });
+    void this.telemetry.recordAfterPaint('money.range_change', startedAt, { months: endIdx - startIdx + 1 });
   }
 
   protected setDisplayCurrency(id: string): void {
@@ -195,7 +195,7 @@ export class MoneyScreen implements OnInit {
     const startedAt = performance.now();
     const previous = this.moneyService.displayCurrency$$();
     this.moneyService.setDisplayCurrency(id);
-    void this.performanceMetrics.recordAfterPaint('money.currency_change', startedAt, { from: previous, to: id });
+    void this.telemetry.recordAfterPaint('money.currency_change', startedAt, { from: previous, to: id });
   }
 
   protected toggleConvertToUnifiedCurrency(): void {
@@ -210,7 +210,7 @@ export class MoneyScreen implements OnInit {
     const startedAt = performance.now();
     const previous = this.activeTab$$();
     this.activeTab$$.set(tab);
-    void this.performanceMetrics.recordAfterPaint('money.tab_change', startedAt, { from: previous, to: tab });
+    void this.telemetry.recordAfterPaint('money.tab_change', startedAt, { from: previous, to: tab });
   }
 
   private formatSliderMonth(ym: string | undefined): string {

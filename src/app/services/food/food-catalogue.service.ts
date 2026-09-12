@@ -24,8 +24,8 @@ import { firstValueFrom } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { LocalStorageService } from '../local-storage.service';
 import { NetworkService } from '../network.service';
-import { PerformanceMetricsService } from '../performance-metrics.service';
 import { SyncEngineService, SyncOperationError, SyncOperationMode, SyncOperationType } from '../sync-engine.service';
+import { TelemetryService } from '../telemetry.service';
 import { BaseFoodService } from './food-base.service';
 
 @Injectable({
@@ -57,7 +57,7 @@ export class FoodCatalogueService extends BaseFoodService {
   }
 
   private readonly authService = inject(AuthService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
 
   private readonly resetOnAuthLossEffect$$ = effect(() => {
     if (this.authService.sessionState$$() === AuthSessionState.Guest) {
@@ -101,14 +101,14 @@ export class FoodCatalogueService extends BaseFoodService {
       this.catalogueVersion$$.set(response.version);
       this.saveToLocalStorage(response.entries);
       this.saveCatalogueVersionToLocalStorage(response.version);
-      void this.performanceMetrics.recordAfterPaint('food.catalogue_load', startedAt, {
+      void this.telemetry.recordAfterPaint('food.catalogue_load', startedAt, {
         source: 'server',
         entries: Object.keys(response.entries).length,
       });
       return response.entries;
     } catch (error) {
       console.error('Failed getting catalogue entries:', error);
-      void this.performanceMetrics.recordAfterPaint('food.catalogue_load', startedAt, { source: 'server' }, 'error');
+      void this.telemetry.recordAfterPaint('food.catalogue_load', startedAt, { source: 'server' }, 'error');
       return {};
     }
   }
@@ -123,7 +123,7 @@ export class FoodCatalogueService extends BaseFoodService {
     if (typeof savedVersion === 'number') {
       this.catalogueVersion$$.set(savedVersion);
     }
-    this.performanceMetrics.record('food.catalogue_load', performance.now() - startedAt, {
+    this.telemetry.record('food.catalogue_load', performance.now() - startedAt, {
       source: 'cache',
       entries: savedCatalogue ? Object.keys(savedCatalogue).length : 0,
       hit: Boolean(savedCatalogue),
@@ -151,7 +151,7 @@ export class FoodCatalogueService extends BaseFoodService {
     if (cachedIds) {
       this.displaySearchResults(cachedIds);
       this.lastDisplayedSequenceNumber = this.searchSequenceNumber;
-      this.performanceMetrics.record('food.catalogue_search', performance.now() - this.searchStartedAt, {
+      this.telemetry.record('food.catalogue_search', performance.now() - this.searchStartedAt, {
         source: 'cache',
         queryLength: query.length,
         results: cachedIds.length,
@@ -192,7 +192,7 @@ export class FoodCatalogueService extends BaseFoodService {
     });
 
     this.legacySearchResults$$.set(results);
-    this.performanceMetrics.record('food.catalogue_search', performance.now() - startedAt, {
+    this.telemetry.record('food.catalogue_search', performance.now() - startedAt, {
       source: 'legacy',
       queryLength: query.length,
       results: results.length,
@@ -286,7 +286,7 @@ export class FoodCatalogueService extends BaseFoodService {
     }
 
     if (this.searchStartedAt !== null && queryFromMessage === this.searchQuery$$()) {
-      this.performanceMetrics.record('food.catalogue_search', performance.now() - this.searchStartedAt, {
+      this.telemetry.record('food.catalogue_search', performance.now() - this.searchStartedAt, {
         source: 'remote',
         queryLength: queryFromMessage.length,
         results: results.length,
@@ -402,28 +402,18 @@ export class FoodCatalogueService extends BaseFoodService {
         data: productData,
         applyCallback: (response: ServerResponseProductSave) => {
           if (!response.result || !response.data?.catalogueEntry) {
-            void this.performanceMetrics.recordAfterPaint(
-              'food.catalogue_mutation',
-              startedAt,
-              { mutationType },
-              'error',
-            );
+            void this.telemetry.recordAfterPaint('food.catalogue_mutation', startedAt, { mutationType }, 'error');
             reject(new Error(response.error || 'Failed to save product'));
             return;
           }
 
           const catalogueEntry = response.data.catalogueEntry;
           this.upsertCatalogueEntry(catalogueEntry);
-          void this.performanceMetrics.recordAfterPaint('food.catalogue_mutation', startedAt, { mutationType });
+          void this.telemetry.recordAfterPaint('food.catalogue_mutation', startedAt, { mutationType });
           resolve(catalogueEntry);
         },
         errorCallback: (error: SyncOperationError) => {
-          void this.performanceMetrics.recordAfterPaint(
-            'food.catalogue_mutation',
-            startedAt,
-            { mutationType },
-            'error',
-          );
+          void this.telemetry.recordAfterPaint('food.catalogue_mutation', startedAt, { mutationType }, 'error');
           reject(error);
         },
       });
@@ -459,7 +449,7 @@ export class FoodCatalogueService extends BaseFoodService {
         data: {},
         applyCallback: (response: ServerResponseBasic) => {
           if (!response.result) {
-            void this.performanceMetrics.recordAfterPaint(
+            void this.telemetry.recordAfterPaint(
               'food.catalogue_mutation',
               startedAt,
               { mutationType: 'delete' },
@@ -470,13 +460,13 @@ export class FoodCatalogueService extends BaseFoodService {
           }
 
           this.removeCatalogueEntry(catalogueId);
-          void this.performanceMetrics.recordAfterPaint('food.catalogue_mutation', startedAt, {
+          void this.telemetry.recordAfterPaint('food.catalogue_mutation', startedAt, {
             mutationType: 'delete',
           });
           resolve();
         },
         errorCallback: (error: SyncOperationError) => {
-          void this.performanceMetrics.recordAfterPaint(
+          void this.telemetry.recordAfterPaint(
             'food.catalogue_mutation',
             startedAt,
             { mutationType: 'delete' },

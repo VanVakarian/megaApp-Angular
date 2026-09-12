@@ -18,7 +18,7 @@ import { MetricCardExpansionService } from '@app/services/metric-card-expansion.
 import { MetricsHealthService } from '@app/services/metrics-health.service';
 import { CardLayoutMode, MetricsSettingsService, TooltipMode } from '@app/services/metrics-settings.service';
 import { MetricsService } from '@app/services/metrics.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
+import { TelemetryService } from '@app/services/telemetry.service';
 import { METRICS_GRANULARITY_STEP_SECONDS, METRICS_GRANULARITY_WINDOW_PERIODS } from '@app/shared/chart-config';
 import { ToolbarGroup } from '@app/shared/components/toolbar-group/toolbar-group';
 import { FitTextOnOverflowDirective } from '@app/shared/directives/fit-text-on-overflow.directive';
@@ -149,7 +149,7 @@ export class MetricsDashboard implements OnInit, AfterViewInit, OnDestroy {
 
   private readonly metricsSettingsService = inject(MetricsSettingsService);
   private readonly compositeMetricsSettingsService = inject(CompositeMetricsSettingsService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
 
   private readonly now$$ = signal(Date.now());
   protected readonly targetWidthPx$$ = computed(() => this.metricsSettingsService.cardSize$$().widthPx);
@@ -613,7 +613,7 @@ export class MetricsDashboard implements OnInit, AfterViewInit, OnDestroy {
     const startedAt = performance.now();
     const rows = this.dashboardRows$$();
     const cards = rows.reduce((total, row) => total + row.cards.length, 0);
-    this.performanceMetrics.record('metrics.dashboard_model', performance.now() - startedAt, {
+    this.telemetry.record('metrics.dashboard_model', performance.now() - startedAt, {
       services: rows.length,
       cards,
       points: this.metricsService.totalBufferedPointCount(),
@@ -642,7 +642,7 @@ export class MetricsDashboard implements OnInit, AfterViewInit, OnDestroy {
     const startedAt = performance.now();
     this.nowTickIntervalId = setInterval(() => this.now$$.set(Date.now()), NOW_TICK_INTERVAL_MS);
     window.addEventListener('scroll', this.onWindowScroll, { passive: true });
-    void this.performanceMetrics.recordAfterPaint('metrics.dashboard_ready', startedAt, {
+    void this.telemetry.recordAfterPaint('metrics.dashboard_ready', startedAt, {
       granularity: this.selectedGranularity$$(),
     });
   }
@@ -715,7 +715,7 @@ export class MetricsDashboard implements OnInit, AfterViewInit, OnDestroy {
     const previous = this.selectedGranularity$$();
     clearMetricSyncCrosshair();
     this.metricsSettingsService.setGranularity(granularity);
-    void this.performanceMetrics.recordAfterPaint('metrics.granularity_change', startedAt, {
+    void this.telemetry.recordAfterPaint('metrics.granularity_change', startedAt, {
       from: previous,
       to: granularity,
     });
@@ -744,7 +744,7 @@ export class MetricsDashboard implements OnInit, AfterViewInit, OnDestroy {
     const startedAt = performance.now();
     if (service === SETTINGS_PANEL_KEY) {
       this.isSettingsPanelExpanded$$.update((value) => !value);
-      void this.performanceMetrics.recordAfterPaint('metrics.panel_change', startedAt, { panel: 'settings' });
+      void this.telemetry.recordAfterPaint('metrics.panel_change', startedAt, { panel: 'settings' });
       return;
     }
 
@@ -761,7 +761,7 @@ export class MetricsDashboard implements OnInit, AfterViewInit, OnDestroy {
 
     clearMetricSyncCrosshair();
     this.expandedPanel$$.set(service);
-    void this.performanceMetrics.recordAfterPaint('metrics.panel_change', startedAt, { panel: service });
+    void this.telemetry.recordAfterPaint('metrics.panel_change', startedAt, { panel: service });
   }
 
   protected onCardWidthChange(value: string): void {
@@ -785,7 +785,7 @@ export class MetricsDashboard implements OnInit, AfterViewInit, OnDestroy {
   protected cycleCardLayoutMode(): void {
     const startedAt = performance.now();
     this.metricsSettingsService.cycleCardLayoutMode();
-    void this.performanceMetrics.recordAfterPaint('metrics.layout_change', startedAt, { kind: 'card_layout' });
+    void this.telemetry.recordAfterPaint('metrics.layout_change', startedAt, { kind: 'card_layout' });
   }
 
   protected cycleTooltipMode(): void {
@@ -806,7 +806,7 @@ export class MetricsDashboard implements OnInit, AfterViewInit, OnDestroy {
   protected toggleAnomalyCorridorEnabled(): void {
     const startedAt = performance.now();
     this.metricsSettingsService.setAnomalyCorridorEnabled(!this.anomalyCorridorEnabled$$());
-    void this.performanceMetrics.recordAfterPaint('metrics.data_shape_change', startedAt, { kind: 'anomaly_corridor' });
+    void this.telemetry.recordAfterPaint('metrics.data_shape_change', startedAt, { kind: 'anomaly_corridor' });
   }
 
   protected onAnomalyCorridorPercentChange(rawValue: string): void {

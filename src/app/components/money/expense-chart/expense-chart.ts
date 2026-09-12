@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { ChartThemeService } from '@app/services/chart-theme.service';
 import { MoneyService } from '@app/services/money.service';
-import { PerformanceMetricsService } from '@app/services/performance-metrics.service';
+import { TelemetryService } from '@app/services/telemetry.service';
 import { CATEGORY_DIM_ALPHA } from '@app/shared/categorical-palette';
 import { createCategoryHoverHighlight } from '@app/shared/category-hover-highlight';
 import {
@@ -68,7 +68,7 @@ export class ExpenseChart implements AfterViewInit, OnDestroy {
 
   private readonly moneyService = inject(MoneyService);
   private readonly chartThemeService = inject(ChartThemeService);
-  private readonly performanceMetrics = inject(PerformanceMetricsService);
+  private readonly telemetry = inject(TelemetryService);
   private readonly today = new Date().toISOString().substring(0, 10);
   private readonly latestRates$$ = computed(() => this.moneyService.getRatesForDate(this.today) ?? {});
 
@@ -135,7 +135,7 @@ export class ExpenseChart implements AfterViewInit, OnDestroy {
     // Dataset colors here are category-identity colors, not theme colors — colors$$ is only
     // needed to detect a theme switch and recreate the chart so its grid/tick colors repaint.
     const colors = this.chartThemeService.colors$$();
-    this.performanceMetrics.measure(
+    this.telemetry.measure(
       'money.expense_chart_render',
       () => {
         let chart = this.chart$$();
