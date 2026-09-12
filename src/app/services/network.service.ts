@@ -209,7 +209,7 @@ export class NetworkService {
   }
 
   private resolveWebSocketPort(currentPort: string): string {
-    return currentPort === '4200' || currentPort === '4201' ? '3001' : currentPort;
+    return currentPort === '4200' || currentPort === '4201' ? '3000' : currentPort;
   }
 
   private getOrCreateClientId(): string {

@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { ErrorHandler, Injectable, inject, untracked } from '@angular/core';
+import { afterNextRender, ErrorHandler, Injectable, Injector, inject, untracked } from '@angular/core';
 import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router } from '@angular/router';
 import { DeviceInfoService } from '@app/services/device-info.service';
 import { LocalStorageService } from '@app/services/local-storage.service';
@@ -32,9 +32,10 @@ const MAX_CHUNK_EVENTS = 1000;
 @Injectable({ providedIn: 'root' })
 export class TelemetryService {
   private readonly http = inject(HttpClient);
-  private readonly router = inject(Router);
   private readonly deviceInfoService = inject(DeviceInfoService);
   private readonly localStorageService = inject(LocalStorageService);
+  // Lazy, not `inject(Router)`: eager here re-enters this ctor via the initial route's guards (NG0200).
+  private readonly injector = inject(Injector);
 
   private queue: TelemetryQueue = this.readQueue();
   private readonly sessionId = crypto.randomUUID();
@@ -47,13 +48,20 @@ export class TelemetryService {
   private readonly errorSignatureLastSentAt = new Map<string, number>();
 
   public constructor() {
-    this.router.events.subscribe((event) => this.handleRouterEvent(event));
     document.addEventListener('visibilitychange', this.onVisibilityChange);
     window.addEventListener('pagehide', this.flushOnUnload);
     window.addEventListener('unhandledrejection', this.onUnhandledRejection);
-    this.observeBrowserPerformance();
 
-    if (this.queue.events.length > 0) this.maybeStartCycle();
+    // Deferred: enqueue/maybeStartCycle can send synchronously, and AuthInterceptor -> AuthService is not safe to construct this early (NG0200).
+    afterNextRender(() => {
+      this.router.events.subscribe((event) => this.handleRouterEvent(event));
+      this.observeBrowserPerformance();
+      if (this.queue.events.length > 0) this.maybeStartCycle();
+    });
+  }
+
+  private get router(): Router {
+    return this.injector.get(Router);
   }
 
   public measure<T>(operation: string, work: () => T, attributes?: (result: T) => TelemetryAttributes): T {
@@ -372,10 +380,11 @@ export class TelemetryService {
 
 @Injectable()
 export class TelemetryErrorHandler implements ErrorHandler {
-  private readonly telemetryService = inject(TelemetryService);
+  // Lazy, not `inject(TelemetryService)`: ErrorHandler resolves before the component tree exists.
+  private readonly injector = inject(Injector);
 
   public handleError(error: unknown): void {
-    this.telemetryService.recordError('error.angular_handler', error);
+    this.injector.get(TelemetryService).recordError('error.angular_handler', error);
     console.error(error);
   }
 }
