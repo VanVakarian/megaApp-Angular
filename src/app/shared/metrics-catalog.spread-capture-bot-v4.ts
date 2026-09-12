@@ -121,13 +121,16 @@ export const SPREAD_CAPTURE_BOT_V4_METRICS_DEFINITION: MetricsServiceDefinition 
           color: MetricColor.Blue600,
           aggregation: 'last',
           integerValued: true,
-          description: 'Сколько токенов было в последнем обработанном hot-batch. Обычно равно BOOKS_CHUNK_SIZE (500); меньше — если сработал предохранитель HOT_BATCH_MAX_WAIT на неполном наборе.',
+          description:
+            'Сколько токенов было в последнем обработанном hot-batch. Обычно равно BOOKS_CHUNK_SIZE (500); меньше — если в момент взвешенного выбора (см. plans/43) ожидающих токенов было меньше 500, а не из-за какого-либо предохранителя — начиная с plans/43 такого понятия в этом месте больше нет.',
         }),
         metric('hot_batch_max_wait_fired_total', {
           label: 'Hot Batch Max-Wait Fired',
           color: MetricColor.Amber600,
           aggregation: 'sum',
           integerValued: true,
+          removed: true,
+          removedNote: 'Механизм HOT_BATCH_MAX_WAIT убран целиком (см. plans/43) — новый взвешенный выбор со старением гарантирует отсутствие голодания без отдельного предохранителя-таймера, заменять нечем',
           description:
             'Сколько раз за эту минуту сработал предохранитель HOT_BATCH_MAX_WAIT — dirty-set не набрал полный размер батча вовремя, и накопленное отправили на reconcile неполным. На активном боевом аккаунте практически не должно срабатывать вообще (см. plans/31 component 2); частое ненулевое значение — сигнал, что universe заметно поредел.',
         }),
@@ -136,8 +139,39 @@ export const SPREAD_CAPTURE_BOT_V4_METRICS_DEFINITION: MetricsServiceDefinition 
           color: MetricColor.Amber600,
           aggregation: 'last',
           integerValued: true,
+          removed: true,
+          removedNote: 'Теперь hot_batch_pending_tokens — тот же смысл (сколько токенов сейчас ожидает), но без канала/потолка HOT_BATCH_QUEUE_CAP, которых с plans/43 больше не существует',
           description:
             'Сколько уже готовых, но ещё не взятых в обработку hot-batch\'ей стояло в очереди перед тем, как консьюмер забрал очередной (потолок — HOT_BATCH_QUEUE_CAP). Консьюмер строго однопоточный (см. plans/31 component 4) — устойчиво растущее значение означает, что WS-поток набирает батчи быстрее, чем бот успевает их отторговывать, и это уже реальный бэкпрешер на приём новых сообщений.',
+        }),
+        metric('hot_batch_pending_tokens', {
+          label: 'Hot Batch Pending Tokens',
+          color: MetricColor.Amber600,
+          aggregation: 'last',
+          integerValued: true,
+          description:
+            'Сколько токенов остались ожидать взвешенного выбора сразу после того, как консьюмер забрал очередной hot-batch (см. plans/43). Прямой аналог старого hot_batch_queue_depth, но это не глубина канала с потолком, а размер набора ожидания — устойчиво растущее значение всё так же означает, что WS-поток помечает токены грязными быстрее, чем однопоточный консьюмер успевает их отторговывать.',
+        }),
+        metric('hot_batch_oldest_pending_ms', {
+          label: 'Hot Batch Oldest Pending (ms)',
+          color: MetricColor.Amber600,
+          aggregation: 'max',
+          description:
+            'Сколько миллисекунд самый долгождущий из ещё не выбранных токенов уже ждёт своей очереди, на момент последнего hot-batch (см. plans/43). Это прямая проверка гарантии от голодания: линейное старение веса при взвешенном выборе должно держать это значение в единицах минут даже для самых редких токенов (по симуляции — не больше ~3-4 минут); устойчиво растущее значение — сигнал, что старение недостаточно агрессивно на текущем масштабе нагрузки.',
+        }),
+        metric('hot_batch_drawn_tickets_avg', {
+          label: 'Hot Batch Drawn Tickets (avg)',
+          color: MetricColor.Blue600,
+          aggregation: 'avg',
+          description:
+            'Средний счётчик "билетиков" (сигналов с последнего выбора) среди токенов, попавших в последний hot-batch (см. plans/43). Показывает, насколько "горячим" был отобранный батч — вместе с hot_batch_drawn_tickets_max позволяет на практике проверить, что логарифмическое затухание веса не даёт горстке самых шумных токенов забирать батчи почти полностью.',
+        }),
+        metric('hot_batch_drawn_tickets_max', {
+          label: 'Hot Batch Drawn Tickets (max)',
+          color: MetricColor.Blue600,
+          aggregation: 'max',
+          description:
+            'Наибольший счётчик "билетиков" среди токенов, попавших в последний hot-batch (см. plans/43) — какой самый шумный токен был отобран и насколько сильно он оторвался от остальных. Резко растущее значение при низком hot_batch_drawn_tickets_avg — типичная картина при работающем логарифмическом затухании: единичные очень активные токены не тянут среднее вверх.',
         }),
         metric('account_state_refresh_total', {
           label: 'Account State Refreshes',
